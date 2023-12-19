@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        {% block head %}
+        {{ moment.include_moment() }}
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        {% block styles %}
+            <!-- Bootstrap CSS -->
+            {{ bootstrap.load_css() }}
+            <style>
+                .g-recaptcha {
+                    display: inline-block;
+                    width: fit-content;
+                }
+            </style>
+        {% endblock %}
+
+        <title>{{ page_title|default('Default Title') }}</title>
+
+        {% endblock %}
+    </head>
+    <body>
+        <!-- Your page content -->
+        {% block content %}{% endblock %}
+
+        {% block scripts %}
+        <!-- Optional JavaScript -->
+        {{ bootstrap.load_js() }}
+        {% endblock %}
+    </body>
+</html>

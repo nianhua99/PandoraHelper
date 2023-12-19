@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+{% set page_title = 'Enter Setup Password' %}
+{% block content %}
+        <div class="container vh-100">
+            <div class="row vh-100 justify-content-center align-items-center">
+                <div class="card border-0" style="width:400px">
+                    <div class="card-body">
+                        <h1 class="text-center block w-100"
+                            style="font-weight: 700;font-size: 1.9em;margin-bottom:24px; font-family: Söhne, -apple-system, BlinkMacSystemFont, Helvetica, sans-serif;color: rgb(45, 51, 58)"
+                        >
+                            Enter setup password
+                        </h1>
+                        <form action="/{{ api_prefix }}/login" method="post">
+                            {% with messages = get_flashed_messages(category_filter=["error"]) %}
+                                {% if messages %}
+                                    <div class="alert alert-danger" role="alert">
+                                        {% for message in messages %}
+                                            {{ message }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                            {{ form.hidden_tag() }}
+                            <div class="input-group input-group-lg block" style="margin-bottom:24px;">
+                                {{ form.password(class="form-control", id="password", required=True) }}
+                            </div>
+                            <div>
+                                <div class="h-captcha" style="margin-bottom:16px;transform: scale(1.13);transform-origin: 0 0;" data-sitekey="{{ site_key }}">
+                                </div>
+                                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100 border-0" style="height:48px;border-radius:6px;background-color: rgb(16, 163, 127);font-size: 16px;">Continue</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}
