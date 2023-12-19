@@ -71,7 +71,7 @@ def init_db():
 def connect_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(os.path.join(app.config['pandora_path'],DATABASE))
+        db = g._database = sqlite3.connect(os.path.join(app.config['pandora_path'], DATABASE))
         db.row_factory = sqlite3.Row
     return db
 
@@ -142,9 +142,15 @@ def check_require_config():
 from auth import auth
 from main import main
 
-if __name__ == '__main__':
+
+def create_app():
     check_require_config()
     init_db()
     app.register_blueprint(auth.auth_bp, url_prefix='/' + app.config['proxy_api_prefix'])
     app.register_blueprint(main.main_bp, url_prefix='/' + app.config['proxy_api_prefix'])
+    return app
+
+
+if __name__ == '__main__':
+    app = create_app()
     app.run(debug=True)
