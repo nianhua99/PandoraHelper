@@ -99,7 +99,7 @@ def check_require_config():
     PANDORA_NEXT_PATH = os.getenv('PANDORA_NEXT_PATH')
     PANDORA_NEXT_DOMAIN = os.getenv('PANDORA_NEXT_DOMAIN')
     if PANDORA_NEXT_DOMAIN is None or PANDORA_NEXT_PATH is None:
-        logger.error("请配置PandoraNext")
+        logger.error("请配置PandoraNext相关环境变量")
         exit(1)
     else:
         app.config.update(
