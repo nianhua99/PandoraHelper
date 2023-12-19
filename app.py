@@ -96,9 +96,17 @@ def after_request(result):
 
 
 def check_require_config():
+
     PANDORA_NEXT_PATH = os.getenv('PANDORA_NEXT_PATH')
+    # 如果PANDORA_NEXT_PATH 为空则检查/data下是否存在config.json
+    if PANDORA_NEXT_PATH is None:
+        if os.path.exists('/data/config.json'):
+            PANDORA_NEXT_PATH = '/data'
+        else:
+            logger.error("请配置PandoraNext相关环境变量")
+            exit(1)
     PANDORA_NEXT_DOMAIN = os.getenv('PANDORA_NEXT_DOMAIN')
-    if PANDORA_NEXT_DOMAIN is None or PANDORA_NEXT_PATH is None:
+    if PANDORA_NEXT_DOMAIN is None:
         logger.error("请配置PandoraNext相关环境变量")
         exit(1)
     else:
@@ -106,6 +114,7 @@ def check_require_config():
             pandora_path=PANDORA_NEXT_PATH,
             pandora_domain=PANDORA_NEXT_DOMAIN
         )
+
     with (open(os.path.join(PANDORA_NEXT_PATH, 'config.json'), 'r') as f):
         config = json.load(f)
         # 检查site_password是否已经配置和密码强度
