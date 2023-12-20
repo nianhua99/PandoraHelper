@@ -8,6 +8,7 @@
 * 一键启动定时器，每7天自动刷新所有`Access Token`和`Share Token`！
 * 在以上操作完成后，会自动更新`config.json`文件，并调用`reload` Api，直接生效 ！
 * 本项目保持低侵入性，不参与管理PandoraNext程序。只是方便刷新、管理账号和各种Token。
+![example.png](example.png)
 ## Docker部署
 ```bash
 $ docker pull q11391/pandora-next-helper
