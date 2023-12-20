@@ -32,7 +32,8 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 ## Todo
 - [ ] 展示Pandora额度信息
 - [ ] 生成指定账号下各Share Token的用量情况柱状图
-- [ ] 支持更多验证码
-- [ ] 支持更多PandoraNext配置
+- [ ] 支持管理Pool Token
 - [ ] 支持编辑
+- [ ] 支持更多PandoraNext配置
+- [ ] 支持更多验证码
 - [ ] ~~代码优化~~
