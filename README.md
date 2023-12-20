@@ -1,4 +1,5 @@
 # PandoraNext Helper
+~~GPT-4和Copilot帮助完成了本项目90%的代码~~
 ## 简单介绍
 * **使用Web页面管理你PandoraNext的所有Token！**
 * 支持添加 `账号\密码` ，一键获取`Access Token`和`Session Token`
@@ -32,3 +33,4 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 - [ ] 支持更多验证码
 - [ ] 支持更多PandoraNext配置
 - [ ] 支持编辑
+- [ ] ~~代码优化~~
