@@ -21,6 +21,9 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 * 请访问`<YOUR_PANDORA_NEXT_DOMAIN>/<PROXY_API_PREFIX>/login`进行使用！
 ## 注意事项
 * 本项目复用了PandoraNext的`config.json`文件，包括`setup_password`|`captcha`|`proxy_api_prefix`
+* 项目依赖两个环境变量
+  * `PANDORA_NEXT_PATH`: 指向PandoraNext的路径，如`/opt/pandora-next`
+  * `PANDORA_NEXT_DOMAIN`: 你的PandoraNext域名，如`https://www.baidu.com`
 * 以上配置全部是**必选**，否则无法使用本项目
 * 目前只支持`hcaptcha`
 * 项目会在你的`YOUR_PANDORA_NEXT_PATH`中生成`helper.db`文件，用于存储Token信息
