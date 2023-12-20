@@ -7,6 +7,7 @@ from flask_login import login_required
 
 import login_tools
 import share_tools
+import pandora_tools
 from app import scheduler
 
 main_bp = Blueprint('main', __name__)
@@ -21,7 +22,9 @@ def manage_users():
     for user in users:
         user['share_list'] = json.loads(user['share_list'])
     job_started = scheduler.get_job(id='my_job') is not None
-    return render_template('manage_users.html', users=users, job_started=job_started)
+
+    return render_template('manage_users.html',
+                           users=users, job_started=job_started, balance=pandora_tools.get_balance())
 
 
 @main_bp.route('/add-user', methods=['POST'])
@@ -143,17 +146,26 @@ def refresh_all_user():
     users = query_db('select * from users')
     for user in users:
         try:
+            # jwt解析access_token 检查access_token是否过期
+            if 'access_token' not in user or user['access_token'] is None:
+                continue
+            else:
+                token_info = pandora_tools.get_email_by_jwt(user['access_token'])
+                # 根据exp判断是否过期,如果过期则刷新
+                exp_time = datetime.fromtimestamp(token_info['exp'])
+                if exp_time > datetime.now():
+                    continue
             refresh(user['user_id'])
         except Exception as e:
             logger.error(e)
     sync()
-    login_tools.fresh_setup()
+    pandora_tools.fresh_setup()
 
 
 @main_bp.route('/start_timer')
 @login_required
 def refresh_task():
-    scheduler.add_job(func=refresh_all_user, trigger='interval', days=7, id='my_job')
+    scheduler.add_job(func=refresh_all_user, trigger='interval', minutes=1, id='my_job')
     return redirect(url_for('main.manage_users'))
 
 
@@ -170,7 +182,7 @@ def refresh_route(user_id):
     try:
         refresh(user_id)
         sync()
-        login_tools.fresh_setup()
+        pandora_tools.fresh_setup()
     except Exception as e:
         return jsonify({'code': 500, 'msg': '刷新失败: ' + str(e)}), 500
     return redirect(url_for('main.manage_users'))

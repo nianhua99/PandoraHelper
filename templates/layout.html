@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="h-100">
     <head>
         {% block head %}
         {{ moment.include_moment() }}
@@ -22,10 +22,10 @@
 
         {% endblock %}
     </head>
-    <body>
+    <body class="d-flex flex-column h-100">
         <!-- Your page content -->
-        {% block content %}{% endblock %}
-
+        {% block content %}
+        {% endblock %}
         {% block scripts %}
         <!-- Optional JavaScript -->
         {{ bootstrap.load_js() }}

@@ -36,17 +36,3 @@ def get_access_token(session_token):
     if response.status_code != 200:
         raise Exception("获取access_token失败")
     return response.json()
-
-
-def fresh_setup():
-    host = get_host()
-    response = requests.request("POST", host + "/api/setup/reload")
-    logger.info("重载：{}", response.json())
-    if response.status_code != 200:
-        raise Exception("重载失败")
-    return response.json()
-
-
-def get_email_by_jwt(token):
-    # 解析token
-    return jwt.decode(token, algorithms=['HS256'], options={"verify_signature": False})

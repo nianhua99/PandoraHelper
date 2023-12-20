@@ -142,6 +142,7 @@ def check_require_config():
             exit(1)
         else:
             app.config.update(
+                license_id=config['license_id'],
                 captcha_provider=config['captcha']['provider'],
                 captcha_site_key=config['captcha']['site_key'],
                 captcha_secret_key=config['captcha']['site_secret']

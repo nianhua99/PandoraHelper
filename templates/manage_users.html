@@ -1,13 +1,14 @@
 {% extends 'layout.html' %}
 {% set page_title = 'PandoraNext Helper' %}
 {% block content %}
-    <div class="container-lg">
+<div class="flex-shrink-0">
+    <div class="container">
         <nav class="navbar navbar-expand-lg" style="margin: 24px 0">
             <div class="container-fluid">
                 <h1 class="navbar-brand h1">PandoraNext Helper</h1>
             </div>
         </nav>
-        {#    操作栏#}
+        {# 操作栏#}
         <div class="row" style="margin: 24px 0">
             <div class="col-auto me-auto">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
@@ -60,9 +61,10 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                            <button type="submit" class="btn btn-primary" >
+                            <button type="submit" class="btn btn-primary">
                                 <span class="button-text">保存</span>
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                      style="display: none;"></span>
                             </button>
                         </div>
                     </form>
@@ -97,7 +99,8 @@
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
                             <button type="submit" class="btn btn-primary">
                                 <span class="button-text">保存</span>
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                      style="display: none;"></span>
                             </button>
                         </div>
                     </form>
@@ -120,161 +123,179 @@
             </thead>
             <tbody>
             {% for user in users %}
-                <tr>
-                    <th scope="row">
-                        <button class="btn btn- btn-small" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapseExample{{ user['id'] }}" aria-expanded="false"
-                                aria-controls="collapseExample">
-                            <i class="fa fa-angle-right"></i>
-                        </button>
-                        {{ user['id'] }}
-                    </th>
-                    <td>{{ user['email'] }}</td>
-                    <td>{{ user['password'] }}</td>
-                    <td>{{ '√' if user['session_token'] is not none else '×' }}</td>
-                    <td>{{ '√' if user['access_token'] is not none else '×' }}</td>
-                    <td>{{ '√' if user['shared'] == 1 else '×' }}</td>
-                    <td>{{ user['update_time'] }}</td>
-                    <td>
+            <tr>
+                <th scope="row">
+                    <button class="btn btn- btn-small" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseExample{{ user['id'] }}" aria-expanded="false"
+                            aria-controls="collapseExample">
+                        <i class="fa fa-angle-right"></i>
+                    </button>
+                    {{ user['id'] }}
+                </th>
+                <td>{{ user['email'] }}</td>
+                <td>{{ user['password'] }}</td>
+                <td>{{ '√' if user['session_token'] is not none else '×' }}</td>
+                <td>{{ '√' if user['access_token'] is not none else '×' }}</td>
+                <td>{{ '√' if user['shared'] == 1 else '×' }}</td>
+                <td>{{ user['update_time'] }}</td>
+                <td>
+                    <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addShareModal"
+                            data-bs-userid="{{ user['id'] }}"
+                    >
+                        新增
+                    </button>
+                    <div class="btn-group" role="group" aria-label="Basic outlined example">
                         <button
                                 type="button"
                                 class="btn btn-outline-primary btn-sm"
-                                data-bs-toggle="modal"
-                                data-bs-target="#addShareModal"
-                                data-bs-userid="{{ user['id'] }}"
+                                data-url="/{{ api_prefix }}/refresh/{{ user['id'] }}"
+                                onclick="refreshUser(this)"
                         >
-                            新增
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                  style="display: none;"></span>
+                            <span class="button-text">刷新</span>
                         </button>
-                        <div class="btn-group" role="group" aria-label="Basic outlined example">
-                            <button
-                                    type="button"
-                                    class="btn btn-outline-primary btn-sm"
-                                    data-url="/{{ api_prefix }}/refresh/{{ user['id'] }}"
-                                    onclick="refreshUser(this)"
-                            >
-                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
-                                    <span class="button-text">刷新</span>
-                            </button>
-                            <a type="button" class="btn btn-outline-danger btn-sm" href="/{{ api_prefix }}/delete-user/{{ user['id'] }}">删除</a>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="8" class="collapse" id="collapseExample{{ user['id'] }}">
-                        <table class="table align-middle">
-                            <tr>
-                                <th>Unique Name</th>
-                                <th>Password</th>
-                                <th>Share Token</th>
-                                <th>Operation</th>
-                            </tr>
-                            {% for share in user['share_list'] %}
-                                <tr>
-                                    <td>{{ share['unique_name'] }}</td>
-                                    <td>{{ share['password'] }}</td>
-                                    <td>{{ share['share_token'] }}</td>
-                                    <td>
-                                        <a href="/{{ api_prefix }}/delete-share/{{ user['id'] }}/{{ share['unique_name'] }}" type="button" class="btn btn-outline-danger btn-sm">删除</a>
-                                        {#Todo 编辑#}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    </td>
-                </tr>
+                        <a type="button" class="btn btn-outline-danger btn-sm"
+                           href="/{{ api_prefix }}/delete-user/{{ user['id'] }}">删除</a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="8" class="collapse" id="collapseExample{{ user['id'] }}">
+                    <table class="table align-middle">
+                        <tr>
+                            <th>Unique Name</th>
+                            <th>Password</th>
+                            <th>Share Token</th>
+                            <th>Operation</th>
+                        </tr>
+                        {% for share in user['share_list'] %}
+                        <tr>
+                            <td>{{ share['unique_name'] }}</td>
+                            <td>{{ share['password'] }}</td>
+                            <td>{{ share['share_token'] }}</td>
+                            <td>
+                                <a href="/{{ api_prefix }}/delete-share/{{ user['id'] }}/{{ share['unique_name'] }}"
+                                   type="button" class="btn btn-outline-danger btn-sm">删除</a>
+                                {#Todo 编辑#}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
             {% endfor %}
             </tbody>
         </table>
-    </div>
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11">
-        <div id="successToast" class="toast text-bg-success" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-body">
-{#                flash message#}
-                {{ message }}
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11">
+            <div id="successToast" class="toast text-bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-body">
+                    {# flash message#}
+                    {{ message }}
+                </div>
             </div>
         </div>
     </div>
-    <script>
-        const addShareModal = document.getElementById('addShareModal')
-        addShareModal.addEventListener('show.bs.modal', event => {
-            const button = event.relatedTarget
-            const recipient = button.getAttribute('data-bs-userid')
-            console.log(recipient)
-            const modalBodyInput = addShareModal.querySelector('.modal-body #user_id')
-            modalBodyInput.value = recipient
+</div>
+<footer class="footer mt-auto py-3">
+    <div class="container">
+       <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="{{ balance['current'] }}"
+             aria-valuemin="0" aria-valuemax="{{ balance['total'] }}">
+<!--            宽度-->
+            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{ ((balance['total'] | int) - balance['current']) / (balance['total'] | int) * 100 }}%">
+                剩余: {{ ((balance['total'] | int) - balance['current']) }} / {{ balance['total'] }}
+            </div>
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-dark-subtle text-black-50" style="width: {{ balance['current'] / (balance['total'] | int) * 100 }}%">
+                已用: {{ balance['current'] }}
+            </div>
+        </div>
+        <span class="w-100 d-block py-3" style="color: var(--bs-secondary-color)" >Powered By PandoraNext Helper</span>
+    </div>
+</footer>
+<script>
+    const addShareModal = document.getElementById('addShareModal')
+    addShareModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget
+        const recipient = button.getAttribute('data-bs-userid')
+        console.log(recipient)
+        const modalBodyInput = addShareModal.querySelector('.modal-body #user_id')
+        modalBodyInput.value = recipient
+    })
+    document.getElementById('addShareForm').addEventListener('submit', function (e) {
+        const submitButton = this.querySelector('button[type="submit"]');
+        const spinner = submitButton.querySelector('.spinner-border');
+        const buttonText = submitButton.querySelector('.button-text');
+        // 显示 spinner
+        spinner.style.display = 'inline-block';
+        buttonText.style.display = 'none';
+    });
+
+    document.getElementById('addUserForm').addEventListener('submit', function (event) {
+        // 阻止表单默认提交
+        event.preventDefault();
+        // 收集表单数据
+        let formData = new FormData(this);
+
+        const submitButton = this.querySelector('button[type="submit"]');
+        const spinner = submitButton.querySelector('.spinner-border');
+        const buttonText = submitButton.querySelector('.button-text');
+        // 显示 spinner
+        spinner.style.display = 'inline-block';
+        buttonText.style.display = 'none';
+        // 使用 fetch 发送数据
+        fetch("/{{ api_prefix }}/add-user", {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+            if (response.status === 200) {
+                window.location.reload();
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        }).finally(() => {
+            spinner.style.display = 'none';
+            buttonText.style.display = 'inline';
         })
-        document.getElementById('addShareForm').addEventListener('submit', function(e) {
-            const submitButton = this.querySelector('button[type="submit"]');
-            const spinner = submitButton.querySelector('.spinner-border');
-            const buttonText = submitButton.querySelector('.button-text');
-            // 显示 spinner
-            spinner.style.display = 'inline-block';
-            buttonText.style.display = 'none';
-        });
+    });
 
-        document.getElementById('addUserForm').addEventListener('submit', function(event) {
-            // 阻止表单默认提交
-            event.preventDefault();
-            // 收集表单数据
-            let formData = new FormData(this);
+    function refreshUser(button) {
+        var url = button.getAttribute('data-url');
+        var spinner = button.querySelector('.spinner-border');
+        var buttonText = button.querySelector('.button-text');
+        var toastEl = document.getElementById('successToast');
 
-            const submitButton = this.querySelector('button[type="submit"]');
-            const spinner = submitButton.querySelector('.spinner-border');
-            const buttonText = submitButton.querySelector('.button-text');
-            // 显示 spinner
-            spinner.style.display = 'inline-block';
-            buttonText.style.display = 'none';
-            // 使用 fetch 发送数据
-            fetch("/{{ api_prefix }}/add-user", {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                if (response.status === 200) {
-                    window.location.reload();
+        // 显示Spinner，隐藏文本
+        spinner.style.display = 'inline-block';
+        buttonText.style.display = 'none';
+        // 发送 AJAX 请求
+        fetch(url)
+            .then(response => {
+                    // 显示Toast消息
+                    if (response.status === 200) {
+                        toastEl.querySelector('.toast-body').innerText = '刷新成功';
+                        toastEl.classList.add('text-bg-success');
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        toastEl.querySelector('.toast-body').innerText = '刷新失败';
+                        toastEl.classList.add('text-bg-danger');
+                    }
+                    var toast = new bootstrap.Toast(toastEl);
+                    toast.show();
                 }
-            }).catch(error => {
+            )
+            .catch(error => {
                 console.error('Error:', error);
-            }).finally(() => {
+            })
+            .finally(() => {
                 spinner.style.display = 'none';
                 buttonText.style.display = 'inline';
-            })
-        });
-
-        function refreshUser(button) {
-            var url = button.getAttribute('data-url');
-            var spinner = button.querySelector('.spinner-border');
-            var buttonText = button.querySelector('.button-text');
-            var toastEl = document.getElementById('successToast');
-
-            // 显示Spinner，隐藏文本
-            spinner.style.display = 'inline-block';
-            buttonText.style.display = 'none';
-            // 发送 AJAX 请求
-            fetch(url)
-                .then(response => {
-                        // 显示Toast消息
-                        if(response.status === 200) {
-                            toastEl.querySelector('.toast-body').innerText = '刷新成功';
-                            toastEl.classList.add('text-bg-success');
-                            {#刷新页面#}
-                            setTimeout(function () {
-                                window.location.reload();
-                            }, 1000);
-                        } else {
-                            toastEl.querySelector('.toast-body').innerText = '刷新失败';
-                            toastEl.classList.add('text-bg-danger');
-                        }
-                        var toast = new bootstrap.Toast(toastEl);
-                        toast.show();
-                    }
-                )
-                .catch(error => {
-                    console.error('Error:', error);
-                })
-                .finally(() => {
-                    spinner.style.display = 'none';
-                    buttonText.style.display = 'inline';
-                });
-        }
-    </script>
+            });
+    }
+</script>
 {% endblock %}
