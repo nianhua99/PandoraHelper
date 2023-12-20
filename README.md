@@ -31,6 +31,7 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 * 项目会在你的`YOUR_PANDORA_NEXT_PATH`中生成`helper.db`文件，用于存储Token信息
 ## Todo
 - [ ] 展示Pandora额度信息
+- [ ] 生成指定账号下各Share Token的用量情况柱状图
 - [ ] 支持更多验证码
 - [ ] 支持更多PandoraNext配置
 - [ ] 支持编辑
