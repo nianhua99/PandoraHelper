@@ -19,7 +19,6 @@ def validate_hcaptcha_response(response):
     }
     r = requests.post(verify_url, data=payload)
     result = r.json()
-    print(result)
     return result['success']
 
 
@@ -45,7 +44,7 @@ def login():
             if not validate_hcaptcha_response(hcaptcha_response):
                 flash('Captcha is failed', 'error')
                 return render_template('login.html', form=form, site_key=site_key)
-            if password == current_app.config['site_password']:  # 检查密码是否正确
+            if password == current_app.config['setup_password']:  # 检查密码是否正确
                 user = User()
                 login_user(user)
                 return redirect(url_for('main.manage_users'))

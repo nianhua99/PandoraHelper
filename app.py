@@ -43,7 +43,6 @@ def unauthorized():
 
 @app.context_processor
 def context_api_prefix():
-    print(app.config['proxy_api_prefix'])
     return dict(api_prefix=app.config['proxy_api_prefix'])
 
 
@@ -117,16 +116,17 @@ def check_require_config():
 
     with (open(os.path.join(PANDORA_NEXT_PATH, 'config.json'), 'r') as f):
         config = json.load(f)
-        # 检查site_password是否已经配置和密码强度
+        # 检查setup_password是否已经配置和密码强度
         # 密码强度要求：8-16位，包含数字、字母、特殊字符
-        if config['site_password'] is None:
-            logger.error('请先配置config.json文件中的site_password')
+        logger.info(config)
+        if config['setup_password'] is None:
+            logger.error('请先配置setup_password')
             exit(1)
         elif re.match(r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";\'<>?,.\/]).{8,16}$',
-                      config['site_password']) is None:
-            logger.error('site_password强度不符合要求，请重新配置')
+                      config['setup_password']) is None:
+            logger.error('setup_password强度不符合要求，请重新配置')
             exit(1)
-        app.config.update(site_password=config['site_password'])
+        app.config.update(setup_password=config['setup_password'])
         # 必须配置proxy_api_prefix,且不少于8位，同时包含字母和数字
         if config['proxy_api_prefix'] is None or re.match(r'^(?=.*[a-zA-Z])(?=.*\d).{8,}$',
                                                           config['proxy_api_prefix']) is None:

@@ -29,7 +29,10 @@ def manage_users():
 def add_user():
     email = request.form['email']
     password = request.form['password']
-    shared = 1 if request.form['shared'] else 0
+    if 'shared' in request.form:
+        shared = 1 if request.form['shared'] == 'on' else 0
+    else:
+        shared = 0
     g.db.execute('insert into users (email, password, shared, share_list, create_time, update_time) values (?, ?, ?, '
                  '?, ?, ?)',
                  [email, password, shared, '[]', datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
