@@ -30,7 +30,7 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 * 目前只支持`hcaptcha`
 * 项目会在你的`YOUR_PANDORA_NEXT_PATH`中生成`helper.db`文件，用于存储Token信息
 ## Todo
-- [ ] 展示Pandora额度信息
+- [x] 展示Pandora额度信息
 - [ ] 生成指定账号下各Share Token的用量情况柱状图
 - [ ] Русская адаптация
 - [ ] 支持管理Pool Token
