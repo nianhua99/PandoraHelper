@@ -2,6 +2,7 @@ import json
 
 import requests
 import jwt
+from cachetools import cached, TTLCache
 from loguru import logger
 from flask import current_app
 
@@ -19,6 +20,8 @@ def fresh_setup():
     return response.json()
 
 
+# 1分钟缓存
+@cached(cache=TTLCache(ttl=60, maxsize=1))
 def get_balance():
     response = requests.request("GET", f"https://dash.pandoranext.com/api/{current_app.config['license_id']}/usage")
     return response.json()
