@@ -25,19 +25,23 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 ```bash
 $ git clone https://github.com/nianhua99/PandoraNext-Helper.git
 $ pip3 install -r requirements.txt
+# 修改以下域名为你PandoraNext的域名
+$ export PANDORA_NEXT_DOMAIN=https://www.baidu.com
+# 修改以下路径为你本机PandoraNext的路径，确保路径中包含config.json
+$ export PANDORA_NEXT_PATH=/path/to/pandora
+# 启动
 $ python3 waitress_run.py
-```
-```bash
-# 静默启动
+# 或者在后台启动
 $ nohup python3 waitress_run.py &
 ```
+**请访问`IP:8182/<PROXY_API_PREFIX>/login`进行使用！**
 ## 注意事项
 * 本项目复用了PandoraNext的`config.json`文件，包括`setup_password`|`captcha`|`proxy_api_prefix`
 * 项目依赖两个环境变量
   * `PANDORA_NEXT_PATH`: 指向PandoraNext的路径，如`/opt/pandora-next`
   * `PANDORA_NEXT_DOMAIN`: 你的PandoraNext域名，如`https://www.baidu.com`
+* 目前验证码只支持`hcaptcha`，你可以在这里获得 hcaptcha ：https://www.hcaptcha.com
 * 以上配置全部是**必选**，否则无法使用本项目
-* 目前只支持`hcaptcha`
 * 项目会在你的`YOUR_PANDORA_NEXT_PATH`中生成`helper.db`文件，用于存储Token信息
 ## Todo
 - [x] 展示Pandora额度信息
