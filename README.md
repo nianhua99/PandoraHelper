@@ -22,7 +22,7 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
     q11391/pandora-next-helper
 ```
 * 请替换`<YOUR_PANDORA_NEXT_PATH>`为你的PandoraNext路径, 如`/opt/pandora-next`, 请确保PandoraNext的`config.json`文件在此目录下。
-* 请替换`<YOUR_PANDORA_NEXT_DOMAIN>`为你的PandoraNext域名, 如`https://www.baidu.com`。
+* 请替换`<YOUR_PANDORA_NEXT_DOMAIN>`为你的PandoraNext域名, 如`https://www.baidu.com`，没有域名的话也可以使用IP，比如http://192.168.1.1:8181 这样，只能要访问到你的PandoraNext即可
 * **请访问`IP:8182/<PROXY_API_PREFIX>/login`进行使用！**
 ## 原生Python部署(Python3)
 ```shell
