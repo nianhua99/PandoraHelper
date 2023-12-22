@@ -1,4 +1,7 @@
-# PandoraNext Helper
+# PandoraNext Helper  
+![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
+![Static Badge](https://img.shields.io/badge/3.8%20%7C%203.9%20%7C%203.10-blue?label=Python)
+![Static Badge](https://img.shields.io/badge/%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9-green?label=doc)  
 ~~GPT-4和Copilot帮助完成了本项目90%的代码~~
 ## 简单介绍
 * **使用Web页面管理你PandoraNext的所有Token！**
