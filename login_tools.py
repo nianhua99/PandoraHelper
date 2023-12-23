@@ -2,6 +2,7 @@ import requests
 import jwt
 from loguru import logger
 from flask import current_app
+import urllib.parse
 
 
 def get_host():
@@ -13,7 +14,7 @@ def get_host():
 # 使用用户名和密码登录 /api/auth/login
 def login(username, password):
     host = get_host()
-    payload = f'username={username}&password={password}'
+    payload = f'username={urllib.parse.quote(username)}&password={urllib.parse.quote(password)}'
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded'
     }

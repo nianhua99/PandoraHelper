@@ -24,6 +24,8 @@ def fresh_setup():
 @cached(cache=TTLCache(ttl=60, maxsize=1))
 def get_balance():
     response = requests.request("GET", f"https://dash.pandoranext.com/api/{current_app.config['license_id']}/usage")
+    if response.status_code != 200 or 'current' not in response.json():
+        return {"current": 0,"total": "1"}
     return response.json()
 
 

@@ -108,6 +108,7 @@ def refresh(user_id):
         try:
             login_result = login_tools.login(user['email'], user['password'])
         except Exception as e:
+            logger.error(e)
             raise e
         access_token = login_result['access_token']
         session_token = login_result['session_token']
@@ -116,6 +117,7 @@ def refresh(user_id):
         try:
             access_token_result = login_tools.get_access_token(user['session_token'])
         except Exception as e:
+            logger.error(e)
             raise e
         access_token = access_token_result['access_token']
         session_token = access_token_result['session_token']
@@ -133,6 +135,7 @@ def refresh(user_id):
             share_token = share_tools.get_share_token(access_token, share['unique_name'])
         except Exception as e:
             # 返回刷新失败
+            logger.error(e)
             raise e
         share['share_token'] = share_token['token_key']
     # 更新share_list
