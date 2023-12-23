@@ -18,7 +18,7 @@ $ docker pull q11391/pandora-next-helper
 $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
     -p 8182:8182 \
     -v <YOUR_PANDORA_NEXT_PATH>:/data \
-    -e PANDORA_NEXT_DOMAIN:<YOUR_PANDORA_NEXT_DOMAIN> \
+    -e PANDORA_NEXT_DOMAIN=<YOUR_PANDORA_NEXT_DOMAIN> \
     q11391/pandora-next-helper
 ```
 * 请替换`<YOUR_PANDORA_NEXT_PATH>`为你的PandoraNext路径, 如`/opt/pandora-next`, 请确保PandoraNext的`config.json`文件在此目录下。
