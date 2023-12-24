@@ -8,7 +8,7 @@ from flask_login import login_required
 import login_tools
 import share_tools
 import pandora_tools
-from app import scheduler
+
 
 main_bp = Blueprint('main', __name__)
 
@@ -16,7 +16,7 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/manage-users')
 @login_required
 def manage_users():
-    from app import query_db
+    from app import query_db,scheduler
     users = query_db("select * from users")
     # 将share_list转换为json对象
     for user in users:
@@ -145,36 +145,43 @@ def refresh(user_id):
 
 
 def refresh_all_user():
-    from app import query_db
-    users = query_db('select * from users')
-    for user in users:
-        try:
-            # jwt解析access_token 检查access_token是否过期
-            if 'access_token' not in user or user['access_token'] is None:
-                continue
-            else:
-                token_info = pandora_tools.get_email_by_jwt(user['access_token'])
-                # 根据exp判断是否过期,如果过期则刷新
-                exp_time = datetime.fromtimestamp(token_info['exp'])
-                if exp_time > datetime.now():
+    from app import scheduler, app
+    with scheduler.app.app_context():
+        print(app.config)
+        from app import query_db
+        users = query_db('select * from users')
+        for user in users:
+            try:
+                # jwt解析access_token 检查access_token是否过期
+                if 'access_token' not in user or user['access_token'] is None:
                     continue
-            refresh(user['user_id'])
-        except Exception as e:
-            logger.error(e)
-    sync()
+                else:
+                    token_info = pandora_tools.get_email_by_jwt(user['access_token'])
+                    # 根据exp判断是否过期,如果过期则刷新
+                    exp_time = datetime.fromtimestamp(token_info['exp'])
+                    if exp_time > datetime.now():
+                        continue
+                refresh(user['user_id'])
+            except Exception as e:
+                logger.error(e)
+        sync_pandora()
 
 
 @main_bp.route('/start_timer')
 @login_required
 def refresh_task():
+    from app import scheduler
     scheduler.add_job(func=refresh_all_user, trigger='interval', minutes=1, id='my_job')
+    if not scheduler.running:
+        scheduler.start()
     return redirect(url_for('main.manage_users'))
 
 
 @main_bp.route('/kill_timer')
 @login_required
 def kill_refresh_task():
-    scheduler.remove_job(func=refresh_all_user, trigger='interval', days=7, id='my_job')
+    from app import scheduler
+    scheduler.remove_job(id='my_job')
     return redirect(url_for('main.manage_users'))
 
 
@@ -183,16 +190,13 @@ def kill_refresh_task():
 def refresh_route(user_id):
     try:
         refresh(user_id)
-        sync()
+        sync_pandora()
     except Exception as e:
         return jsonify({'code': 500, 'msg': '刷新失败: ' + str(e)}), 500
     return redirect(url_for('main.manage_users'))
 
 
-# 同步数据至tokens.json
-@main_bp.route('/sync')
-@login_required
-def sync():
+def make_json():
     from app import query_db
     users = query_db("select * from users")
     tokens = {}
@@ -233,6 +237,17 @@ def sync():
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'w') as f:
         # 美化json
         f.write(json.dumps(tokens, indent=4))
-    flash('同步成功', 'success')
+
+
+def sync_pandora():
+    make_json()
     pandora_tools.fresh_setup()
+
+
+# 同步数据至tokens.json
+@main_bp.route('/sync')
+@login_required
+def sync():
+    sync_pandora()
+    flash('同步成功', 'success')
     return redirect(url_for('main.manage_users'))
