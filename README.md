@@ -18,7 +18,7 @@ $ docker pull q11391/pandora-next-helper
 $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
     -p 8182:8182 \
     -v <YOUR_PANDORA_NEXT_PATH>:/data \
-    -e PANDORA_NEXT_DOMAIN:<YOUR_PANDORA_NEXT_DOMAIN> \
+    -e PANDORA_NEXT_DOMAIN="<YOUR_PANDORA_NEXT_DOMAIN>" \
     q11391/pandora-next-helper
 ```
 * 请替换`<YOUR_PANDORA_NEXT_PATH>`为你的PandoraNext路径, 如`/opt/pandora-next`, 请确保PandoraNext的`config.json`文件在此目录下。
@@ -38,6 +38,11 @@ $ python3 waitress_run.py
 $ nohup python3 waitress_run.py &
 ```
 **请访问`IP:8182/<PROXY_API_PREFIX>/login`进行使用！**
+## 如何借助本项目管理共享ChatGPT车？
+首先需要搭建完成PandoraNext项目，以及本项目  
+在Helper中，添加你的OpenAI账号 -> 点击刷新（获取登录凭证） -> 点击账号后的添加 -> 定义乘客登录时需要的账号密码  
+将乘客的账号密码（也叫UniqueName、Password）发送给乘客  
+至此，即完成了分享，每个乘客之间互相屏蔽，你也可以随时吊销乘客
 ## 注意事项
 * 本项目复用了PandoraNext的`config.json`文件，包括`setup_password`|`captcha`|`proxy_api_prefix`
 * 项目依赖两个环境变量
