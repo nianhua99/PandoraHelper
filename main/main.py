@@ -147,7 +147,6 @@ def refresh(user_id):
 def refresh_all_user():
     from app import scheduler, app
     with scheduler.app.app_context():
-        print(app.config)
         from app import query_db
         users = query_db('select * from users')
         for user in users:
