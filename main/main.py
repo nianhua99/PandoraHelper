@@ -162,7 +162,6 @@ def refresh_all_user():
         except Exception as e:
             logger.error(e)
     sync()
-    pandora_tools.fresh_setup()
 
 
 @main_bp.route('/start_timer')
@@ -185,7 +184,6 @@ def refresh_route(user_id):
     try:
         refresh(user_id)
         sync()
-        pandora_tools.fresh_setup()
     except Exception as e:
         return jsonify({'code': 500, 'msg': '刷新失败: ' + str(e)}), 500
     return redirect(url_for('main.manage_users'))
@@ -236,4 +234,5 @@ def sync():
         # 美化json
         f.write(json.dumps(tokens, indent=4))
     flash('同步成功', 'success')
+    pandora_tools.fresh_setup()
     return redirect(url_for('main.manage_users'))

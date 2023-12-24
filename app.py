@@ -114,7 +114,7 @@ def check_require_config():
             pandora_domain=PANDORA_NEXT_DOMAIN
         )
 
-    with (open(os.path.join(PANDORA_NEXT_PATH, 'config.json'), 'r') as f):
+    with open(os.path.join(PANDORA_NEXT_PATH, 'config.json'), 'r') as f:
         config = json.load(f)
         # 检查setup_password是否已经配置和密码强度
         # 密码强度要求：8-16位，包含数字、字母、特殊字符
@@ -122,7 +122,7 @@ def check_require_config():
         if config['setup_password'] is None:
             logger.error('请先配置setup_password')
             exit(1)
-        elif re.match(r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";\'<>?,.\/]).{8,16}$',
+        elif re.match(r'^(?=.*[a-zA-Z])(?=.*\d).{8,}$',
                       config['setup_password']) is None:
             logger.error('setup_password强度不符合要求，请重新配置')
             exit(1)
