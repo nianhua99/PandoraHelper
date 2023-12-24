@@ -4,6 +4,7 @@ import re
 import secrets
 import sqlite3
 
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from flask import Flask, g, redirect, url_for
 from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager
@@ -22,12 +23,6 @@ Moment().init_app(app)
 app.secret_key = secrets.token_hex(16)
 login_manager = LoginManager()
 login_manager.init_app(app)
-# 设置session保护等级
-login_manager.session_protection = 'strong'
-
-scheduler = APScheduler()
-scheduler.init_app(app)
-scheduler.start()
 
 
 # 用户加载函数
@@ -76,6 +71,9 @@ def connect_db():
 
 
 def query_db(query, args=(), one=False):
+    # 查看g对象是否存在db属性，如果不存在则创建
+    if not hasattr(g, 'db'):
+        g.db = connect_db()
     cur = g.db.execute(query, args)
     rv = [dict((cur.description[idx][0], value)
                for idx, value in enumerate(row)) for row in cur.fetchall()]
@@ -95,7 +93,6 @@ def after_request(result):
 
 
 def check_require_config():
-
     PANDORA_NEXT_PATH = os.getenv('PANDORA_NEXT_PATH')
     # 如果PANDORA_NEXT_PATH 为空则检查/data下是否存在config.json
     if PANDORA_NEXT_PATH is None:
@@ -152,15 +149,28 @@ def check_require_config():
 from auth import auth
 from main import main
 
+check_require_config()
+init_db()
+
+#scheduler jobstore
+app.config['SCHEDULER_JOBSTORES'] = {
+    'default': SQLAlchemyJobStore(url='sqlite:///' + os.path.join(app.config['pandora_path'], DATABASE))
+}
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+
 
 def create_app():
-    check_require_config()
-    init_db()
     app.register_blueprint(auth.auth_bp, url_prefix='/' + app.config['proxy_api_prefix'])
     app.register_blueprint(main.main_bp, url_prefix='/' + app.config['proxy_api_prefix'])
+    # 设置日志等级
+    import logging
+    logging.basicConfig()
+    logging.getLogger('apscheduler').setLevel(logging.DEBUG)
     return app
 
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=False)
