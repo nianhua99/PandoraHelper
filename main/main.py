@@ -97,6 +97,40 @@ def delete_share(user_id, unique_name):
     return redirect(url_for('main.manage_users'))
 
 
+# 获取ShareToken用量信息
+@main_bp.route('/share-info/<int:user_id>')
+def share_info(user_id):
+    from app import query_db
+    user = query_db('select * from users where id = ?', one=True, args=(user_id,))
+    if user['access_token'] is None:
+        return jsonify({'code': 500, 'msg': '请先刷新'})
+    share_list = json.loads(user['share_list'])
+    dims = ['UniqueNames']
+    sources = []
+    for share in share_list:
+        info = share_tools.get_share_token_info(share['share_token'], user['access_token'])
+        if 'usage' in info:
+            if 'range' in info['usage']:
+                # 删除range键值对
+                del info['usage']['range']
+
+        temp = {'UniqueNames': share['unique_name']}
+        for k, v in info['usage'].items():
+            # 尝试转换为int
+            try:
+                v = int(v)
+            except:
+                pass
+            temp[k] = v
+            dims.append(k)
+        sources.append(temp)
+    dims = list(set(dims))
+    return jsonify({
+        "dims": dims,
+        "source": sources
+    })
+
+
 def refresh(user_id):
     from app import query_db
     user = query_db('select * from users where id = ?', one=True, args=(user_id,))
@@ -146,6 +180,7 @@ def refresh(user_id):
 
 def refresh_all_user():
     from app import scheduler, app
+    flag = False
     with scheduler.app.app_context():
         from app import query_db
         users = query_db('select * from users')
@@ -160,10 +195,13 @@ def refresh_all_user():
                     exp_time = datetime.fromtimestamp(token_info['exp'])
                     if exp_time > datetime.now():
                         continue
+                flag = True
                 refresh(user['user_id'])
             except Exception as e:
                 logger.error(e)
-        sync_pandora()
+        if flag:
+            sync_pandora()
+            logger.info('刷新成功')
 
 
 @main_bp.route('/start_timer')
@@ -197,8 +235,11 @@ def refresh_route(user_id):
 
 def make_json():
     from app import query_db
+    from flask import current_app
+    import os
     users = query_db("select * from users")
-    tokens = {}
+    with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'r') as f:
+        tokens = json.loads(f.read())
     # 将share_list转换为json对象
     for user in users:
         # 当存在share_list时, 取所有share_token, 并写入tokens.json
@@ -227,11 +268,11 @@ def make_json():
                 tokens[user['email']]['shared'] = False
                 tokens[user['email']]['password'] = user['password']
     # 检测当前是否存在tokens.json,如果有则备份,文件名为tokens.json + 当前时间
-    import os
+
     if os.path.exists('tokens.json'):
         import time
         os.rename('tokens.json', 'tokens.json.' + time.strftime("%Y%m%d%H%M%S", time.localtime()))
-    from flask import current_app
+
     # 将数据写入tokens.json
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'w') as f:
         # 美化json

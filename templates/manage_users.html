@@ -108,24 +108,47 @@
             </div>
         </div>
 
+        <!-- 图表模态框 -->
+        <div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="chartModalLabel">用量信息</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- ECharts图表容器 -->
+                        <div id="chartContainer" style="height: 400px;"></div>
+                        <!-- Spinner -->
+                        <div id="chartSpinner" class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <table class="table table-hover text-center align-middle table-responsive">
             <thead>
-            <tr>
-                <th scope="col">id</th>
-                <th scope="col">Email</th>
-                <th scope="col">Password</th>
-                <th scope="col">Session Token</th>
-                <th scope="col">Access Token</th>
-                <th scope="col">Shared</th>
-                <th scope="col">Update/Refresh Time</th>
-                <th scope="col" style="width: 200px">Operation</th>
-            </tr>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Password</th>
+                    <th scope="col">Session Token</th>
+                    <th scope="col">Access Token</th>
+                    <th scope="col">Shared</th>
+                    <th scope="col">Update/Refresh Time</th>
+                    <th scope="col">Share</th>
+                    <th scope="col">Operation</th>
+                </tr>
             </thead>
             <tbody>
             {% for user in users %}
             <tr>
                 <th scope="row">
-                    <button class="btn btn- btn-small" type="button" data-bs-toggle="collapse"
+                    <button class="btn btn-small" type="button" data-bs-toggle="collapse"
                             data-bs-target="#collapseExample{{ user['id'] }}" aria-expanded="false"
                             aria-controls="collapseExample">
                         <i class="fa fa-angle-right"></i>
@@ -139,15 +162,20 @@
                 <td>{{ '√' if user['shared'] == 1 else '×' }}</td>
                 <td>{{ user['update_time'] }}</td>
                 <td>
-                    <button
-                            type="button"
-                            class="btn btn-outline-primary btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#addShareModal"
-                            data-bs-userid="{{ user['id'] }}"
-                    >
-                        新增
-                    </button>
+                    <div class="btn-group">
+                        <button
+                                type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#addShareModal"
+                                data-bs-userid="{{ user['id'] }}"
+                        >
+                            新增
+                        </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#chartModal" data-userid="{{ user['id'] }}">用量</button>
+                    </div>
+                </td>
+                <td>
                     <div class="btn-group" role="group" aria-label="Basic outlined example">
                         <button
                                 type="button"
@@ -165,7 +193,7 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="8" class="collapse" id="collapseExample{{ user['id'] }}">
+                <td colspan="9" class="collapse" id="collapseExample{{ user['id'] }}">
                     <table class="table align-middle">
                         <tr>
                             <th>Unique Name</th>
@@ -201,6 +229,7 @@
         </div>
     </div>
 </div>
+
 <footer class="footer mt-auto py-3">
     <div class="container">
        <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="{{ balance['current'] }}"
@@ -216,6 +245,7 @@
         <span class="w-100 d-block py-3" style="color: var(--bs-secondary-color)" >Powered By PandoraNext Helper</span>
     </div>
 </footer>
+
 <script>
     const addShareModal = document.getElementById('addShareModal')
     addShareModal.addEventListener('show.bs.modal', event => {
@@ -225,6 +255,44 @@
         const modalBodyInput = addShareModal.querySelector('.modal-body #user_id')
         modalBodyInput.value = recipient
     })
+    const chartModal = document.getElementById('chartModal')
+
+    chartModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget
+        const recipient = button.getAttribute('data-userid')
+        console.log(recipient)
+        const chartContainer = chartModal.querySelector('#chartContainer')
+        const chartSpinner = chartModal.querySelector('#chartSpinner')
+        chartContainer.style.display = 'none'
+        chartSpinner.style.display = 'block'
+        fetch('/{{ api_prefix }}/share-info/' + recipient)
+            .then(response => response.json())
+            .then(responseData => {
+                var option = {
+                    legend: {},
+                    tooltip: {},
+                    dataset: {
+                        dimensions: responseData['dims'],
+                        source: responseData['source']
+                    },
+                    xAxis: {type: 'category'},
+                    yAxis: {},
+                    series: []
+                }
+                for(var i = 1;i<responseData['dims'].length;i++){
+                    option['series'].push({type: 'bar'})
+                }
+                console.log(option)
+                chartSpinner.style.display = 'none'
+                chartContainer.style.display = 'block'
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(chartContainer);
+                myChart.setOption(option);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            })
+    })
     document.getElementById('addShareForm').addEventListener('submit', function (e) {
         const submitButton = this.querySelector('button[type="submit"]');
         const spinner = submitButton.querySelector('.spinner-border');
@@ -233,7 +301,6 @@
         spinner.style.display = 'inline-block';
         buttonText.style.display = 'none';
     });
-
     document.getElementById('addUserForm').addEventListener('submit', function (event) {
         // 阻止表单默认提交
         event.preventDefault();
