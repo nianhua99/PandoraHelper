@@ -105,7 +105,7 @@ def share_info(user_id):
     if user['access_token'] is None:
         return jsonify({'code': 500, 'msg': '请先刷新'})
     share_list = json.loads(user['share_list'])
-    dims = ['UniqueNames']
+    dims = []
     sources = []
     for share in share_list:
         info = share_tools.get_share_token_info(share['share_token'], user['access_token'])
@@ -113,7 +113,6 @@ def share_info(user_id):
             if 'range' in info['usage']:
                 # 删除range键值对
                 del info['usage']['range']
-
         temp = {'UniqueNames': share['unique_name']}
         for k, v in info['usage'].items():
             # 尝试转换为int
@@ -125,6 +124,8 @@ def share_info(user_id):
             dims.append(k)
         sources.append(temp)
     dims = list(set(dims))
+    # 在dims的头部插入UniqueNames
+    dims.insert(0, 'UniqueNames')
     return jsonify({
         "dims": dims,
         "source": sources
@@ -269,9 +270,10 @@ def make_json():
                 tokens[user['email']]['password'] = user['password']
     # 检测当前是否存在tokens.json,如果有则备份,文件名为tokens.json + 当前时间
 
-    if os.path.exists('tokens.json'):
+    if os.path.exists(os.path.join(current_app.config['pandora_path'], 'tokens.json')):
         import time
-        os.rename('tokens.json', 'tokens.json.' + time.strftime("%Y%m%d%H%M%S", time.localtime()))
+        os.rename(os.path.join(current_app.config['pandora_path'], 'tokens.json'),
+                  os.path.join(current_app.config['pandora_path'], 'tokens.json.' + time.strftime("%Y%m%d%H%M%S", time.localtime())))
 
     # 将数据写入tokens.json
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'w') as f:
