@@ -5,7 +5,7 @@
 ~~GPT-4和Copilot帮助完成了本项目90%的代码~~
 ## 简单介绍
 * **使用Web页面管理你PandoraNext的所有Token！**
-* **你无需了解各种Token的含义和获取方式，Helper帮你处理了这一切！**
+* **你无需了解各种Token如何获取、转换、刷新，Helper帮你处理了这一切！**
 * 支持添加 `账号\密码` ，一键获取`Access Token`和`Session Token`
 * 自动使用 `Session Token` 续期，节省Pandora额度！
 * 管理账号下的所有`Share Token`。支持一键刷新所有`Share Token`、吊销指定`Share Token`。
