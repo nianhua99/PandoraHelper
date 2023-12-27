@@ -152,10 +152,16 @@ def refresh(user_id):
         try:
             access_token_result = login_tools.get_access_token(user['session_token'])
         except Exception as e:
+            # session token过期，重新登录
             logger.error(e)
-            raise e
+            try:
+                access_token_result = login_tools.login(user['email'], user['password'])
+            except Exception as e:
+                logger.error(e)
+                raise e
         access_token = access_token_result['access_token']
         session_token = access_token_result['session_token']
+
     # 更新session_token 和 access_token
     g.db.execute(
         f"UPDATE users SET session_token = '{session_token}',access_token = '{access_token}',update_time = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}' WHERE id = {user['id']}")
