@@ -74,3 +74,6 @@ $ nohup python3 waitress_run.py &
 - [ ] 支持更多PandoraNext配置
 - [ ] 支持更多验证码
 - [ ] ~~代码优化~~
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nianhua99/PandoraNext-Helper&type=Date)](https://star-history.com/#nianhua99/PandoraNext-Helper&Date)
