@@ -20,7 +20,7 @@ def login(username, password):
     }
     response = requests.request("POST", host + "/api/auth/login", headers=headers, data=payload)
     if response.status_code != 200:
-        raise Exception(response.json())
+        raise Exception(response.text)
     logger.info("登录结果：{}", response.json())
     return response.json()
 
