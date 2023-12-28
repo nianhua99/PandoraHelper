@@ -5,7 +5,7 @@ from loguru import logger
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
 
-from app import db
+from model import db
 import login_tools
 import share_tools
 import pandora_tools

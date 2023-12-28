@@ -8,6 +8,7 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from flask import Flask, g, redirect, url_for
 from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_apscheduler import APScheduler
 from loguru import logger
@@ -112,6 +113,19 @@ scheduler.start()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.config['pandora_path'], DATABASE)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db.init_app(app)
+
+
+def include_object(object, name, type_, reflected, compare_to):
+    if (
+            type_ == "table" and name == "apscheduler_jobs"
+    ):
+        return False
+    else:
+        return True
+
+
+migrate = Migrate(include_object=include_object)
+migrate.init_app(app, db)
 
 
 def create_app():
