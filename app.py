@@ -41,57 +41,6 @@ def context_api_prefix():
     return dict(api_prefix=app.config['proxy_api_prefix'])
 
 
-def init_db():
-    with app.app_context():
-        db = connect_db()
-        db.execute('''
-            create table if not exists users
-            (
-                id            INTEGER
-                    primary key autoincrement,
-                email         TEXT not null,
-                password      TEXT not null,
-                session_token TEXT,
-                access_token  TEXT,
-                share_list    TEXT,
-                create_time   datetime,
-                update_time   datetime,
-                shared        INT default 0
-            )
-        ''')
-        db.commit()
-
-
-def connect_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(os.path.join(app.config['pandora_path'], DATABASE))
-        db.row_factory = sqlite3.Row
-    return db
-
-
-def query_db(query, args=(), one=False):
-    # 查看g对象是否存在db属性，如果不存在则创建
-    if not hasattr(g, 'db'):
-        g.db = connect_db()
-    cur = g.db.execute(query, args)
-    rv = [dict((cur.description[idx][0], value)
-               for idx, value in enumerate(row)) for row in cur.fetchall()]
-    return (rv[0] if rv else None) if one else rv
-
-
-@app.before_request
-def before_request():
-    g.db = connect_db()
-
-
-@app.after_request
-def after_request(result):
-    if hasattr(g, 'db'):
-        g.db.close()
-    return result
-
-
 def check_require_config():
     PANDORA_NEXT_PATH = os.getenv('PANDORA_NEXT_PATH')
     # 如果PANDORA_NEXT_PATH 为空则检查/data下是否存在config.json
@@ -148,17 +97,21 @@ def check_require_config():
 
 from auth import auth
 from main import main
+from model import db
 
 check_require_config()
-init_db()
 
-#scheduler jobstore
+# scheduler jobstore
 app.config['SCHEDULER_JOBSTORES'] = {
     'default': SQLAlchemyJobStore(url='sqlite:///' + os.path.join(app.config['pandora_path'], DATABASE))
 }
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.config['pandora_path'], DATABASE)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+db.init_app(app)
 
 
 def create_app():
@@ -168,6 +121,8 @@ def create_app():
     import logging
     logging.basicConfig()
     logging.getLogger('apscheduler').setLevel(logging.DEBUG)
+    with app.app_context():
+        db.create_all()
     return app
 
 

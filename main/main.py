@@ -2,13 +2,14 @@ import json
 from datetime import datetime
 from loguru import logger
 
-from flask import Blueprint, render_template, request, redirect, url_for, g, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
 
+from app import db
 import login_tools
 import share_tools
 import pandora_tools
-
+from model import User
 
 main_bp = Blueprint('main', __name__)
 
@@ -16,13 +17,12 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/manage-users')
 @login_required
 def manage_users():
-    from app import query_db,scheduler
-    users = query_db("select * from users")
+    from app import scheduler
+    users = db.session.query(User).all()
     # 将share_list转换为json对象
     for user in users:
-        user['share_list'] = json.loads(user['share_list'])
+        user.share_list = json.loads(user.share_list)
     job_started = scheduler.get_job(id='my_job') is not None
-
     return render_template('manage_users.html',
                            users=users, job_started=job_started, balance=pandora_tools.get_balance())
 
@@ -36,45 +36,44 @@ def add_user():
         shared = 1 if request.form['shared'] == 'on' else 0
     else:
         shared = 0
-    g.db.execute('insert into users (email, password, shared, share_list, create_time, update_time) values (?, ?, ?, '
-                 '?, ?, ?)',
-                 [email, password, shared, '[]', datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                  datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-    g.db.commit()
+    db.session.add(User(email=email, password=password, shared=shared,
+                        share_list='[]',
+                        create_time=datetime.now(),
+                        update_time=datetime.now()))
+    db.session.commit()
     return redirect(url_for('main.manage_users'))
 
 
 @main_bp.route('/delete-user/<int:user_id>')
 @login_required
 def delete_user(user_id):
-    g.db.execute('delete from users where id = ?', [user_id])
-    g.db.commit()
+    db.session.query(User).filter_by(id=user_id).delete()
+    db.session.commit()
     return redirect(url_for('main.manage_users'))
 
 
 @main_bp.route('/add-share', methods=['POST'])
 @login_required
 def add_share():
-    from app import query_db
     user_id = request.form.get('user_id')
     unique_name = request.form.get('unique_name')
     password = request.form.get('password')
-    user = query_db('select * from users where id = ?', one=True, args=(user_id,))
+    user = db.session.query(User).filter_by(id=user_id).first()
     try:
-        share_token = share_tools.get_share_token(user['access_token'], unique_name)
+        share_token = share_tools.get_share_token(user.access_token, unique_name)
     except Exception as e:
         flash('添加失败: ' + str(e), 'error')
         return redirect(url_for('main.manage_users'))
-    share_list = json.loads(user['share_list'])
+    share_list = json.loads(user.share_list)
     # 检查是否已经存在
     for share in share_list:
         if share['unique_name'] == unique_name:
             # 删除原有的share_token
             share_list.remove(share)
     share_list.append({'unique_name': unique_name, 'password': password, 'share_token': share_token['token_key']})
-    g.db.execute(
-        f"UPDATE users SET share_list = '{json.dumps(share_list)}',update_time = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}' WHERE id = {user_id}")
-    g.db.commit()
+    db.session.query(User).filter_by(id=user_id).update(
+        {'share_list': json.dumps(share_list), 'update_time': datetime.now()})
+    db.session.commit()
     flash('添加成功', 'success')
     return redirect(url_for('main.manage_users'))
 
@@ -82,17 +81,17 @@ def add_share():
 @main_bp.route('/delete-share/<int:user_id>/<unique_name>')
 @login_required
 def delete_share(user_id, unique_name):
-    from app import query_db
-    user = query_db('select * from users where id = ?', one=True, args=(user_id,))
-    share_list = json.loads(user['share_list'])
+    # user = query_db('select * from users where id = ?', one=True, args=(user_id,))
+    user = db.session.query(User).filter_by(id=user_id).first()
+    share_list = json.loads(user.share_list)
     for share in share_list:
         if share['unique_name'] == unique_name:
             share_list.remove(share)
             break
-    g.db.execute(
-        f"UPDATE users SET share_list = '{json.dumps(share_list)}',update_time = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}' WHERE id = {user_id}")
-    g.db.commit()
-    share_tools.get_share_token(user['access_token'], unique_name, expires_in=-1)
+    db.session.query(User).filter_by(id=user_id).update(
+        {'share_list': json.dumps(share_list), 'update_time': datetime.now()})
+    db.session.commit()
+    share_tools.get_share_token(user.access_token, unique_name, expires_in=-1)
     flash('删除成功', 'success')
     return redirect(url_for('main.manage_users'))
 
@@ -100,15 +99,15 @@ def delete_share(user_id, unique_name):
 # 获取ShareToken用量信息
 @main_bp.route('/share-info/<int:user_id>')
 def share_info(user_id):
-    from app import query_db
-    user = query_db('select * from users where id = ?', one=True, args=(user_id,))
-    if user['access_token'] is None:
+    # user = query_db('select * from users where id = ?', one=True, args=(user_id,))
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if user.access_token is None:
         return jsonify({'code': 500, 'msg': '请先刷新'})
-    share_list = json.loads(user['share_list'])
+    share_list = json.loads(user.share_list)
     dims = []
     sources = []
     for share in share_list:
-        info = share_tools.get_share_token_info(share['share_token'], user['access_token'])
+        info = share_tools.get_share_token_info(share['share_token'], user.access_token)
         if 'usage' in info:
             if 'range' in info['usage']:
                 # 删除range键值对
@@ -133,15 +132,14 @@ def share_info(user_id):
 
 
 def refresh(user_id):
-    from app import query_db
-    user = query_db('select * from users where id = ?', one=True, args=(user_id,))
+    user = db.session.query(User).filter_by(id=user_id).first()
     if user is None:
         return redirect(url_for('main.manage_users'))
     # 获取access_token
-    if user['session_token'] is None:
+    if user.session_token is None:
         # 登录获取session_token 扣额度
         try:
-            login_result = login_tools.login(user['email'], user['password'])
+            login_result = login_tools.login(user.email, user.password)
         except Exception as e:
             logger.error(e)
             raise e
@@ -150,12 +148,12 @@ def refresh(user_id):
     else:
         # 使用session_token 刷新access_token
         try:
-            access_token_result = login_tools.get_access_token(user['session_token'])
+            access_token_result = login_tools.get_access_token(user.session_token)
         except Exception as e:
             # session token过期，重新登录
             logger.error(e)
             try:
-                access_token_result = login_tools.login(user['email'], user['password'])
+                access_token_result = login_tools.login(user.email, user.password)
             except Exception as e:
                 logger.error(e)
                 raise e
@@ -163,11 +161,12 @@ def refresh(user_id):
         session_token = access_token_result['session_token']
 
     # 更新session_token 和 access_token
-    g.db.execute(
-        f"UPDATE users SET session_token = '{session_token}',access_token = '{access_token}',update_time = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}' WHERE id = {user['id']}")
-    g.db.commit()
+    db.session.query(User).filter_by(id=user_id).update(
+        {'session_token': session_token, 'access_token': access_token,
+         'update_time': datetime.now()})
+    db.session.commit()
     # 刷新share_token
-    share_list = json.loads(user['share_list'])
+    share_list = json.loads(user.share_list)
     if len(share_list) == 0:
         # 没有share token，直接返回
         return redirect(url_for('main.manage_users'))
@@ -180,30 +179,30 @@ def refresh(user_id):
             raise e
         share['share_token'] = share_token['token_key']
     # 更新share_list
-    g.db.execute(
-        f"UPDATE users SET share_list = '{json.dumps(share_list)}',update_time = '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}' WHERE id = {user['id']}")
-    g.db.commit()
+    db.session.query(User).filter_by(id=user_id).update(
+        {'share_list': json.dumps(share_list), 'update_time': datetime.now()})
+    db.session.commit()
+    return redirect(url_for('main.manage_users'))
 
 
 def refresh_all_user():
-    from app import scheduler, app
+    from app import scheduler
     flag = False
     with scheduler.app.app_context():
-        from app import query_db
-        users = query_db('select * from users')
+        users = db.session.query(User).all()
         for user in users:
             try:
                 # jwt解析access_token 检查access_token是否过期
-                if 'access_token' not in user or user['access_token'] is None:
+                if user.access_token is None:
                     continue
                 else:
-                    token_info = pandora_tools.get_email_by_jwt(user['access_token'])
+                    token_info = pandora_tools.get_email_by_jwt(user.access_token)
                     # 根据exp判断是否过期,如果过期则刷新
                     exp_time = datetime.fromtimestamp(token_info['exp'])
                     if exp_time > datetime.now():
                         continue
                 flag = True
-                refresh(user['user_id'])
+                refresh(user.id)
             except Exception as e:
                 logger.error(e)
         if flag:
@@ -241,17 +240,17 @@ def refresh_route(user_id):
 
 
 def make_json():
-    from app import query_db
     from flask import current_app
     import os
-    users = query_db("select * from users")
+    # users = query_db("select * from users")
+    users = db.session.query(User).all()
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'r') as f:
         tokens = json.loads(f.read())
     # 将share_list转换为json对象
     for user in users:
         # 当存在share_list时, 取所有share_token, 并写入tokens.json
-        if user['share_list'] is not None and user['share_list'] != '[]':
-            share_list = json.loads(user['share_list'])
+        if user.share_list is not None and user.share_list != '[]':
+            share_list = json.loads(user.share_list)
             for share in share_list:
                 # json中有share_token和password才写入
                 if 'share_token' in share and 'password' in share:
@@ -260,22 +259,21 @@ def make_json():
                         'password': share['password']
                     }
         else:
-            if user['session_token'] is None:
+            if user.session_token is None:
                 continue
             # 当不存在share_list时, 取session_token, 并写入tokens.json
             # Todo 自定义 plus / show_user_info
-            tokens[user['email']] = {
-                'token': user['access_token'],
+            tokens[user.email] = {
+                'token': user.access_token,
                 # Todo 自定义
                 'show_user_info': False,
             }
-            if user['shared'] == 1:
-                tokens[user['email']]['shared'] = True
+            if user.shared == 1:
+                tokens[user.email]['shared'] = True
             else:
-                tokens[user['email']]['shared'] = False
-                tokens[user['email']]['password'] = user['password']
+                tokens[user.email]['shared'] = False
+                tokens[user.email]['password'] = user.password
     # 检测当前是否存在tokens.json,如果有则备份,文件名为tokens.json + 当前时间
-
     if os.path.exists(os.path.join(current_app.config['pandora_path'], 'tokens.json')):
         import time
         os.rename(os.path.join(current_app.config['pandora_path'], 'tokens.json'),

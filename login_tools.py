@@ -20,6 +20,8 @@ def login(username, password):
     }
     response = requests.request("POST", host + "/api/auth/login", headers=headers, data=payload)
     if response.status_code != 200:
+        if response.status_code == 404:
+            raise Exception("接口不存在,请检查Pandora是否配置正确")
         raise Exception(response.text)
     logger.info("登录结果：{}", response.json())
     return response.json()
