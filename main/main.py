@@ -81,7 +81,6 @@ def add_share():
 @main_bp.route('/delete-share/<int:user_id>/<unique_name>')
 @login_required
 def delete_share(user_id, unique_name):
-    # user = query_db('select * from users where id = ?', one=True, args=(user_id,))
     user = db.session.query(User).filter_by(id=user_id).first()
     share_list = json.loads(user.share_list)
     for share in share_list:
@@ -99,7 +98,6 @@ def delete_share(user_id, unique_name):
 # 获取ShareToken用量信息
 @main_bp.route('/share-info/<int:user_id>')
 def share_info(user_id):
-    # user = query_db('select * from users where id = ?', one=True, args=(user_id,))
     user = db.session.query(User).filter_by(id=user_id).first()
     if user.access_token is None:
         return jsonify({'code': 500, 'msg': '请先刷新'})
@@ -242,7 +240,6 @@ def refresh_route(user_id):
 def make_json():
     from flask import current_app
     import os
-    # users = query_db("select * from users")
     users = db.session.query(User).all()
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'r') as f:
         tokens = json.loads(f.read())
