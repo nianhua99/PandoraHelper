@@ -5,7 +5,7 @@ import secrets
 import sqlite3
 
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from flask import Flask, g, redirect, url_for
+from flask import Flask, redirect, url_for
 from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -135,8 +135,6 @@ def create_app():
     import logging
     logging.basicConfig()
     logging.getLogger('apscheduler').setLevel(logging.DEBUG)
-    with app.app_context():
-        db.create_all()
     return app
 
 

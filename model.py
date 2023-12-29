@@ -14,6 +14,7 @@ class User(db.Model):
     create_time = db.Column(db.DateTime)
     update_time = db.Column(db.DateTime)
     shared = db.Column(db.Integer)
+    refresh_token = db.Column(db.Text)
 
     def __repr__(self):
-        return '<User %r>' % (self.username)
+        return '<User %r>' % self.username
