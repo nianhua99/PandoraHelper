@@ -1,368 +1,445 @@
 {% extends 'layout.html' %}
 {% set page_title = 'PandoraNext Helper' %}
 {% block content %}
-<div class="flex-shrink-0">
-    <div class="container">
-        <nav class="navbar navbar-expand-lg" style="margin: 24px 0">
-            <div class="container-fluid">
-                <h1 class="navbar-brand h1">PandoraNext Helper</h1>
-            </div>
-        </nav>
-        {# 操作栏#}
-        <div class="row" style="margin: 24px 0">
-            <div class="col-auto me-auto">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                    添加用户
-                </button>
-                {% if not job_started %}
-                    <a type="button" class="btn btn-primary" href="/{{ api_prefix }}/start_timer">
-                        <i class="fa fa-clock-o"></i>
-                        定时刷新
+    <div class="flex-shrink-0">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg" style="margin: 24px 0">
+                <div class="container-fluid">
+                    <h1 class="navbar-brand h1">PandoraNext Helper</h1>
+                </div>
+            </nav>
+            {# 操作栏#}
+            <div class="row" style="margin: 24px 0">
+                <div class="col-auto me-auto">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        添加用户
+                    </button>
+                    {% if not job_started %}
+                        <a type="button" class="btn btn-primary" href="/{{ api_prefix }}/start_timer">
+                            <i class="fa fa-clock-o"></i>
+                            定时刷新
+                        </a>
+                    {% else %}
+                        <a type="button" class="btn btn-primary" href="/{{ api_prefix }}/kill_timer">
+                            关闭定时
+                        </a>
+                    {% endif %}
+                    <a type="button" class="btn btn-primary" href="/{{ api_prefix }}/sync">
+                        <i class="fa fa-refresh"></i> 同步至PandoraNext
                     </a>
-                {% else %}
-                    <a type="button" class="btn btn-primary" href="/{{ api_prefix }}/kill_timer">
-                        关闭定时
+                </div>
+                <div class="col-auto">
+                    <a class="btn btn-secondary" href="/{{ api_prefix }}/logout">
+                        退出登录
                     </a>
-                {% endif %}
-                <a type="button" class="btn btn-primary" href="/{{ api_prefix }}/sync">
-                    <i class="fa fa-refresh"></i> 同步至PandoraNext
-                </a>
-            </div>
-            <div class="col-auto">
-                <a class="btn btn-secondary" href="/{{ api_prefix }}/logout">
-                    退出登录
-                </a>
-            </div>
-        </div>
-        <!-- 添加用户的模态框 -->
-        <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form id="addUserForm" method="post">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addUserModalLabel">添加新用户</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="emailInput" class="form-label">邮箱</label>
-                                <input type="email" name="email" class="form-control" id="emailInput" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="passwordInput" class="form-label">密码</label>
-                                <input type="password" name="password" class="form-control" id="passwordInput" required>
-                            </div>
-                            <div class="form-check">
-                                <label class="form-check-label" for="flexCheckDefault">
-                                    共享
-                                </label>
-                                <input class="form-check-input" name="shared" type="checkbox" id="flexCheckDefault">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                            <button type="submit" class="btn btn-primary">
-                                <span class="button-text">保存</span>
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
-                                      style="display: none;"></span>
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
-        </div>
-
-        <!-- 添加乘客的模态框 -->
-        <div class="modal fade" id="addShareModal" tabindex="-1" aria-labelledby="addShareModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form id="addShareForm" method="post" action="/{{ api_prefix }}/add-share">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addShareModalLabel">添加新乘客</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="unique_name" class="form-label">Unique Name</label>
-                                <input name="unique_name" class="form-control" id="unique_name"
-                                       placeholder="一个唯一的乘客名" required>
+            <!-- 添加用户的模态框 -->
+            <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="addUserForm" method="post">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addUserModalLabel">添加新用户</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
                             </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input name="password" class="form-control" id="password"
-                                       placeholder="Password" required>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="emailInput" class="form-label">邮箱</label>
+                                    <input type="email" name="email" class="form-control" id="emailInput" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="passwordInput" class="form-label">密码</label>
+                                    <input type="password" name="password" class="form-control" id="passwordInput"
+                                           required>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <label class="form-check-label" for="flexCheckDefault">
+                                            共享
+                                        </label>
+                                        <input class="form-check-input" name="shared" type="checkbox"
+                                               id="flexCheckDefault">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="accordion">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingTwo">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#collapseTwo"
+                                                        aria-expanded="false" aria-controls="collapseTwo">
+                                                    自定义Token
+                                                </button>
+                                            </h2>
+                                            <div id="collapseTwo" class="accordion-collapse collapse"
+                                                 aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                                                <div class="accordion-body">
+                                                    <div class="mb-2">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                   name="custom_token_type" id="type1" value="session_token" checked>
+                                                            <label class="form-check-label" for="type1">
+                                                                Session Token
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                   name="custom_token_type" id="type2" value="refresh_token">
+                                                            <label class="form-check-label" for="type2">
+                                                                Refresh Token
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-text">系统会根据上方选择的类型获取Token</div>
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <div class="input-group-text">Token</div>
+                                                        <textarea name="custom_token" class="form-control"
+                                                                  id="custom_token" rows="3" ></textarea>
+                                                    </div>
+                                                    <div class="form-text">当你使用第三方登录时, 需要自行输入Token, 不需要请留空</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <input hidden="hidden" name="user_id" id="user_id">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                            <button type="submit" class="btn btn-primary">
-                                <span class="button-text">保存</span>
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
-                                      style="display: none;"></span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- 图表模态框 -->
-        <div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="chartModalLabel">用量信息</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- ECharts图表容器 -->
-                        <div id="chartContainer" style="height: 400px;"></div>
-                        <!-- Spinner -->
-                        <div id="chartSpinner" class="text-center">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">加载中...</span>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="button-text">保存</span>
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                          style="display: none;"></span>
+                                </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <table class="table table-hover text-center align-middle table-responsive">
-            <thead>
+            <!-- 添加乘客的模态框 -->
+            <div class="modal fade" id="addShareModal" tabindex="-1" aria-labelledby="addShareModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="addShareForm" method="post" action="/{{ api_prefix }}/add-share">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addShareModalLabel">添加新乘客</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="unique_name" class="form-label">Unique Name</label>
+                                    <input name="unique_name" class="form-control" id="unique_name"
+                                           placeholder="一个唯一的乘客名" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input name="password" class="form-control" id="password"
+                                           placeholder="Password" required>
+                                </div>
+                                <input hidden="hidden" name="user_id" id="user_id">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="button-text">保存</span>
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                          style="display: none;"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表模态框 -->
+            <div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="chartModalLabel">用量信息</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- ECharts图表容器 -->
+                            <div id="chartContainer" style="height: 400px;"></div>
+                            <!-- Spinner -->
+                            <div id="chartSpinner" class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-hover text-center align-middle table-responsive">
+                <thead>
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col" class="text-truncate" style="max-width: 150px">Email</th>
                     <th scope="col" class="text-truncate" style="max-width: 150px">Password</th>
-                    <th scope="col">Session Token</th>
+                    <th scope="col">Session/Refresh Token</th>
                     <th scope="col">Access Token</th>
                     <th scope="col">Shared</th>
                     <th scope="col">Update/Refresh Time</th>
                     <th scope="col" style="width: 130px">Share</th>
                     <th scope="col" style="width: 130px">Operation</th>
                 </tr>
-            </thead>
-            <tbody>
-            {% for user in users %}
-            <tr>
-                <th scope="row">
-                    <button class="btn btn-small" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseExample{{ user['id'] }}" aria-expanded="false"
-                            aria-controls="collapseExample">
-                        <i class="fa fa-angle-right"></i>
-                    </button>
-                    {{ user['id'] }}
-                </th>
-                <td>{{ user['email'] }}</td>
-                <td>{{ user['password'] }}</td>
-                <td>{{ '√' if user['session_token'] is not none else '×' }}</td>
-                <td>{{ '√' if user['access_token'] is not none else '×' }}</td>
-                <td>{{ '√' if user['shared'] == 1 else '×' }}</td>
-                <td>{{ user['update_time'] }}</td>
-                <td>
-                    <div class="btn-group">
-                        <button
-                                type="button"
-                                class="btn btn-outline-primary btn-sm"
-                                data-bs-toggle="modal"
-                                data-bs-target="#addShareModal"
-                                data-bs-userid="{{ user['id'] }}"
-                        >
-                            新增
-                        </button>
-                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#chartModal" data-userid="{{ user['id'] }}">用量</button>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <th scope="row">
+                            <button class="btn btn-small" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseExample{{ user['id'] }}" aria-expanded="false"
+                                    aria-controls="collapseExample">
+                                <i class="fa fa-angle-right"></i>
+                            </button>
+                            {{ user['id'] }}
+                        </th>
+                        <td>{{ user['email'] }}</td>
+                        <td>{{ user['password'] }}</td>
+                        <td>
+                            {% if user['session_token'] is none and user['refresh_token'] is none %}
+                            <i class="fa fa-times"></i>
+                            {% elif user['refresh_token'] is not none %}
+                            <span class="badge text-bg-success">Refresh Token</span>
+                            {% else %}
+                            <span class="badge text-bg-primary">Session Token</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user['access_token'] is not none %}
+                            <i class="fa fa-check"></i>
+                            {% else %}
+                            <i class="fa fa-times"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user['shared'] == 1 %}
+                            <i class="fa fa-check"></i>
+                            {% else %}
+                            <i class="fa fa-times"></i>
+                            {% endif %}
+                        </td>
+                        <td>{{ user['update_time']|datetime }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <button
+                                        type="button"
+                                        class="btn btn-outline-primary btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#addShareModal"
+                                        data-bs-userid="{{ user['id'] }}"
+                                        {{ 'disabled' if user['access_token'] is none }}
+                                >
+                                    新增
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                        {{ 'disabled' if user['access_token'] is none or user['share_list'] == [] }}
+                                        data-bs-target="#chartModal" data-userid="{{ user['id'] }}">用量
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Basic outlined example">
+                                <button
+                                        type="button"
+                                        class="btn btn-outline-primary btn-sm"
+                                        data-url="/{{ api_prefix }}/refresh/{{ user['id'] }}"
+                                        onclick="refreshUser(this)"
+                                >
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                        style="display: none;"></span>
+                                    <span class="button-text"><i class="fa fa-check-square-o"> 刷新</i></span>
+                                </button>
+                                <a type="button" class="btn btn-outline-danger btn-sm"
+                                   href="/{{ api_prefix }}/delete-user/{{ user['id'] }}">删除</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="9" class="collapse" id="collapseExample{{ user['id'] }}">
+                            <table class="table align-middle">
+                                <tr>
+                                    <th>Unique Name</th>
+                                    <th>Password</th>
+                                    <th>Share Token</th>
+                                    <th>Operation</th>
+                                </tr>
+                                {% for share in user['share_list'] %}
+                                    <tr>
+                                        <td>{{ share['unique_name'] }}</td>
+                                        <td>{{ share['password'] }}</td>
+                                        <td>{{ share['share_token'] }}</td>
+                                        <td>
+                                            <a href="/{{ api_prefix }}/delete-share/{{ user['id'] }}/{{ share['unique_name'] }}"
+                                               type="button" class="btn btn-outline-danger btn-sm">删除</a>
+                                            {#Todo 编辑#}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11">
+                <div id="successToast" class="toast text-bg-success" role="alert" aria-live="assertive"
+                     aria-atomic="true">
+                    <div class="toast-body">
+                        {# flash message#}
+                        {{ message }}
                     </div>
-                </td>
-                <td>
-                    <div class="btn-group" role="group" aria-label="Basic outlined example">
-                        <button
-                                type="button"
-                                class="btn btn-outline-primary btn-sm"
-                                data-url="/{{ api_prefix }}/refresh/{{ user['id'] }}"
-                                onclick="refreshUser(this)"
-                        >
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
-                                  style="display: none;"></span>
-                            <span class="button-text">刷新</span>
-                        </button>
-                        <a type="button" class="btn btn-outline-danger btn-sm"
-                           href="/{{ api_prefix }}/delete-user/{{ user['id'] }}">删除</a>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="9" class="collapse" id="collapseExample{{ user['id'] }}">
-                    <table class="table align-middle">
-                        <tr>
-                            <th>Unique Name</th>
-                            <th>Password</th>
-                            <th>Share Token</th>
-                            <th>Operation</th>
-                        </tr>
-                        {% for share in user['share_list'] %}
-                        <tr>
-                            <td>{{ share['unique_name'] }}</td>
-                            <td>{{ share['password'] }}</td>
-                            <td>{{ share['share_token'] }}</td>
-                            <td>
-                                <a href="/{{ api_prefix }}/delete-share/{{ user['id'] }}/{{ share['unique_name'] }}"
-                                   type="button" class="btn btn-outline-danger btn-sm">删除</a>
-                                {#Todo 编辑#}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11">
-            <div id="successToast" class="toast text-bg-success" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-body">
-                    {# flash message#}
-                    {{ message }}
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<footer class="footer mt-auto py-3">
-    <div class="container">
-       <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="{{ balance['current'] }}"
-             aria-valuemin="0" aria-valuemax="{{ balance['total'] }}">
-<!--            宽度-->
-            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{ ((balance['total'] | int) - balance['current']) / (balance['total'] | int) * 100 }}%">
-                剩余: {{ ((balance['total'] | int) - balance['current']) }} / {{ balance['total'] }}
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <div class="progress" role="progressbar" aria-label="Animated striped example"
+                 aria-valuenow="{{ balance['current'] }}"
+                 aria-valuemin="0" aria-valuemax="{{ balance['total'] }}">
+                <!--            宽度-->
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     style="width: {{ ((balance['total'] | int) - balance['current']) / (balance['total'] | int) * 100 }}%">
+                    剩余: {{ ((balance['total'] | int) - balance['current']) }} / {{ balance['total'] }}
+                </div>
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-dark-subtle text-black-50"
+                     style="width: {{ balance['current'] / (balance['total'] | int) * 100 }}%">
+                    已用: {{ balance['current'] }}
+                </div>
             </div>
-            <div class="progress-bar progress-bar-striped progress-bar-animated bg-dark-subtle text-black-50" style="width: {{ balance['current'] / (balance['total'] | int) * 100 }}%">
-                已用: {{ balance['current'] }}
-            </div>
+            <span class="w-100 d-block py-3"
+                  style="color: var(--bs-secondary-color)">Powered By PandoraNext Helper</span>
         </div>
-        <span class="w-100 d-block py-3" style="color: var(--bs-secondary-color)" >Powered By PandoraNext Helper</span>
-    </div>
-</footer>
+    </footer>
 
-<script>
-    const addShareModal = document.getElementById('addShareModal')
-    addShareModal.addEventListener('show.bs.modal', event => {
-        const button = event.relatedTarget
-        const recipient = button.getAttribute('data-bs-userid')
-        console.log(recipient)
-        const modalBodyInput = addShareModal.querySelector('.modal-body #user_id')
-        modalBodyInput.value = recipient
-    })
-    const chartModal = document.getElementById('chartModal')
-
-    chartModal.addEventListener('show.bs.modal', event => {
-        const button = event.relatedTarget
-        const recipient = button.getAttribute('data-userid')
-        console.log(recipient)
-        const chartContainer = chartModal.querySelector('#chartContainer')
-        const chartSpinner = chartModal.querySelector('#chartSpinner')
-        chartContainer.style.display = 'none'
-        chartSpinner.style.display = 'block'
-        fetch('/{{ api_prefix }}/share-info/' + recipient)
-            .then(response => response.json())
-            .then(responseData => {
-                var option = {
-                    legend: {},
-                    tooltip: {},
-                    dataset: {
-                        dimensions: responseData['dims'],
-                        source: responseData['source']
-                    },
-                    xAxis: {type: 'category'},
-                    yAxis: {},
-                    series: []
-                }
-                for(var i = 1;i<responseData['dims'].length;i++){
-                    option['series'].push({type: 'bar'})
-                }
-                console.log(option)
-                chartSpinner.style.display = 'none'
-                chartContainer.style.display = 'block'
-                // 基于准备好的dom，初始化echarts实例
-                var myChart = echarts.init(chartContainer);
-                myChart.setOption(option);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            })
-    })
-    document.getElementById('addShareForm').addEventListener('submit', function (e) {
-        const submitButton = this.querySelector('button[type="submit"]');
-        const spinner = submitButton.querySelector('.spinner-border');
-        const buttonText = submitButton.querySelector('.button-text');
-        // 显示 spinner
-        spinner.style.display = 'inline-block';
-        buttonText.style.display = 'none';
-    });
-    document.getElementById('addUserForm').addEventListener('submit', function (event) {
-        // 阻止表单默认提交
-        event.preventDefault();
-        // 收集表单数据
-        let formData = new FormData(this);
-
-        const submitButton = this.querySelector('button[type="submit"]');
-        const spinner = submitButton.querySelector('.spinner-border');
-        const buttonText = submitButton.querySelector('.button-text');
-        // 显示 spinner
-        spinner.style.display = 'inline-block';
-        buttonText.style.display = 'none';
-        // 使用 fetch 发送数据
-        fetch("/{{ api_prefix }}/add-user", {
-            method: 'POST',
-            body: formData
-        }).then(response => {
-            if (response.status === 200) {
-                window.location.reload();
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-        }).finally(() => {
-            spinner.style.display = 'none';
-            buttonText.style.display = 'inline';
+    <script>
+        const addShareModal = document.getElementById('addShareModal')
+        addShareModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const recipient = button.getAttribute('data-bs-userid')
+            console.log(recipient)
+            const modalBodyInput = addShareModal.querySelector('.modal-body #user_id')
+            modalBodyInput.value = recipient
         })
-    });
+        const chartModal = document.getElementById('chartModal')
 
-    function refreshUser(button) {
-        var url = button.getAttribute('data-url');
-        var spinner = button.querySelector('.spinner-border');
-        var buttonText = button.querySelector('.button-text');
-        var toastEl = document.getElementById('successToast');
-
-        // 显示Spinner，隐藏文本
-        spinner.style.display = 'inline-block';
-        buttonText.style.display = 'none';
-        // 发送 AJAX 请求
-        fetch(url)
-            .then(response => {
-                    // 显示Toast消息
-                    if (response.status === 200) {
-                        toastEl.querySelector('.toast-body').innerText = '刷新成功';
-                        toastEl.classList.add('text-bg-success');
-                        setTimeout(function () {
-                            window.location.reload();
-                        }, 1000);
-                    } else {
-                        toastEl.querySelector('.toast-body').innerText = '刷新失败';
-                        toastEl.classList.add('text-bg-danger');
+        chartModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const recipient = button.getAttribute('data-userid')
+            console.log(recipient)
+            const chartContainer = chartModal.querySelector('#chartContainer')
+            const chartSpinner = chartModal.querySelector('#chartSpinner')
+            chartContainer.style.display = 'none'
+            chartSpinner.style.display = 'block'
+            fetch('/{{ api_prefix }}/share-info/' + recipient)
+                .then(response => response.json())
+                .then(responseData => {
+                    var option = {
+                        legend: {},
+                        tooltip: {},
+                        dataset: {
+                            dimensions: responseData['dims'],
+                            source: responseData['source']
+                        },
+                        xAxis: {type: 'category'},
+                        yAxis: {},
+                        series: []
                     }
-                    var toast = new bootstrap.Toast(toastEl);
-                    toast.show();
+                    for (var i = 1; i < responseData['dims'].length; i++) {
+                        option['series'].push({type: 'bar'})
+                    }
+                    console.log(option)
+                    chartSpinner.style.display = 'none'
+                    chartContainer.style.display = 'block'
+                    // 基于准备好的dom，初始化echarts实例
+                    var myChart = echarts.init(chartContainer);
+                    myChart.setOption(option);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                })
+        })
+        document.getElementById('addShareForm').addEventListener('submit', function (e) {
+            const submitButton = this.querySelector('button[type="submit"]');
+            const spinner = submitButton.querySelector('.spinner-border');
+            const buttonText = submitButton.querySelector('.button-text');
+            // 显示 spinner
+            spinner.style.display = 'inline-block';
+            buttonText.style.display = 'none';
+        });
+        document.getElementById('addUserForm').addEventListener('submit', function (event) {
+            // 阻止表单默认提交
+            event.preventDefault();
+            // 收集表单数据
+            let formData = new FormData(this);
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            const spinner = submitButton.querySelector('.spinner-border');
+            const buttonText = submitButton.querySelector('.button-text');
+            // 显示 spinner
+            spinner.style.display = 'inline-block';
+            buttonText.style.display = 'none';
+            // 使用 fetch 发送数据
+            fetch("/{{ api_prefix }}/add-user", {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.status === 200) {
+                    window.location.reload();
                 }
-            )
-            .catch(error => {
+            }).catch(error => {
                 console.error('Error:', error);
-            })
-            .finally(() => {
+            }).finally(() => {
                 spinner.style.display = 'none';
                 buttonText.style.display = 'inline';
-            });
-    }
-</script>
+            })
+        });
+
+        function refreshUser(button) {
+            var url = button.getAttribute('data-url');
+            var spinner = button.querySelector('.spinner-border');
+            var buttonText = button.querySelector('.button-text');
+            var toastEl = document.getElementById('successToast');
+
+            // 显示Spinner，隐藏文本
+            spinner.style.display = 'inline-block';
+            buttonText.style.display = 'none';
+            // 发送 AJAX 请求
+            fetch(url)
+                .then(response => {
+                        // 显示Toast消息
+                        if (response.status === 200) {
+                            toastEl.querySelector('.toast-body').innerText = '刷新成功';
+                            toastEl.classList.add('text-bg-success');
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            toastEl.querySelector('.toast-body').innerText = '刷新失败';
+                            toastEl.classList.add('text-bg-danger');
+                        }
+                        var toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                    }
+                )
+                .catch(error => {
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    spinner.style.display = 'none';
+                    buttonText.style.display = 'inline';
+                });
+        }
+    </script>
 {% endblock %}
