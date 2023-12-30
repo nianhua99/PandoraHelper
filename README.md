@@ -34,6 +34,8 @@ $ pip3 install -r requirements.txt
 $ export PANDORA_NEXT_DOMAIN=https://www.baidu.com
 # 修改以下路径为你本机PandoraNext的路径，确保路径中包含config.json
 $ export PANDORA_NEXT_PATH=/path/to/pandora
+# 数据库初始化
+$ flask db upgrade
 # 启动
 $ python3 waitress_run.py
 # 或者在后台启动
@@ -67,13 +69,14 @@ $ nohup python3 waitress_run.py &
 >	  }```
 ## Todo
 - [x] 展示Pandora额度信息
-- [ ] 生成指定账号下各Share Token的用量情况柱状图
+- [x] 生成指定账号下各Share Token的用量情况柱状图
+- [x] 支持预置Token、Refresh Token
 - [ ] Русская адаптация
 - [ ] 支持管理Pool Token
 - [ ] 支持编辑
 - [ ] 支持更多PandoraNext配置
 - [ ] 支持更多验证码
-- [ ] ~~代码优化~~
+- [x] ~~代码优化~~
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nianhua99/PandoraNext-Helper&type=Date)](https://star-history.com/#nianhua99/PandoraNext-Helper&Date)

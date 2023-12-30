@@ -80,26 +80,26 @@
                                                     <div class="mb-2">
                                                         <div class="form-check form-check-inline">
                                                             <input class="form-check-input" type="radio"
-                                                                   name="flexRadioDefault" id="flexRadioDefault1" checked>
-                                                            <label class="form-check-label" for="flexRadioDefault1">
+                                                                   name="custom_token_type" id="type1" value="session_token" checked>
+                                                            <label class="form-check-label" for="type1">
                                                                 Session Token
                                                             </label>
                                                         </div>
                                                         <div class="form-check form-check-inline">
                                                             <input class="form-check-input" type="radio"
-                                                                   name="flexRadioDefault" id="flexRadioDefault2"
-                                                                   disabled>
-                                                            <label class="form-check-label" for="flexRadioDefault2">
+                                                                   name="custom_token_type" id="type2" value="refresh_token">
+                                                            <label class="form-check-label" for="type2">
                                                                 Refresh Token
                                                             </label>
                                                         </div>
+                                                        <div class="form-text">系统会根据上方选择的类型获取Token</div>
                                                     </div>
                                                     <div class="input-group">
                                                         <div class="input-group-text">Token</div>
                                                         <textarea name="custom_token" class="form-control"
                                                                   id="custom_token" rows="3" ></textarea>
                                                     </div>
-                                                    <div class="form-text">当你使用第三方登录时, 需要自行输入Token, 如不是请留空</div>
+                                                    <div class="form-text">当你使用第三方登录时, 需要自行输入Token, 不需要请留空</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -184,7 +184,7 @@
                     <th scope="col">id</th>
                     <th scope="col">Email</th>
                     <th scope="col">Password</th>
-                    <th scope="col">Session Token</th>
+                    <th scope="col">Session/Refresh Token</th>
                     <th scope="col">Access Token</th>
                     <th scope="col">Shared</th>
                     <th scope="col">Update/Refresh Time</th>
@@ -205,10 +205,30 @@
                         </th>
                         <td>{{ user['email'] }}</td>
                         <td>{{ user['password'] }}</td>
-                        <td>{{ '√' if user['session_token'] is not none else '×' }}</td>
-                        <td>{{ '√' if user['access_token'] is not none else '×' }}</td>
-                        <td>{{ '√' if user['shared'] == 1 else '×' }}</td>
-                        <td>{{ user['update_time'] }}</td>
+                        <td>
+                            {% if user['session_token'] is none and user['refresh_token'] is none %}
+                            <i class="fa fa-times"></i>
+                            {% elif user['refresh_token'] is not none %}
+                            <span class="badge text-bg-success">Refresh Token</span>
+                            {% else %}
+                            <span class="badge text-bg-primary">Session Token</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user['access_token'] is not none %}
+                            <i class="fa fa-check"></i>
+                            {% else %}
+                            <i class="fa fa-times"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user['shared'] == 1 %}
+                            <i class="fa fa-check"></i>
+                            {% else %}
+                            <i class="fa fa-times"></i>
+                            {% endif %}
+                        </td>
+                        <td>{{ user['update_time']|datetime }}</td>
                         <td>
                             <div class="btn-group">
                                 <button
@@ -217,10 +237,12 @@
                                         data-bs-toggle="modal"
                                         data-bs-target="#addShareModal"
                                         data-bs-userid="{{ user['id'] }}"
+                                        {{ 'disabled' if user['access_token'] is none }}
                                 >
                                     新增
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                        {{ 'disabled' if user['access_token'] is none or user['share_list'] == [] }}
                                         data-bs-target="#chartModal" data-userid="{{ user['id'] }}">用量
                                 </button>
                             </div>
@@ -233,9 +255,9 @@
                                         data-url="/{{ api_prefix }}/refresh/{{ user['id'] }}"
                                         onclick="refreshUser(this)"
                                 >
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
-                                  style="display: none;"></span>
-                                    <span class="button-text">刷新</span>
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                        style="display: none;"></span>
+                                    <span class="button-text"><i class="fa fa-check-square-o"> 刷新</i></span>
                                 </button>
                                 <a type="button" class="btn btn-outline-danger btn-sm"
                                    href="/{{ api_prefix }}/delete-user/{{ user['id'] }}">删除</a>

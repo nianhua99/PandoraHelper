@@ -2,7 +2,6 @@ import json
 import os
 import re
 import secrets
-import sqlite3
 
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from flask import Flask, redirect, url_for
@@ -128,13 +127,17 @@ migrate = Migrate(include_object=include_object)
 migrate.init_app(app, db)
 
 
+def format_datetime(value):
+    """Format a datetime to a string."""
+    if value is None:
+        return ""
+    return value.strftime('%Y-%m-%d %H:%M:%S')
+
+
 def create_app():
     app.register_blueprint(auth.auth_bp, url_prefix='/' + app.config['proxy_api_prefix'])
     app.register_blueprint(main.main_bp, url_prefix='/' + app.config['proxy_api_prefix'])
-    # 设置日志等级
-    import logging
-    logging.basicConfig()
-    logging.getLogger('apscheduler').setLevel(logging.DEBUG)
+    app.jinja_env.filters['datetime'] = format_datetime
     return app
 
 

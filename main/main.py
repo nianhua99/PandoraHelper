@@ -32,15 +32,35 @@ def manage_users():
 def add_user():
     email = request.form['email']
     password = request.form['password']
+    custom_token_type = request.form['custom_token_type']
+    custom_token = request.form['custom_token']
+
     if 'shared' in request.form:
         shared = 1 if request.form['shared'] == 'on' else 0
     else:
         shared = 0
-    db.session.add(User(email=email, password=password, shared=shared,
-                        share_list='[]',
-                        create_time=datetime.now(),
-                        update_time=datetime.now()))
+
+    user = User(email=email, password=password, shared=shared,
+                share_list='[]',
+                create_time=datetime.now(),
+                update_time=datetime.now())
+
+    if custom_token != '':
+        if custom_token_type == 'session_token':
+            user.session_token = custom_token
+        elif custom_token_type == 'refresh_token':
+            user.refresh_token = custom_token
+
+    if custom_token == '' and custom_token_type == 'refresh_token':
+        try:
+            res = login_tools.get_refresh_token(email, password)
+            user.refresh_token = res['refresh_token']
+        except Exception as e:
+            logger.error(e)
+
+    db.session.add(user)
     db.session.commit()
+
     return redirect(url_for('main.manage_users'))
 
 
@@ -131,38 +151,70 @@ def share_info(user_id):
 
 def refresh(user_id):
     user = db.session.query(User).filter_by(id=user_id).first()
+
     if user is None:
         return redirect(url_for('main.manage_users'))
-    # 获取access_token
-    if user.session_token is None:
-        # 登录获取session_token 扣额度
+
+    def login_by_refresh_token():
+        try:
+            refresh_token_result = login_tools.get_access_token_by_refresh_token(user.refresh_token)
+        except Exception as e:
+            raise e
+        return refresh_token_result['access_token']
+
+    def login_by_password():
         try:
             login_result = login_tools.login(user.email, user.password)
         except Exception as e:
-            logger.error(e)
             raise e
         access_token = login_result['access_token']
         session_token = login_result['session_token']
-    else:
-        # 使用session_token 刷新access_token
+        return access_token, session_token
+
+    def login_by_session_token():
         try:
             access_token_result = login_tools.get_access_token(user.session_token)
         except Exception as e:
-            # session token过期，重新登录
-            logger.error(e)
-            try:
-                access_token_result = login_tools.login(user.email, user.password)
-            except Exception as e:
-                logger.error(e)
-                raise e
+            raise e
         access_token = access_token_result['access_token']
         session_token = access_token_result['session_token']
+        return access_token, session_token
 
-    # 更新session_token 和 access_token
-    db.session.query(User).filter_by(id=user_id).update(
-        {'session_token': session_token, 'access_token': access_token,
-         'update_time': datetime.now()})
-    db.session.commit()
+    # 如果Refresh Token存在则使用Refresh Token刷新，否则使用Session Token刷新，都为空或失败则使用密码刷新保底
+    # Refresh Token刷新仅更新access_token
+    # Session Token刷新和登录刷新，则更新access_token和session_token，并且以后使用Session Token刷新
+
+    access_token, session_token = None, None
+
+    if user.refresh_token is not None:
+        try:
+            access_token = login_by_refresh_token()
+            db.session.query(User).filter_by(id=user_id).update(
+                {'access_token': access_token, 'update_time': datetime.now()})
+            db.session.commit()
+        except Exception as e:
+            logger.error(e)
+
+    else:
+        if user.session_token is not None:
+            try:
+                access_token, session_token = login_by_session_token()
+                db.session.query(User).filter_by(id=user_id).update(
+                    {'access_token': access_token, 'session_token': session_token, 'update_time': datetime.now()})
+                db.session.commit()
+            except Exception as e:
+                logger.error(e)
+
+    if access_token is None:
+        try:
+            access_token, session_token = login_by_password()
+            db.session.query(User).filter_by(id=user_id).update(
+                {'access_token': access_token, 'session_token': session_token, 'update_time': datetime.now()})
+            db.session.commit()
+        except Exception as e:
+            logger.error(e)
+            raise e
+
     # 刷新share_token
     share_list = json.loads(user.share_list)
     if len(share_list) == 0:
@@ -274,7 +326,8 @@ def make_json():
     if os.path.exists(os.path.join(current_app.config['pandora_path'], 'tokens.json')):
         import time
         os.rename(os.path.join(current_app.config['pandora_path'], 'tokens.json'),
-                  os.path.join(current_app.config['pandora_path'], 'tokens.json.' + time.strftime("%Y%m%d%H%M%S", time.localtime())))
+                  os.path.join(current_app.config['pandora_path'],
+                               'tokens.json.' + time.strftime("%Y%m%d%H%M%S", time.localtime())))
 
     # 将数据写入tokens.json
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'w') as f:
