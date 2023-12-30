@@ -2,12 +2,12 @@ import json
 import os
 import re
 import secrets
-import sqlite3
 
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from flask import Flask, g, redirect, url_for
+from flask import Flask, redirect, url_for
 from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_apscheduler import APScheduler
 from loguru import logger
@@ -39,57 +39,6 @@ def unauthorized():
 @app.context_processor
 def context_api_prefix():
     return dict(api_prefix=app.config['proxy_api_prefix'])
-
-
-def init_db():
-    with app.app_context():
-        db = connect_db()
-        db.execute('''
-            create table if not exists users
-            (
-                id            INTEGER
-                    primary key autoincrement,
-                email         TEXT not null,
-                password      TEXT not null,
-                session_token TEXT,
-                access_token  TEXT,
-                share_list    TEXT,
-                create_time   datetime,
-                update_time   datetime,
-                shared        INT default 0
-            )
-        ''')
-        db.commit()
-
-
-def connect_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(os.path.join(app.config['pandora_path'], DATABASE))
-        db.row_factory = sqlite3.Row
-    return db
-
-
-def query_db(query, args=(), one=False):
-    # 查看g对象是否存在db属性，如果不存在则创建
-    if not hasattr(g, 'db'):
-        g.db = connect_db()
-    cur = g.db.execute(query, args)
-    rv = [dict((cur.description[idx][0], value)
-               for idx, value in enumerate(row)) for row in cur.fetchall()]
-    return (rv[0] if rv else None) if one else rv
-
-
-@app.before_request
-def before_request():
-    g.db = connect_db()
-
-
-@app.after_request
-def after_request(result):
-    if hasattr(g, 'db'):
-        g.db.close()
-    return result
 
 
 def check_require_config():
@@ -148,11 +97,11 @@ def check_require_config():
 
 from auth import auth
 from main import main
+from model import db
 
 check_require_config()
-init_db()
 
-#scheduler jobstore
+# scheduler jobstore
 app.config['SCHEDULER_JOBSTORES'] = {
     'default': SQLAlchemyJobStore(url='sqlite:///' + os.path.join(app.config['pandora_path'], DATABASE))
 }
@@ -160,14 +109,35 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.config['pandora_path'], DATABASE)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+db.init_app(app)
+
+
+def include_object(object, name, type_, reflected, compare_to):
+    if (
+            type_ == "table" and name == "apscheduler_jobs"
+    ):
+        return False
+    else:
+        return True
+
+
+migrate = Migrate(include_object=include_object)
+migrate.init_app(app, db)
+
+
+def format_datetime(value):
+    """Format a datetime to a string."""
+    if value is None:
+        return ""
+    return value.strftime('%Y-%m-%d %H:%M:%S')
+
 
 def create_app():
     app.register_blueprint(auth.auth_bp, url_prefix='/' + app.config['proxy_api_prefix'])
     app.register_blueprint(main.main_bp, url_prefix='/' + app.config['proxy_api_prefix'])
-    # 设置日志等级
-    import logging
-    logging.basicConfig()
-    logging.getLogger('apscheduler').setLevel(logging.DEBUG)
+    app.jinja_env.filters['datetime'] = format_datetime
     return app
 
 
