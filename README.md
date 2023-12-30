@@ -34,6 +34,8 @@ $ pip3 install -r requirements.txt
 $ export PANDORA_NEXT_DOMAIN=https://www.baidu.com
 # 修改以下路径为你本机PandoraNext的路径，确保路径中包含config.json
 $ export PANDORA_NEXT_PATH=/path/to/pandora
+# 数据库初始化
+$ flask db upgrade
 # 启动
 $ python3 waitress_run.py
 # 或者在后台启动
@@ -42,7 +44,7 @@ $ nohup python3 waitress_run.py &
 **请访问`IP:8182/<PROXY_API_PREFIX>/login`进行使用！**
 ## 如何借助本项目管理共享ChatGPT车？
 首先需要搭建完成PandoraNext项目，以及本项目  
-在Helper中，添加你的OpenAI账号 -> 点击刷新（获取登录凭证） -> 点击账号后的添加 -> 定义乘客登录时需要的账号密码  
+在Helper中，添加你的OpenAI账号 -> 点击刷新（获取登录凭证） -> 点击Share列的添加按钮 -> 定义乘客登录时需要的账号密码  
 将乘客的账号密码（也叫UniqueName、Password）发送给乘客  
 至此，即完成了分享，每个乘客之间互相屏蔽，你也可以随时吊销乘客
 ## 注意事项
@@ -67,13 +69,14 @@ $ nohup python3 waitress_run.py &
 >	  }```
 ## Todo
 - [x] 展示Pandora额度信息
-- [ ] 生成指定账号下各Share Token的用量情况柱状图
+- [x] 生成指定账号下各Share Token的用量情况柱状图
+- [x] 支持预置Token、Refresh Token
 - [ ] Русская адаптация
 - [ ] 支持管理Pool Token
 - [ ] 支持编辑
 - [ ] 支持更多PandoraNext配置
 - [ ] 支持更多验证码
-- [ ] ~~代码优化~~
+- [x] ~~代码优化~~
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nianhua99/PandoraNext-Helper&type=Date)](https://star-history.com/#nianhua99/PandoraNext-Helper&Date)
