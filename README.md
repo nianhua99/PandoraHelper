@@ -12,7 +12,7 @@
 * 一键启动定时器，自动检测Token失效后刷新`Access Token`和`Share Token`！
 * 在以上操作完成后，会自动更新`config.json`文件，并调用`reload` Api，直接生效 ！
 * 本项目保持低侵入性，不参与管理PandoraNext程序。只是方便刷新、管理账号和各种Token。
-![example.png](example.png)
+![image](https://github.com/nianhua99/PandoraNext-Helper/assets/48168645/bbe7b786-0d0b-4de5-afa0-280f7386e592)
 ![shareinfo.png](shareinfo.png)
 ## Docker部署
 ```shell
