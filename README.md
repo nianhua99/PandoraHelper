@@ -49,8 +49,10 @@ $ nohup python3 waitress_run.py &
 至此，即完成了分享，每个乘客之间互相屏蔽，你也可以随时吊销乘客
 ## 注意事项
 * 本项目复用了PandoraNext的`config.json`文件，包括`setup_password`|`captcha`|`proxy_api_prefix`
+* 你的PandoraNext 必须启动Proxy模式，详情请看PandoraNext文档：[https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix](https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix)
+* 项目的首页是：`IP:8182/<PROXY_API_PREFIX>/login`
 * 项目依赖两个环境变量
-  * `PANDORA_NEXT_PATH`: 指向PandoraNext的路径，如`/opt/pandora-next`
+  * `PANDORA_NEXT_PATH`: 指向PandoraNext的路径，如`/opt/pandora-next`,Docker部署不需要这个，只需挂载正确即可
   * `PANDORA_NEXT_DOMAIN`: 你的PandoraNext域名，如`https://www.baidu.com`
 * 目前验证码只支持`hcaptcha`，你可以在这里获得 hcaptcha ：https://www.hcaptcha.com
 * 以上配置全部是**必选**，否则无法使用本项目
