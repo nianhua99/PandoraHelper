@@ -61,12 +61,13 @@ $ nohup python3 waitress_run.py &
 > 项目本身不提供开关，这道门槛可以让小白也注意到安全问题。  
 > ~~如果你确保你的网络环境安全，你可以尝试使用 hcaptcha 提供的测试Key，它将直接Pass，无需你打码~~
 > ```json
-> captcha": {
->		"provider": "hcaptcha",
->		"site_key": "10000000-ffff-ffff-ffff-000000000001",
->		"site_secret": "0x0000000000000000000000000000000000000000",
->		// 其他配置
->	  }```
+"captcha": {
+		"provider": "hcaptcha",
+		"site_key": "10000000-ffff-ffff-ffff-000000000001",
+		"site_secret": "0x0000000000000000000000000000000000000000",
+		// 其他配置
+}
+```
 ## Todo
 - [x] 展示Pandora额度信息
 - [x] 生成指定账号下各Share Token的用量情况柱状图
