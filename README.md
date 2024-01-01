@@ -60,12 +60,12 @@ $ nohup python3 waitress_run.py &
 > 如果你实在不想开启**验证码**  
 > 项目本身不提供开关，这道门槛可以让小白也注意到安全问题。  
 > ~~如果你确保你的网络环境安全，你可以尝试使用 hcaptcha 提供的测试Key，它将直接Pass，无需你打码~~
-> ```json
+```json
 "captcha": {
-		"provider": "hcaptcha",
-		"site_key": "10000000-ffff-ffff-ffff-000000000001",
-		"site_secret": "0x0000000000000000000000000000000000000000",
-		// 其他配置
+	"provider": "hcaptcha",
+	"site_key": "10000000-ffff-ffff-ffff-000000000001",
+	"site_secret": "0x0000000000000000000000000000000000000000",
+	// 其他配置
 }
 ```
 ## Todo
