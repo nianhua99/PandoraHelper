@@ -1,6 +1,7 @@
 # PandoraNext Helper  
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Static Badge](https://img.shields.io/badge/3.8%20%7C%203.9%20%7C%203.10-blue?label=Python)
+![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-next-helper?color=gold)
 ![Static Badge](https://img.shields.io/badge/%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9-green?label=doc)  
 ~~GPT-4和Copilot帮助完成了本项目90%的代码~~
 ## 简单介绍
