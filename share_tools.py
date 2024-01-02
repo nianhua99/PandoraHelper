@@ -20,9 +20,9 @@ def get_share_token(access_token, unique_name, expires_in=0, show_conversations=
     }
     response = requests.request("POST", host + "/api/token/register", headers=headers, data=payload)
     # 如果返回的状态码不是200，则抛出异常
+    logger.info("{}获取share_token结果：{}", unique_name, response.text)
     if response.status_code != 200:
         raise Exception("获取share_token失败")
-    logger.info("{}获取share_token结果：{}", unique_name, response.json())
     return response.json()
 
 

@@ -289,12 +289,49 @@ def refresh_route(user_id):
     return redirect(url_for('main.manage_users'))
 
 
+@main_bp.route('/clear_chat/<int:user_id>')
+@login_required
+def clear_chat(user_id):
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if user['access_token'] is None:
+        return jsonify({'code': 500, 'msg': '请先刷新'}), 500
+    try:
+        pandora_tools.clear_all_chat(user.access_token)
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': '清空失败: ' + str(e)}), 500
+
+
+@main_bp.route('/export_chat/<int:user_id>')
+@login_required
+def export_chat(user_id):
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if user['access_token'] is None:
+        return jsonify({'code': 500, 'msg': '请先刷新'}), 500
+    try:
+        pandora_tools.export_all_chat(user.access_token)
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': '清空失败: ' + str(e)}), 500
+
+
 def make_json():
     from flask import current_app
     import os
     users = db.session.query(User).all()
+
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'r') as f:
         tokens = json.loads(f.read())
+    # "test2": {
+    #     "token": "fk-BP975vvI1w3njIb-W2eFu4ba3AQ8SBxEaNYt4CDcdFQ",
+    #     "password": "123456"
+    # }
+    # "test4@ggpt.fun": {
+    #     "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJ0ZXN0NEBnZ3B0LmZ1biIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlfSwiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS9hdXRoIjp7InBvaWQiOiJvcmctRXdLNVZIdmxETWxiREdMQXh2QlNycm9oIiwidXNlcl9pZCI6InVzZXItTXRpN0JyYkg0SDdqS3NmYlNhOVcwUzY1In0sImlzcyI6Imh0dHBzOi8vYXV0aDAub3BlbmFpLmNvbS8iLCJzdWIiOiJhdXRoMHw2NTg1YWQwMWVjMDU4NDRmZjU4MjA0OTkiLCJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSIsImh0dHBzOi8vb3BlbmFpLm9wZW5haS5hdXRoMGFwcC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNzAzOTU1MzI4LCJleHAiOjE3MDQ4MTkzMjgsImF6cCI6IlRkSkljYmUxNldvVEh0Tjk1bnl5d2g1RTR5T282SXRHIiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBtb2RlbC5yZWFkIG1vZGVsLnJlcXVlc3Qgb3JnYW5pemF0aW9uLnJlYWQgb3JnYW5pemF0aW9uLndyaXRlIG9mZmxpbmVfYWNjZXNzIn0.EAd0sf8uoO-5LbhXNvAgcN9zOUWVg273AvBKOP68L46o3dWNSYwFoXFAjV8TTt1SVW6JhVSF3JMO4g2guegGgtOLnaiSgkkZ9F1wY-wq0lhYwxOb4ZZ2fCoTEL3yaDT_-zuN1s0eF4LJMj2Lgcp27ArLH8G2fUb3EUvzk601KgjLZQwf2jETFtozKmKqo0IIr8Ku8YJmHMgQNDd_WA4cvQE2rCsppLHqM6zbneghRa9Ynu4d0oSNNqVgcPW8SJCP8Fk88RoSRz1zKJHjfHlmelw8tztUTZbimh2YLve5B48SAYcTUNkubfPPMsR_6n_AjOCah8LE7ZEt4qWrth0Tcg",
+    #     "show_user_info": false,
+    #     "shared": true
+    # },
+    # 丢弃原json中token字段以fk开头的键值对
+    tokens = {k: v for k, v in tokens.items() if 'token' in v and not v['token'].startswith('fk')}
+
     # 将share_list转换为json对象
     for user in users:
         # 当存在share_list时, 取所有share_token, 并写入tokens.json
@@ -308,7 +345,7 @@ def make_json():
                         'password': share['password']
                     }
         else:
-            if user.session_token is None:
+            if user.session_token is None and user.refresh_token is None:
                 continue
             # 当不存在share_list时, 取session_token, 并写入tokens.json
             # Todo 自定义 plus / show_user_info

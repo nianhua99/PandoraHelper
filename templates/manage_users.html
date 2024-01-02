@@ -178,7 +178,7 @@
                 </div>
             </div>
 
-            <table class="table table-hover text-center align-middle table-responsive">
+            <table class="table table-hover text-center align-middle table-responsive table-sm">
                 <thead>
                 <tr>
                     <th scope="col">id</th>
@@ -266,7 +266,35 @@
                     </tr>
                     <tr>
                         <td colspan="9" class="collapse" id="collapseExample{{ user['id'] }}">
-                            <table class="table align-middle">
+                            <div class="row justify-content-center">
+                                <div class="col-5 row">
+                                    <label for="token" class="col-5 col-form-label">
+                                        Session/Refresh Token
+                                    </label>
+                                    <div class="col-7">
+                                      <input type="text" class="form-control" id="token"
+                                             value="{{ user['refresh_token'] if user['refresh_token'] is not none else user['session_token'] }}"
+                                             readonly>
+                                    </div>
+                                </div>
+                                <div class="col-4 row">
+                                    <label for="access_token" class="col-4 col-form-label">Access Token</label>
+                                    <div class="col-8">
+                                      <input type="text" class="form-control" id="access_token" value="{{ user['access_token'] }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="btn-group-sm" role="group">
+                                      <button type="button" class="btn btn-primary">Clear Chat</button>
+                                      <button type="button" class="btn btn-primary">Export Chat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="9" class="collapse" id="collapseExample{{ user['id'] }}">
+                            <table class="table align-middle table-sm">
                                 <tr>
                                     <th>Unique Name</th>
                                     <th>Password</th>
