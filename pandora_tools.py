@@ -29,6 +29,32 @@ def get_balance():
     return response.json()
 
 
+# 清空ChatGPT聊天记录
+def clear_all_chat(access_token):
+    host = get_host()
+    data = {
+        "is_visible": False
+    }
+    headers = {
+        "Authorization": "Bearer " + access_token
+    }
+    response = requests.request("POST", host + "/backend-api/conversations", headers=headers, data=data)
+    logger.info("清空聊天记录：{}", response.text)
+    if response.status_code != 200:
+        raise Exception("清空聊天记录失败")
+
+
+def export_all_chat(access_token):
+    host = get_host()
+    headers = {
+        "Authorization": "Bearer " + access_token
+    }
+    response = requests.request("POST", host + "/backend-api/accounts/data_export", headers=headers)
+    logger.info("导出聊天记录：{}", response.text)
+    if response.status_code != 200:
+        raise Exception("导出聊天记录失败")
+
+
 def get_email_by_jwt(token):
     # 解析token
     return jwt.decode(token, algorithms=['HS256'], options={"verify_signature": False})

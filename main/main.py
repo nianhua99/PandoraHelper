@@ -78,6 +78,8 @@ def add_share():
     user_id = request.form.get('user_id')
     unique_name = request.form.get('unique_name')
     password = request.form.get('password')
+    comment = request.form.get('comment')
+
     user = db.session.query(User).filter_by(id=user_id).first()
     try:
         share_token = share_tools.get_share_token(user.access_token, unique_name)
@@ -90,7 +92,8 @@ def add_share():
         if share['unique_name'] == unique_name:
             # 删除原有的share_token
             share_list.remove(share)
-    share_list.append({'unique_name': unique_name, 'password': password, 'share_token': share_token['token_key']})
+    share_list.append({'unique_name': unique_name, 'password': password, 'share_token': share_token['token_key'],
+                       'comment': comment})
     db.session.query(User).filter_by(id=user_id).update(
         {'share_list': json.dumps(share_list), 'update_time': datetime.now()})
     db.session.commit()
@@ -289,12 +292,44 @@ def refresh_route(user_id):
     return redirect(url_for('main.manage_users'))
 
 
+@main_bp.route('/clear_chat/<int:user_id>')
+@login_required
+def clear_chat(user_id):
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if user.access_token is None:
+        return jsonify({'code': 500, 'msg': '请先刷新'}), 500
+    try:
+        pandora_tools.clear_all_chat(user.access_token)
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': '清空失败: ' + str(e)}), 500
+    flash("清空成功","success")
+    return redirect(url_for("main.manage_users"))
+
+
+@main_bp.route('/export_chat/<int:user_id>')
+@login_required
+def export_chat(user_id):
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if user.access_token is None:
+        return jsonify({'code': 500, 'msg': '请先刷新'}), 500
+    try:
+        pandora_tools.export_all_chat(user.access_token)
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': '清空失败: ' + str(e)}), 500
+    flash("导出成功","success")
+    return redirect(url_for("main.manage_users"))
+
+
 def make_json():
     from flask import current_app
     import os
     users = db.session.query(User).all()
+
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'r') as f:
         tokens = json.loads(f.read())
+    # 丢弃原json中token字段以fk开头的键值对
+    tokens = {k: v for k, v in tokens.items() if 'token' in v and not v['token'].startswith('fk')}
+
     # 将share_list转换为json对象
     for user in users:
         # 当存在share_list时, 取所有share_token, 并写入tokens.json
@@ -308,7 +343,7 @@ def make_json():
                         'password': share['password']
                     }
         else:
-            if user.session_token is None:
+            if user.session_token is None and user.refresh_token is None:
                 continue
             # 当不存在share_list时, 取session_token, 并写入tokens.json
             # Todo 自定义 plus / show_user_info
