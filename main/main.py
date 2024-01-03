@@ -78,6 +78,8 @@ def add_share():
     user_id = request.form.get('user_id')
     unique_name = request.form.get('unique_name')
     password = request.form.get('password')
+    comment = request.form.get('comment')
+
     user = db.session.query(User).filter_by(id=user_id).first()
     try:
         share_token = share_tools.get_share_token(user.access_token, unique_name)
@@ -90,7 +92,8 @@ def add_share():
         if share['unique_name'] == unique_name:
             # 删除原有的share_token
             share_list.remove(share)
-    share_list.append({'unique_name': unique_name, 'password': password, 'share_token': share_token['token_key']})
+    share_list.append({'unique_name': unique_name, 'password': password, 'share_token': share_token['token_key'],
+                       'comment': comment})
     db.session.query(User).filter_by(id=user_id).update(
         {'share_list': json.dumps(share_list), 'update_time': datetime.now()})
     db.session.commit()
@@ -293,24 +296,28 @@ def refresh_route(user_id):
 @login_required
 def clear_chat(user_id):
     user = db.session.query(User).filter_by(id=user_id).first()
-    if user['access_token'] is None:
+    if user.access_token is None:
         return jsonify({'code': 500, 'msg': '请先刷新'}), 500
     try:
         pandora_tools.clear_all_chat(user.access_token)
     except Exception as e:
         return jsonify({'code': 500, 'msg': '清空失败: ' + str(e)}), 500
+    flash("清空成功","success")
+    return redirect(url_for("main.manage_users"))
 
 
 @main_bp.route('/export_chat/<int:user_id>')
 @login_required
 def export_chat(user_id):
     user = db.session.query(User).filter_by(id=user_id).first()
-    if user['access_token'] is None:
+    if user.access_token is None:
         return jsonify({'code': 500, 'msg': '请先刷新'}), 500
     try:
         pandora_tools.export_all_chat(user.access_token)
     except Exception as e:
         return jsonify({'code': 500, 'msg': '清空失败: ' + str(e)}), 500
+    flash("导出成功","success")
+    return redirect(url_for("main.manage_users"))
 
 
 def make_json():
@@ -320,15 +327,6 @@ def make_json():
 
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'r') as f:
         tokens = json.loads(f.read())
-    # "test2": {
-    #     "token": "fk-BP975vvI1w3njIb-W2eFu4ba3AQ8SBxEaNYt4CDcdFQ",
-    #     "password": "123456"
-    # }
-    # "test4@ggpt.fun": {
-    #     "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJ0ZXN0NEBnZ3B0LmZ1biIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlfSwiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS9hdXRoIjp7InBvaWQiOiJvcmctRXdLNVZIdmxETWxiREdMQXh2QlNycm9oIiwidXNlcl9pZCI6InVzZXItTXRpN0JyYkg0SDdqS3NmYlNhOVcwUzY1In0sImlzcyI6Imh0dHBzOi8vYXV0aDAub3BlbmFpLmNvbS8iLCJzdWIiOiJhdXRoMHw2NTg1YWQwMWVjMDU4NDRmZjU4MjA0OTkiLCJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSIsImh0dHBzOi8vb3BlbmFpLm9wZW5haS5hdXRoMGFwcC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNzAzOTU1MzI4LCJleHAiOjE3MDQ4MTkzMjgsImF6cCI6IlRkSkljYmUxNldvVEh0Tjk1bnl5d2g1RTR5T282SXRHIiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBtb2RlbC5yZWFkIG1vZGVsLnJlcXVlc3Qgb3JnYW5pemF0aW9uLnJlYWQgb3JnYW5pemF0aW9uLndyaXRlIG9mZmxpbmVfYWNjZXNzIn0.EAd0sf8uoO-5LbhXNvAgcN9zOUWVg273AvBKOP68L46o3dWNSYwFoXFAjV8TTt1SVW6JhVSF3JMO4g2guegGgtOLnaiSgkkZ9F1wY-wq0lhYwxOb4ZZ2fCoTEL3yaDT_-zuN1s0eF4LJMj2Lgcp27ArLH8G2fUb3EUvzk601KgjLZQwf2jETFtozKmKqo0IIr8Ku8YJmHMgQNDd_WA4cvQE2rCsppLHqM6zbneghRa9Ynu4d0oSNNqVgcPW8SJCP8Fk88RoSRz1zKJHjfHlmelw8tztUTZbimh2YLve5B48SAYcTUNkubfPPMsR_6n_AjOCah8LE7ZEt4qWrth0Tcg",
-    #     "show_user_info": false,
-    #     "shared": true
-    # },
     # 丢弃原json中token字段以fk开头的键值对
     tokens = {k: v for k, v in tokens.items() if 'token' in v and not v['token'].startswith('fk')}
 

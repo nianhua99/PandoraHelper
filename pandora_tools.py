@@ -38,8 +38,8 @@ def clear_all_chat(access_token):
     headers = {
         "Authorization": "Bearer " + access_token
     }
-    response = requests.request("PUT", host + "/backend-api/conversations", headers=headers, data=data)
-    logger.info("清空聊天记录：{}", response.json())
+    response = requests.request("POST", host + "/backend-api/conversations", headers=headers, data=data)
+    logger.info("清空聊天记录：{}", response.text)
     if response.status_code != 200:
         raise Exception("清空聊天记录失败")
 
@@ -49,8 +49,8 @@ def export_all_chat(access_token):
     headers = {
         "Authorization": "Bearer " + access_token
     }
-    response = requests.request("POST", host + "/accounts/data_export", headers=headers)
-    logger.info("导出聊天记录：{}", response.json())
+    response = requests.request("POST", host + "/backend-api/accounts/data_export", headers=headers)
+    logger.info("导出聊天记录：{}", response.text)
     if response.status_code != 200:
         raise Exception("导出聊天记录失败")
 

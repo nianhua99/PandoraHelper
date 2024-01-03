@@ -141,6 +141,11 @@
                                     <input name="password" class="form-control" id="password"
                                            placeholder="Password" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="comment" class="form-label">Comment</label>
+                                    <input name="comment" class="form-control" id="comment"
+                                           placeholder="备注">
+                                </div>
                                 <input hidden="hidden" name="user_id" id="user_id">
                             </div>
                             <div class="modal-footer">
@@ -289,8 +294,8 @@
                         <td colspan="2">
                             <div class="btn-group btn-group-sm" style="max-width: 150px" role="group"
                                  aria-label="Small button group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" >导出聊天</button>
-                                <button type="button" class="btn btn-sm btn-outline-danger">清空聊天</button>
+                                <a type="button" class="btn btn-sm btn-outline-primary" href="/{{ api_prefix }}/export_chat/{{ user['id'] }}">导出聊天</a>
+                                <a type="button" class="btn btn-sm btn-outline-danger" href="/{{ api_prefix }}/clear_chat/{{ user['id'] }}">清空聊天</a>
                             </div>
                         </td>
                     </tr>
@@ -301,13 +306,15 @@
                                     <th>Unique Name</th>
                                     <th>Password</th>
                                     <th>Share Token</th>
+                                    <th>Comment</th>
                                     <th>Operation</th>
                                 </tr>
                                 {% for share in user['share_list'] %}
                                     <tr>
                                         <td>{{ share['unique_name'] }}</td>
                                         <td>{{ share['password'] }}</td>
-                                        <td>{{ share['share_token'] }}</td>
+                                        <td style="max-width: 300px" class="text-truncate">{{ share['share_token'] }}</td>
+                                        <td style="max-width: 300px" class="text-truncate">{{ share['comment'] if share['comment'] is not none }}</td>
                                         <td>
                                             <a href="/{{ api_prefix }}/delete-share/{{ user['id'] }}/{{ share['unique_name'] }}"
                                                type="button" class="btn btn-outline-danger btn-sm">删除</a>
