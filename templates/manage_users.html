@@ -207,25 +207,25 @@
                         <td>{{ user['password'] }}</td>
                         <td>
                             {% if user['session_token'] is none and user['refresh_token'] is none %}
-                            <i class="fa fa-times"></i>
+                                <i class="fa fa-times"></i>
                             {% elif user['refresh_token'] is not none %}
-                            <span class="badge text-bg-success">Refresh Token</span>
+                                <span class="badge text-bg-success">Refresh Token</span>
                             {% else %}
-                            <span class="badge text-bg-primary">Session Token</span>
+                                <span class="badge text-bg-primary">Session Token</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if user['access_token'] is not none %}
-                            <i class="fa fa-check"></i>
+                                <i class="fa fa-check"></i>
                             {% else %}
-                            <i class="fa fa-times"></i>
+                                <i class="fa fa-times"></i>
                             {% endif %}
                         </td>
                         <td>
                             {% if user['shared'] == 1 %}
-                            <i class="fa fa-check"></i>
+                                <i class="fa fa-check"></i>
                             {% else %}
-                            <i class="fa fa-times"></i>
+                                <i class="fa fa-times"></i>
                             {% endif %}
                         </td>
                         <td>{{ user['update_time']|datetime }}</td>
@@ -256,7 +256,7 @@
                                         onclick="refreshUser(this)"
                                 >
                                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
-                                        style="display: none;"></span>
+                                          style="display: none;"></span>
                                     <span class="button-text"><i class="fa fa-check-square-o"> 刷新</i></span>
                                 </button>
                                 <a type="button" class="btn btn-outline-danger btn-sm"
@@ -264,31 +264,33 @@
                             </div>
                         </td>
                     </tr>
-                    <tr>
-                        <td colspan="9" class="collapse" id="collapseExample{{ user['id'] }}">
-                            <div class="row justify-content-center">
-                                <div class="col-5 row">
-                                    <label for="token" class="col-5 col-form-label">
-                                        Session/Refresh Token
-                                    </label>
-                                    <div class="col-7">
-                                      <input type="text" class="form-control" id="token"
-                                             value="{{ user['refresh_token'] if user['refresh_token'] is not none else user['session_token'] }}"
-                                             readonly>
-                                    </div>
+                    <tr class="collapse" id="collapseExample{{ user['id'] }}">
+                        <td colspan="4">
+                            <div class="row">
+                                <label for="token" class="col-5 col-form-label">
+                                    Session/Refresh Token
+                                </label>
+                                <div class="col-7">
+                                    <input type="text" class="form-control" id="token"
+                                           value="{{ user['refresh_token'] if user['refresh_token'] is not none else user['session_token'] }}"
+                                           readonly>
                                 </div>
-                                <div class="col-4 row">
-                                    <label for="access_token" class="col-4 col-form-label">Access Token</label>
-                                    <div class="col-8">
-                                      <input type="text" class="form-control" id="access_token" value="{{ user['access_token'] }}" readonly>
-                                    </div>
+                            </div>
+                        </td>
+                        <td colspan="3">
+                            <div class="row">
+                                <label for="access_token" class="col-4 col-form-label">Access Token</label>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="access_token"
+                                           value="{{ user['access_token'] }}" readonly>
                                 </div>
-                                <div class="col-3">
-                                    <div class="btn-group-sm" role="group">
-                                      <button type="button" class="btn btn-primary">Clear Chat</button>
-                                      <button type="button" class="btn btn-primary">Export Chat</button>
-                                    </div>
-                                </div>
+                            </div>
+                        </td>
+                        <td colspan="2">
+                            <div class="btn-group btn-group-sm" style="max-width: 150px" role="group"
+                                 aria-label="Small button group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" >导出聊天</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger">清空聊天</button>
                             </div>
                         </td>
                     </tr>
