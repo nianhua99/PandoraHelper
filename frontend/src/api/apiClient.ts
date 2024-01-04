@@ -5,7 +5,9 @@ import { isEmpty } from 'ramda';
 import { t } from '@/locales/i18n';
 
 import { Result } from '#/api';
-import { ResultEnum } from '#/enum';
+import {ResultEnum, StorageEnum} from '#/enum';
+import {getItem} from "@/utils/storage.ts";
+import {UserToken} from "#/entity.ts";
 
 // 创建 axios 实例
 const axiosInstance = axios.create({
@@ -18,7 +20,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // 在请求被发送之前做些什么
-    config.headers.Authorization = 'Bearer Token';
+    const token = getItem<UserToken>(StorageEnum.Token)
+    config.headers.Authorization = `Bearer ${token?.accessToken}`;
     return config;
   },
   (error) => {

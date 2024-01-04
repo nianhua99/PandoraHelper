@@ -6,27 +6,27 @@ import { UserApi } from '@/api/services/userService';
 import { USER_LIST } from './assets';
 
 const signIn = rest.post(`/api${UserApi.SignIn}`, async (req, res, ctx) => {
-  const { username, password } = await req.json();
+  const { password } = await req.json();
 
-  const user = USER_LIST.find((item) => item.username === username);
-
-  if (!user || user.password !== password) {
+  if (password !== '123456'){
     return res(
       ctx.json({
-        status: 10001,
-        message: 'Incorrect username or password.',
+        status: 1,
+        message: 'Wrong password',
+        data: {},
       }),
     );
   }
+
+  const user = USER_LIST[0];
 
   return res(
     ctx.json({
       status: 0,
       message: '',
       data: {
-        user,
         accessToken: faker.string.uuid(),
-        refreshToken: faker.string.uuid(),
+        user
       },
     }),
   );

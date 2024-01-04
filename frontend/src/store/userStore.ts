@@ -60,14 +60,15 @@ export const useSignIn = () => {
   const signIn = async (data: SignInReq) => {
     try {
       const res = await signInMutation.mutateAsync(data);
-      const { user, accessToken, refreshToken } = res;
-      setUserToken({ accessToken, refreshToken });
+      const { user,accessToken } = res;
+      setUserToken({ accessToken });
+      // 固定一个用户信息 Admin
       setUserInfo(user);
       navigatge(HOMEPAGE, { replace: true });
 
       notification.success({
         message: t('sys.login.loginSuccessTitle'),
-        description: `${t('sys.login.loginSuccessDesc')}: ${data.username}`,
+        description: `${t('sys.login.loginSuccessDesc')}`,
         duration: 3,
       });
     } catch (err) {
