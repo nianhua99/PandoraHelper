@@ -1,10 +1,11 @@
-import { message as Message } from 'antd';
-import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
-import { isEmpty } from 'ramda';
+import {message as Message} from 'antd';
+import axios, {AxiosError, AxiosRequestConfig, AxiosResponse} from 'axios';
+import {isEmpty} from 'ramda';
+import humps from 'humps';
 
-import { t } from '@/locales/i18n';
+import {t} from '@/locales/i18n';
 
-import { Result } from '#/api';
+import {Result} from '#/api';
 import {ResultEnum, StorageEnum} from '#/enum';
 import {getItem} from "@/utils/storage.ts";
 import {UserToken} from "#/entity.ts";
@@ -20,12 +21,16 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // 在请求被发送之前做些什么
+    if(config.data){
+      config.data = humps.decamelizeKeys(config.data)
+    }
     const token = getItem<UserToken>(StorageEnum.Token)
     config.headers.Authorization = `Bearer ${token?.accessToken}`;
     return config;
   },
   (error) => {
     // 请求错误时做些什么
+    console.log(error)
     return Promise.reject(error);
   },
 );
@@ -35,10 +40,12 @@ axiosInstance.interceptors.response.use(
   (res: AxiosResponse<Result>) => {
     if (!res.data) throw new Error(t('sys.api.apiRequestFailed'));
 
-    const { status, data, message } = res.data;
+    let { status, data, message } = res.data;
+
     // 业务请求成功
     const hasSuccess = data && Reflect.has(res.data, 'status') && status === ResultEnum.SUCCESS;
     if (hasSuccess) {
+      data = humps.camelizeKeys(data);
       return data;
     }
 

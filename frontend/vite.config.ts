@@ -5,6 +5,7 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { inspectorServer } from '@react-dev-inspector/vite-plugin'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -29,6 +30,7 @@ export default defineConfig({
     visualizer({
       open: false,
     }),
+    inspectorServer(),
   ],
   server: {
     // 自动打开浏览器
@@ -37,7 +39,7 @@ export default defineConfig({
     port: 3001,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:5000/awesome-api1',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

@@ -1,11 +1,14 @@
 import json
 
 import requests
-from flask import render_template, redirect, url_for, request, flash, current_app, Blueprint
+from flask import render_template, redirect, url_for, request, flash, current_app, Blueprint, jsonify
 from flask_login import login_required, UserMixin, logout_user, login_user
 from flask_wtf import FlaskForm
 from wtforms.fields.simple import PasswordField
 from wtforms.validators import DataRequired
+from flask_jwt_extended import create_access_token
+
+from util.api_response import ApiResponse
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -59,3 +62,16 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/login2', methods=['POST'])
+# 使用Jwt登录
+def login2():
+    password = request.json.get('password')
+    print(password)
+    print(current_app.config['setup_password'])
+    if password == current_app.config['setup_password']:
+        access_token = create_access_token(identity='admin')
+        return ApiResponse.success(data={'access_token': access_token})
+    else:
+        return ApiResponse.error('login failed！', 401)

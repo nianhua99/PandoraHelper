@@ -2,16 +2,20 @@ import json
 import os
 import re
 import secrets
+from datetime import date, datetime
 
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from flask import Flask, redirect, url_for
+from flask.json.provider import JSONProvider
 from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_apscheduler import APScheduler
 from loguru import logger
+from flask_jwt_extended import JWTManager
 
+import account
 from auth.auth import User
 
 DATABASE = 'helper.db'
@@ -23,6 +27,8 @@ Moment().init_app(app)
 app.secret_key = secrets.token_hex(16)
 login_manager = LoginManager()
 login_manager.init_app(app)
+app.config["JWT_SECRET_KEY"] = secrets.token_hex(16)
+jwt = JWTManager(app)
 
 
 # 用户加载函数
@@ -134,9 +140,34 @@ def format_datetime(value):
     return value.strftime('%Y-%m-%d %H:%M:%S')
 
 
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(o, date):
+            return o.strftime('%Y-%m-%d')
+        elif hasattr(o, 'keys') and hasattr(o, '__getitem__'):
+            return dict(o)
+        raise TypeError(f'Object of type {o.__class__.__name__} '
+                        f'is not JSON serializable')
+
+
+class StandardJSONProvider(JSONProvider):
+    def dumps(self, obj, **kwargs):
+        # 使用自定义的JSON编码器进行序列化
+        return json.dumps(obj, cls=JSONEncoder, **kwargs)
+
+    def loads(self, s, **kwargs):
+        return json.loads(s, **kwargs)
+
+
+app.json = StandardJSONProvider(app)
+
+
 def create_app():
     app.register_blueprint(auth.auth_bp, url_prefix='/' + app.config['proxy_api_prefix'])
     app.register_blueprint(main.main_bp, url_prefix='/' + app.config['proxy_api_prefix'])
+    app.register_blueprint(account.account_bp, url_prefix='/' + app.config['proxy_api_prefix'] + '/account')
     app.jinja_env.filters['datetime'] = format_datetime
     return app
 

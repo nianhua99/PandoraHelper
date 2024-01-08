@@ -10,6 +10,7 @@ import { getItem, removeItem, setItem } from '@/utils/storage';
 
 import { UserInfo, UserToken } from '#/entity';
 import { StorageEnum } from '#/enum';
+import {DEFAULT_USER} from "@/_mock/assets";
 
 const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
 
@@ -60,7 +61,9 @@ export const useSignIn = () => {
   const signIn = async (data: SignInReq) => {
     try {
       const res = await signInMutation.mutateAsync(data);
-      const { user,accessToken } = res;
+      console.log(res)
+      const { accessToken  } = res;
+      const user = DEFAULT_USER
       setUserToken({ accessToken });
       // 固定一个用户信息 Admin
       setUserInfo(user);

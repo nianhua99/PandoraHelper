@@ -8,7 +8,7 @@ function Logo({ className = '' }: { className?: string }) {
   return (
     <NavLink to="/" className="no-underline">
       <button className={`font-semibold ${className}`} style={{ color: colorPrimary }}>
-        Logo
+        Helper
       </button>
     </NavLink>
   );

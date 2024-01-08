@@ -44,7 +44,7 @@ export default function OrganizationPage() {
       setOrganizationModalProps((prev) => ({ ...prev, show: false }));
     },
   });
-
+  // ts-ig
   const columns: ColumnsType<Organization> = [
     { title: 'Name', dataIndex: 'name', width: 300 },
     { title: 'Order', dataIndex: 'order', align: 'center', width: 60 },

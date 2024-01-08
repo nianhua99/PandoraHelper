@@ -50,3 +50,16 @@ export interface Role {
   desc?: string;
   permission?: Permission[];
 }
+
+export interface Account {
+  id: number;
+  email: string;
+  password: string;
+  sessionToken?: string;
+  accessToken?: string;
+  createTime?: string;
+  updateTime?: string;
+  shared?: number;
+  shareList?: string;
+  refreshToken?: string;
+}

@@ -6,9 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required
 
 from model import db
-import login_tools
-import share_tools
-import pandora_tools
+from util import login_tools, share_tools, pandora_tools
 from model import User
 
 main_bp = Blueprint('main', __name__)

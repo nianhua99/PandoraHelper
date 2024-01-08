@@ -77,6 +77,37 @@ const DASHBOARD_PERMISSION = {
     },
   ],
 };
+const TOKEN_PERMISSION = {
+  id: '9100714781927721',
+  parentId: '',
+  label: 'sys.menu.token',
+  name: 'Token',
+  icon: 'ph:key',
+  type: PermissionType.CATALOGUE,
+  route: 'token',
+  order: 1,
+  children: [
+    {
+      id: '84269992294009655',
+      parentId: '9100714781927721',
+      label: 'sys.menu.account',
+      name: 'Account',
+      type: PermissionType.MENU,
+      route: 'account',
+      component: '/token/account/index.tsx',
+    },
+    {
+      id: '84269992294009656',
+      parentId: '9100714781927721',
+      hide: false,
+      label: 'sys.menu.share',
+      name: 'Share',
+      type: PermissionType.MENU,
+      route: 'share',
+      component: '/token/share/index.tsx',
+    }
+  ],
+};
 const MANAGEMENT_PERMISSION = {
   id: '0901673425580518',
   parentId: '',
@@ -463,12 +494,13 @@ const OTHERS_PERMISSION = [
 
 export const PERMISSION_LIST = [
   DASHBOARD_PERMISSION,
-  MANAGEMENT_PERMISSION,
-  COMPONENTS_PERMISSION,
-  FUNCTIONS_PERMISSION,
-  MENU_LEVEL_PERMISSION,
-  ERRORS_PERMISSION,
-  ...OTHERS_PERMISSION,
+  TOKEN_PERMISSION,
+  // MANAGEMENT_PERMISSION,
+  // COMPONENTS_PERMISSION,
+  // FUNCTIONS_PERMISSION,
+  // MENU_LEVEL_PERMISSION,
+  // ERRORS_PERMISSION,
+  // ...OTHERS_PERMISSION,
 ];
 
 /**
@@ -483,17 +515,6 @@ const ADMIN_ROLE = {
   desc: 'Super Admin',
   permission: PERMISSION_LIST,
 };
-const TEST_ROLE = {
-  id: '9931665660771476',
-  name: 'Test',
-  label: 'test',
-  status: BasicStatus.ENABLE,
-  order: 2,
-  desc: 'test',
-  permission: [DASHBOARD_PERMISSION, COMPONENTS_PERMISSION, FUNCTIONS_PERMISSION],
-};
-export const ROLE_LIST = [ADMIN_ROLE, TEST_ROLE];
-
 /**
  * User data mock
  */
@@ -508,15 +529,4 @@ export const DEFAULT_USER = {
   role: ADMIN_ROLE,
   permissions: ADMIN_ROLE.permission,
 };
-export const TEST_USER = {
-  id: faker.string.uuid(),
-  username: 'test@gmail.com',
-  password: 'demo1234',
-  email: faker.internet.email(),
-  avatar: faker.image.avatarLegacy(),
-  createdAt: faker.date.anytime(),
-  updatedAt: faker.date.recent(),
-  role: TEST_ROLE,
-  permissions: TEST_ROLE.permission,
-};
-export const USER_LIST = [DEFAULT_USER, TEST_USER];
+export const USER_LIST = [DEFAULT_USER];
