@@ -16,6 +16,7 @@ from loguru import logger
 from flask_jwt_extended import JWTManager
 
 import account
+import share
 from auth.auth import User
 
 DATABASE = 'helper.db'
@@ -168,6 +169,7 @@ def create_app():
     app.register_blueprint(auth.auth_bp, url_prefix='/' + app.config['proxy_api_prefix'])
     app.register_blueprint(main.main_bp, url_prefix='/' + app.config['proxy_api_prefix'])
     app.register_blueprint(account.account_bp, url_prefix='/' + app.config['proxy_api_prefix'] + '/account')
+    app.register_blueprint(share.share_bp, url_prefix='/' + app.config['proxy_api_prefix'] + '/share')
     app.jinja_env.filters['datetime'] = format_datetime
     return app
 

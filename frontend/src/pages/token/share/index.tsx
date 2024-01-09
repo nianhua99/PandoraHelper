@@ -5,112 +5,54 @@ import {
   Col,
   Form,
   Input,
-  InputNumber,
-  Modal,
   Popconfirm,
   Row,
   Space,
 } from 'antd';
 import Table, { ColumnsType } from 'antd/es/table';
-import { TableRowSelection } from 'antd/es/table/interface';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-import ProTag from '@/theme/antd/components/tag';
-
-import { Account } from '#/entity';
+import {Share} from '#/entity';
 import {
-  CheckCircleTwoTone, DeleteOutlined,
-  EditOutlined,
-  ExclamationCircleTwoTone,
-  ReloadOutlined
+  DeleteOutlined, EditOutlined,
 } from "@ant-design/icons";
 import {useQuery} from "@tanstack/react-query";
-import accountService from "@/api/services/accountService.ts";
 import {useSearchParams} from "@/router/hooks";
+import shareService from "@/api/services/shareService.ts";
 
-type SearchFormFieldType = Pick<Account, 'email'>;
+type SearchFormFieldType = {
+  email?: string;
+  uniqueName?: string;
+};
 
-export default function AccountPage() {
+export default function SharePage() {
+  const params = useSearchParams();
   const [searchForm] = Form.useForm();
-  const searchParams = useSearchParams()
+  const email = Form.useWatch('email', searchForm);
+  const uniqueName = Form.useWatch('uniqueName', searchForm);
 
   useEffect(() => {
-    searchParams.forEach((value, key) => {
-      console.log(key, value)
-    })
-  }, [searchParams]);
+    searchForm.setFieldValue('email', params.get('email'))
+  }, [params]);
 
-
-  const [AccountModalPros, setAccountModalProps] = useState<AccountModalProps>({
-    formValue: {
-      email: '',
-      password: '',
-      id: 0
-    },
-    title: 'New',
-    show: false,
-    onOk: () => {
-      setAccountModalProps((prev) => ({ ...prev, show: false }));
-    },
-    onCancel: () => {
-      setAccountModalProps((prev) => ({ ...prev, show: false }));
-    },
-  });
-
-  const columns: ColumnsType<Account> = [
+  const columns: ColumnsType<Share> = [
+    { title: 'Account Id', dataIndex: 'accountId', width: 120,  },
     { title: 'Email', dataIndex: 'email', width: 120 },
+    { title: 'UniqueName', dataIndex: 'uniqueName', align: 'center', width: 120 },
     { title: 'Password', dataIndex: 'password', align: 'center', width: 120 },
-    {
-      title: 'Token',
-      dataIndex: 'token',
-      align: 'center',
-      width: 80,
-      render: (_,record) => (
-        // 当Refresh Token存在时，显示Refresh Token，否则显示Session Token，如果两者都不存在，则显示Error Tag
-        record.refreshToken ? (
-          <ProTag color="cyan">Refresh Token</ProTag>
-        ) : record.sessionToken ? (
-          <ProTag color="blue">Session Token</ProTag>
-        ) : (
-          <ProTag color="error">Empty</ProTag>
-        )
+    { title: 'ShareToken', dataIndex: 'shareToken', align: 'center', width: 300,
+      render: (text) => (
+        <Input value={text} readOnly/>
       ),
     },
-    {
-      title: 'Login Status',
-      dataIndex: 'accessToken',
-      align: 'center',
-      width: 150,
-      render: (_,record) => (
-        // 当accessToken存在时，显示accessToken，否则显示Error Tag
-        record.accessToken ? (
-          <CheckCircleTwoTone twoToneColor={'#52c41a'}/>
-        ) : (
-          <ExclamationCircleTwoTone twoToneColor={'#fa8c16'}/>
-        )
-      ),
-    },
-    {
-      title: 'Update Time',
-      dataIndex: 'updateTime',
-      align: 'center',
-      width: 150,
-    },
+    { title: 'Comment', dataIndex: 'comment', align: 'center', width: 300 },
     {
       title: 'Action',
       key: 'operation',
       align: 'center',
-      render: (_, record) => (
+      render: () => (
         <Button.Group>
-          <Popconfirm title="Delete the Account" okText="Yes" cancelText="No" placement="left">
-            {/*<IconButton>*/}
-            {/*  <ReloadOutlined />刷新*/}
-            {/*</IconButton>*/}
-            <Button icon={<ReloadOutlined />} type={"primary"}>
-              刷新
-            </Button>
-          </Popconfirm>
-          <Button onClick={() => onEdit(record)} icon={<EditOutlined />} type={"primary"} />
+          <Button icon={<EditOutlined />} type={"primary"}/>
           <Popconfirm title="Delete the Account" okText="Yes" cancelText="No" placement="left">
             <Button icon={<DeleteOutlined />} type={"primary"}  danger/>
           </Popconfirm>
@@ -119,67 +61,41 @@ export default function AccountPage() {
     },
   ];
 
-  // rowSelection objects indicates the need for row selection
-  const rowSelection: TableRowSelection<Account> = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-    },
-    onSelect: (record, selected, selectedRows) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected, selectedRows, changeRows) => {
-      console.log(selected, selectedRows, changeRows);
-    },
-  };
-
-  // const { data } = useQuery({
-  //   queryKey: ['orgs'],
-  //   queryFn: orgService.getOrgList,
-  // });
-
   const { data } = useQuery({
-    queryKey: ['accounts'],
-    queryFn: accountService.getAccountList,
+    queryKey: ['shareList', email, uniqueName],
+    queryFn: () => {
+      return shareService.searchShare(email, uniqueName)
+    }
   })
 
   const onSearchFormReset = () => {
     searchForm.resetFields();
   };
 
-  const onCreate = () => {
-    setAccountModalProps((prev) => ({
-      ...prev,
-      show: true,
-      title: 'Create New',
-      formValue: {
-        ...prev.formValue,
-      },
-    }));
-  };
-
-  const onEdit = (formValue: Account) => {
-    setAccountModalProps((prev) => ({
-      ...prev,
-      show: true,
-      title: 'Edit',
-      formValue,
-    }));
-  };
-
   return (
     <Space direction="vertical" size="large" className="w-full">
       <Card>
-        <Form form={searchForm}>
+        <Form form={searchForm} >
           <Row gutter={[16, 16]}>
             <Col span={6} lg={6}>
               <Form.Item<SearchFormFieldType> label="Email" name="email" className="!mb-0">
                 <Input />
               </Form.Item>
             </Col>
-            <Col span={6} lg={18}>
+            <Col span={6} lg={6}>
+              <Form.Item<SearchFormFieldType> label="UniqueName" name="uniqueName" className="!mb-0">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={6} lg={12}>
               <div className="flex justify-end">
                 <Button onClick={onSearchFormReset}>Reset</Button>
-                <Button type="primary" className="ml-4">
+                <Button type="primary" className="ml-4" onClick={() => {
+                  searchForm.validateFields().then((values) => {
+                    console.log(values)
+                    searchForm.submit()
+                  })
+                }}>
                   Search
                 </Button>
               </div>
@@ -189,12 +105,7 @@ export default function AccountPage() {
       </Card>
 
       <Card
-        title="Account List"
-        extra={
-          <Button type="primary" onClick={onCreate}>
-            New
-          </Button>
-        }
+        title="Share List"
       >
         <Table
           rowKey="id"
@@ -203,44 +114,8 @@ export default function AccountPage() {
           pagination={false}
           columns={columns}
           dataSource={data}
-          rowSelection={{ ...rowSelection }}
         />
       </Card>
-
-      <AccountModal {...AccountModalPros} />
     </Space>
-  );
-}
-
-type AccountModalProps = {
-  formValue: Account;
-  title: string;
-  show: boolean;
-  onOk: VoidFunction;
-  onCancel: VoidFunction;
-};
-
-function AccountModal({ title, show, formValue, onOk, onCancel }: AccountModalProps) {
-  const [form] = Form.useForm();
-  useEffect(() => {
-    form.setFieldsValue({ ...formValue });
-  }, [formValue, form]);
-  return (
-    <Modal title={title} open={show} onOk={onOk} onCancel={onCancel}>
-      <Form
-        initialValues={formValue}
-        form={form}
-        labelCol={{ span: 4 }}
-        wrapperCol={{ span: 18 }}
-        layout="horizontal"
-      >
-        <Form.Item<Account> label="Email" name="email" required>
-          <Input />
-        </Form.Item>
-        <Form.Item<Account> label="Password" name="password" required>
-          <InputNumber style={{ width: '100%' }} />
-        </Form.Item>
-      </Form>
-    </Modal>
   );
 }

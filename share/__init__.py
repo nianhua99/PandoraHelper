@@ -1,0 +1,1 @@
+from share.share import share_bp

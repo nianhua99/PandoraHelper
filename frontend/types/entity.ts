@@ -63,3 +63,12 @@ export interface Account {
   shareList?: string;
   refreshToken?: string;
 }
+
+export interface Share {
+  accountId: number;
+  email: string;
+  uniqueName: string;
+  password: string
+  shareToken: string;
+  comment: string;
+}

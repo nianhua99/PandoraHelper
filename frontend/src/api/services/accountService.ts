@@ -30,7 +30,8 @@ export interface AccountAddReq {
 const addAccount = (data: AccountAddReq) => apiClient.post({ url: AccountApi.add, data });
 const updateAccount = (data: AccountAddReq) => apiClient.post({ url: AccountApi.update, data });
 const deleteAccount = (id: number) => apiClient.post({ url: AccountApi.delete, data: { id } });
-const refreshAccount = (id: number) => apiClient.post({ url: AccountApi.refresh, data: { id } });
+const refreshAccount = (id: number) =>
+  apiClient.post({ url: AccountApi.refresh, data: { id } })
 
 export default {
   getAccountList,

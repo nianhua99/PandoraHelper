@@ -17,4 +17,4 @@ class ApiResponse:
         return jsonify({
             'status': status,
             'message': message
-        }), status
+        }), 500

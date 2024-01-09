@@ -12,7 +12,6 @@ import {
   Space, Switch,
 } from 'antd';
 import Table, {ColumnsType} from 'antd/es/table';
-import {TableRowSelection} from 'antd/es/table/interface';
 import {useEffect, useState} from 'react';
 
 import ProTag from '@/theme/antd/components/tag';
@@ -22,7 +21,7 @@ import {
   CarOutlined,
   CheckCircleTwoTone, DeleteOutlined,
   EditOutlined,
-  ExclamationCircleTwoTone,
+  ExclamationCircleTwoTone, PlusOutlined,
   ReloadOutlined
 } from "@ant-design/icons";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
@@ -30,6 +29,8 @@ import accountService, {
   AccountAddReq,
 } from "@/api/services/accountService.ts";
 import Password from "antd/es/input/Password";
+import {t} from "@/locales/i18n.ts";
+import {useNavigate} from "react-router-dom";
 
 type SearchFormFieldType = Pick<Account, 'email'>;
 
@@ -37,6 +38,11 @@ export default function AccountPage() {
   const [searchForm] = Form.useForm();
   const {message} = App.useApp();
   const client = useQueryClient()
+  const navigate = useNavigate();
+
+  const [deleteAccountId, setDeleteAccountId] = useState<number>(-1);
+  const [refreshAccountId, setRefreshAccountId] = useState<number>(-1);
+
   const [AccountModalPros, setAccountModalProps] = useState<AccountModalProps>({
     formValue: {
       email: '',
@@ -118,11 +124,17 @@ export default function AccountPage() {
       align: 'center',
       width: 180,
       render: (_, record) => (
-        <Badge count={record.shareList?.length}>
-          <Button icon={<CarOutlined/>}>
-            查看乘客
-          </Button>
-        </Badge>
+        <Button.Group>
+          <Badge count={record.shareList?.length} style={{zIndex: 9}}>
+            <Button icon={<CarOutlined/>} onClick={() => navigate({
+              pathname: '/token/share',
+              search: `?email=${record.email}`,
+            })}>
+              查看乘客
+            </Button>
+          </Badge>
+          <Button icon={<PlusOutlined />}/>
+        </Button.Group>
       ),
     },
     {
@@ -131,35 +143,26 @@ export default function AccountPage() {
       align: 'center',
       render: (_, record) => (
         <Button.Group>
-          <Popconfirm title="Delete the Account" okText="Yes" cancelText="No" placement="left">
-            {/*<IconButton>*/}
-            {/*  <ReloadOutlined />刷新*/}
-            {/*</IconButton>*/}
-            <Button icon={<ReloadOutlined/>} type={"primary"}>
-              刷新
+          <Popconfirm title={t('common.refreshConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => {
+            setRefreshAccountId(record.id);
+            refreshAccountMutation.mutate(record.id)
+          }}>
+            <Button key={record.id} icon={<ReloadOutlined/>} type={"primary"} loading={refreshAccountId === record.id}>
+              {t('common.refresh')}
             </Button>
           </Popconfirm>
           <Button onClick={() => onEdit(record)} icon={<EditOutlined/>} type={"primary"}/>
-          <Popconfirm title="Delete the Account" okText="Yes" cancelText="No" placement="left" onConfirm={() => deleteAccountMutation.mutate(record.id)}>
-            <Button icon={<DeleteOutlined/>} type={"primary"} danger/>
+          <Popconfirm title={t('common.deleteConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => {
+            setDeleteAccountId(record.id);
+            deleteAccountMutation.mutate(record.id)
+          }}>
+            <Button icon={<DeleteOutlined/>} type={"primary"} loading={deleteAccountId === record.id} danger/>
           </Popconfirm>
         </Button.Group>
       ),
     },
   ];
 
-  // rowSelection objects indicates the need for row selection
-  const rowSelection: TableRowSelection<Account> = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-    },
-    onSelect: (record, selected, selectedRows) => {
-      console.log(record, selected, selectedRows);
-    },
-    onSelectAll: (selected, selectedRows, changeRows) => {
-      console.log(selected, selectedRows, changeRows);
-    },
-  };
 
   const {data} = useQuery({
     queryKey: ['accounts'],
@@ -191,15 +194,21 @@ export default function AccountPage() {
         message.success('Delete Account Success')
         client.invalidateQueries(['accounts']);
       },
+      onSettled: () => {
+        setDeleteAccountId(-1);
+      }
     });
 
   const refreshAccountMutation =
     useMutation(accountService.refreshAccount, {
       onSuccess: () => {
         /* onSuccess */
-        message.success('Delete Account Success')
+        message.success('Refresh Account Success')
         client.invalidateQueries(['accounts']);
       },
+      onSettled: () => {
+        setRefreshAccountId(-1);
+      }
     });
 
   const onSearchFormReset = () => {
@@ -279,7 +288,6 @@ export default function AccountPage() {
           pagination={false}
           columns={columns}
           dataSource={data}
-          rowSelection={{...rowSelection}}
         />
       </Card>
 

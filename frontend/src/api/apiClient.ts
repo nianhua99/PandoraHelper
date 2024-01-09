@@ -66,7 +66,7 @@ axiosInstance.interceptors.response.use(
       // errMsg = checkStatus(response.data.status);
       errMsg = t('sys.api.errorMessage');
     }
-    Message.error(errMsg);
+    Message.error(errMsg, 5);
     return Promise.reject(error);
   },
 );
