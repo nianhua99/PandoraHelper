@@ -66,9 +66,9 @@ export interface Account {
 
 export interface Share {
   accountId: number;
-  email: string;
+  email?: string;
   uniqueName: string;
   password: string
-  shareToken: string;
+  shareToken?: string;
   comment: string;
 }

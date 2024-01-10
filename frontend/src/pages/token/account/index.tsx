@@ -1,5 +1,4 @@
 import {
-  App,
   Badge,
   Button,
   Card,
@@ -16,7 +15,7 @@ import {useEffect, useState} from 'react';
 
 import ProTag from '@/theme/antd/components/tag';
 
-import {Account} from '#/entity';
+import {Account, Share} from '#/entity';
 import {
   CarOutlined,
   CheckCircleTwoTone, DeleteOutlined,
@@ -24,20 +23,20 @@ import {
   ExclamationCircleTwoTone, PlusOutlined,
   ReloadOutlined
 } from "@ant-design/icons";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useQuery} from "@tanstack/react-query";
 import accountService, {
   AccountAddReq,
 } from "@/api/services/accountService.ts";
 import Password from "antd/es/input/Password";
 import {t} from "@/locales/i18n.ts";
 import {useNavigate} from "react-router-dom";
+import {useAccountMutation} from "@/store/accountStore.ts";
 
 type SearchFormFieldType = Pick<Account, 'email'>;
 
 export default function AccountPage() {
   const [searchForm] = Form.useForm();
-  const {message} = App.useApp();
-  const client = useQueryClient()
+  const { addAccountMutation, updateAccountMutation, refreshAccountMutation, deleteAccountMutation} = useAccountMutation();
   const navigate = useNavigate();
 
   const [deleteAccountId, setDeleteAccountId] = useState<number>(-1);
@@ -62,6 +61,24 @@ export default function AccountPage() {
     },
     onCancel: () => {
       setAccountModalProps((prev) => ({...prev, show: false}));
+    },
+  });
+
+  const [ShareModalPros, setShareModalProps] = useState<ShareModalProps>({
+    formValue: {
+      accountId: -1,
+      uniqueName: '',
+      password: '',
+      comment: '',
+    },
+    title: 'New',
+    show: false,
+    onOk: (values: Share) => {
+      console.log(values)
+      setShareModalProps((prev) => ({...prev, show: false}));
+    },
+    onCancel: () => {
+      setShareModalProps((prev) => ({...prev, show: false}));
     },
   });
 
@@ -133,7 +150,7 @@ export default function AccountPage() {
               查看乘客
             </Button>
           </Badge>
-          <Button icon={<PlusOutlined />}/>
+          <Button icon={<PlusOutlined />} onClick={() => onShareAdd(record)}/>
         </Button.Group>
       ),
     },
@@ -145,7 +162,7 @@ export default function AccountPage() {
         <Button.Group>
           <Popconfirm title={t('common.refreshConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => {
             setRefreshAccountId(record.id);
-            refreshAccountMutation.mutate(record.id)
+            refreshAccountMutation(() => setRefreshAccountId(record.id)).mutate(record.id)
           }}>
             <Button key={record.id} icon={<ReloadOutlined/>} type={"primary"} loading={refreshAccountId === record.id}>
               {t('common.refresh')}
@@ -154,7 +171,7 @@ export default function AccountPage() {
           <Button onClick={() => onEdit(record)} icon={<EditOutlined/>} type={"primary"}/>
           <Popconfirm title={t('common.deleteConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => {
             setDeleteAccountId(record.id);
-            deleteAccountMutation.mutate(record.id)
+            deleteAccountMutation(() => setDeleteAccountId(record.id)).mutate(record.id)
           }}>
             <Button icon={<DeleteOutlined/>} type={"primary"} loading={deleteAccountId === record.id} danger/>
           </Popconfirm>
@@ -163,53 +180,10 @@ export default function AccountPage() {
     },
   ];
 
-
   const {data} = useQuery({
     queryKey: ['accounts'],
     queryFn: accountService.getAccountList,
   })
-
-  const addAccountMutation =
-    useMutation(accountService.addAccount, {
-      onSuccess: () => {
-        /* onSuccess */
-        message.success('Add Account Success')
-        client.invalidateQueries(['accounts']);
-      },
-    });
-
-  const updateAccountMutation =
-    useMutation(accountService.updateAccount, {
-      onSuccess: () => {
-        /* onSuccess */
-        message.success('Update Account Success')
-        client.invalidateQueries(['accounts']);
-      },
-    });
-
-  const deleteAccountMutation =
-    useMutation(accountService.deleteAccount, {
-      onSuccess: () => {
-        /* onSuccess */
-        message.success('Delete Account Success')
-        client.invalidateQueries(['accounts']);
-      },
-      onSettled: () => {
-        setDeleteAccountId(-1);
-      }
-    });
-
-  const refreshAccountMutation =
-    useMutation(accountService.refreshAccount, {
-      onSuccess: () => {
-        /* onSuccess */
-        message.success('Refresh Account Success')
-        client.invalidateQueries(['accounts']);
-      },
-      onSettled: () => {
-        setRefreshAccountId(-1);
-      }
-    });
 
   const onSearchFormReset = () => {
     searchForm.resetFields();
@@ -230,6 +204,20 @@ export default function AccountPage() {
       },
     }));
   };
+
+  const onShareAdd = (record: Account) => {
+    setShareModalProps((prev) => ({
+      ...prev,
+      show: true,
+      title: 'Share',
+      formValue: {
+        accountId: record.id,
+        uniqueName: '',
+        password: '',
+        comment: '',
+      },
+    }));
+  }
 
   const onEdit = (record: Account) => {
     const tokenType = record.refreshToken ? 'refresh_token' : 'session_token';
@@ -292,7 +280,58 @@ export default function AccountPage() {
       </Card>
 
       <AccountModal {...AccountModalPros} />
+      <ShareModal {...ShareModalPros} />
     </Space>
+  );
+}
+
+type ShareModalProps = {
+  formValue: Share;
+  title: string;
+  show: boolean;
+  onOk: (values: Share) => void;
+  onCancel: VoidFunction;
+}
+
+const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalProps) => {
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    form.setFieldsValue({...formValue});
+  }, [formValue, form]);
+
+  const onModalOk = () => {
+    form.validateFields().then((values) => {
+      onOk(values);
+    });
+  }
+
+  return (
+    <Modal title={title} open={show} onOk={onModalOk} onCancel={() => {
+      console.log('onCancel')
+      form.resetFields();
+      onCancel();
+    }} destroyOnClose={false}>
+      <Form
+        initialValues={formValue}
+        form={form}
+        layout="vertical"
+        preserve={false}
+      >
+        <Form.Item<Share> name="accountId" hidden>
+          <Input/>
+        </Form.Item>
+        <Form.Item<Share> label="UniqueName" name="uniqueName" required>
+          <Input/>
+        </Form.Item>
+        <Form.Item<Share> label="Password" name="password" required>
+          <Input.Password />
+        </Form.Item>
+        <Form.Item<Share> label="Comment" name="comment" >
+          <Input.TextArea />
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 }
 
