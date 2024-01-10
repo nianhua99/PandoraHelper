@@ -17,11 +17,10 @@ import ProTag from '@/theme/antd/components/tag';
 
 import {Account, Share} from '#/entity';
 import {
-  CarOutlined,
   CheckCircleTwoTone, DeleteOutlined,
   EditOutlined,
   ExclamationCircleTwoTone, PlusOutlined,
-  ReloadOutlined
+  ReloadOutlined, ShareAltOutlined
 } from "@ant-design/icons";
 import {useQuery} from "@tanstack/react-query";
 import accountService, {
@@ -30,17 +29,28 @@ import accountService, {
 import Password from "antd/es/input/Password";
 import {t} from "@/locales/i18n.ts";
 import {useNavigate} from "react-router-dom";
-import {useAccountMutation} from "@/store/accountStore.ts";
+import {useAddShareMutation} from "@/store/shareStore.ts";
+import {
+  useAddAccountMutation,
+  useDeleteAccountMutation, useRefreshAccountMutation,
+  useUpdateAccountMutation
+} from "@/store/accountStore.ts";
 
 type SearchFormFieldType = Pick<Account, 'email'>;
 
 export default function AccountPage() {
   const [searchForm] = Form.useForm();
-  const { addAccountMutation, updateAccountMutation, refreshAccountMutation, deleteAccountMutation} = useAccountMutation();
+
+  const addAccountMutation = useAddAccountMutation();
+  const updateAccountMutation = useUpdateAccountMutation();
+  const deleteAccountMutation = useDeleteAccountMutation();
+  const refreshAccountMutation = useRefreshAccountMutation();
+  const addShareMutation = useAddShareMutation();
+
   const navigate = useNavigate();
 
-  const [deleteAccountId, setDeleteAccountId] = useState<number>(-1);
-  const [refreshAccountId, setRefreshAccountId] = useState<number>(-1);
+  const [deleteAccountId, setDeleteAccountId] = useState<number | undefined>(-1);
+  const [refreshAccountId, setRefreshAccountId] = useState<number | undefined>(-1);
 
   const [AccountModalPros, setAccountModalProps] = useState<AccountModalProps>({
     formValue: {
@@ -51,20 +61,29 @@ export default function AccountPage() {
     },
     title: 'New',
     show: false,
-    onOk: (values: AccountAddReq) => {
+    onOk: (values: AccountAddReq, callback) => {
       if (values.id) {
-        updateAccountMutation.mutate(values);
+        updateAccountMutation.mutate(values, {
+          onSuccess: () => {
+            setAccountModalProps((prev) => ({...prev, show: false}))
+          },
+          onSettled: () => callback(false)
+        });
       } else {
-        addAccountMutation.mutate(values);
+        addAccountMutation.mutate(values, {
+          onSuccess: () => {
+            setAccountModalProps((prev) => ({...prev, show: false}))
+          },
+          onSettled: () => callback(false)
+        });
       }
-      setAccountModalProps((prev) => ({...prev, show: false}));
     },
     onCancel: () => {
       setAccountModalProps((prev) => ({...prev, show: false}));
     },
   });
 
-  const [ShareModalPros, setShareModalProps] = useState<ShareModalProps>({
+  const [shareModalProps, setShareModalProps] = useState<ShareModalProps>({
     formValue: {
       accountId: -1,
       uniqueName: '',
@@ -73,9 +92,14 @@ export default function AccountPage() {
     },
     title: 'New',
     show: false,
-    onOk: (values: Share) => {
-      console.log(values)
-      setShareModalProps((prev) => ({...prev, show: false}));
+    onOk: (values: Share, callback) => {
+      callback(true);
+      addShareMutation.mutate(values, {
+        onSuccess: () => {
+          setShareModalProps((prev) => ({...prev, show: false}))
+        },
+        onSettled: () => callback(false)
+      });
     },
     onCancel: () => {
       setShareModalProps((prev) => ({...prev, show: false}));
@@ -143,11 +167,11 @@ export default function AccountPage() {
       render: (_, record) => (
         <Button.Group>
           <Badge count={record.shareList?.length} style={{zIndex: 9}}>
-            <Button icon={<CarOutlined/>} onClick={() => navigate({
+            <Button icon={<ShareAltOutlined />} onClick={() => navigate({
               pathname: '/token/share',
               search: `?email=${record.email}`,
             })}>
-              查看乘客
+              分享管理
             </Button>
           </Badge>
           <Button icon={<PlusOutlined />} onClick={() => onShareAdd(record)}/>
@@ -162,7 +186,9 @@ export default function AccountPage() {
         <Button.Group>
           <Popconfirm title={t('common.refreshConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => {
             setRefreshAccountId(record.id);
-            refreshAccountMutation(() => setRefreshAccountId(record.id)).mutate(record.id)
+            refreshAccountMutation.mutate(record.id, {
+              onSuccess: () => setRefreshAccountId(undefined)
+            })
           }}>
             <Button key={record.id} icon={<ReloadOutlined/>} type={"primary"} loading={refreshAccountId === record.id}>
               {t('common.refresh')}
@@ -171,7 +197,9 @@ export default function AccountPage() {
           <Button onClick={() => onEdit(record)} icon={<EditOutlined/>} type={"primary"}/>
           <Popconfirm title={t('common.deleteConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => {
             setDeleteAccountId(record.id);
-            deleteAccountMutation(() => setDeleteAccountId(record.id)).mutate(record.id)
+            deleteAccountMutation.mutate(record.id,{
+              onSuccess: () => setDeleteAccountId(undefined)
+            })
           }}>
             <Button icon={<DeleteOutlined/>} type={"primary"} loading={deleteAccountId === record.id} danger/>
           </Popconfirm>
@@ -280,21 +308,22 @@ export default function AccountPage() {
       </Card>
 
       <AccountModal {...AccountModalPros} />
-      <ShareModal {...ShareModalPros} />
+      <ShareModal {...shareModalProps} />
     </Space>
   );
 }
 
-type ShareModalProps = {
+export type ShareModalProps = {
   formValue: Share;
   title: string;
   show: boolean;
-  onOk: (values: Share) => void;
+  onOk: (values: Share, callback: any) => void;
   onCancel: VoidFunction;
 }
 
-const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalProps) => {
+export const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalProps) => {
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     form.setFieldsValue({...formValue});
@@ -302,7 +331,7 @@ const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalProps) =
 
   const onModalOk = () => {
     form.validateFields().then((values) => {
-      onOk(values);
+      onOk(values, setLoading);
     });
   }
 
@@ -311,6 +340,8 @@ const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalProps) =
       console.log('onCancel')
       form.resetFields();
       onCancel();
+    }} okButtonProps={{
+      loading: loading,
     }} destroyOnClose={false}>
       <Form
         initialValues={formValue}
@@ -321,8 +352,8 @@ const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalProps) =
         <Form.Item<Share> name="accountId" hidden>
           <Input/>
         </Form.Item>
-        <Form.Item<Share> label="UniqueName" name="uniqueName" required>
-          <Input/>
+        <Form.Item<Share> label="UniqueName" name="uniqueName"  required>
+          <Input readOnly={title === 'Edit'} disabled={title === 'Edit'} />
         </Form.Item>
         <Form.Item<Share> label="Password" name="password" required>
           <Input.Password />
@@ -339,12 +370,13 @@ type AccountModalProps = {
   formValue: AccountAddReq;
   title: string;
   show: boolean;
-  onOk: (values: AccountAddReq) => void;
+  onOk: (values: AccountAddReq,setLoading: any) => void;
   onCancel: VoidFunction;
 };
 
 function AccountModal({title, show, formValue, onOk, onCancel}: AccountModalProps) {
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     form.setFieldsValue({...formValue});
@@ -352,7 +384,7 @@ function AccountModal({title, show, formValue, onOk, onCancel}: AccountModalProp
 
   const onModalOk = () => {
     form.validateFields().then((values) => {
-      onOk(values);
+      onOk(values, setLoading);
     });
   }
 
@@ -374,6 +406,8 @@ function AccountModal({title, show, formValue, onOk, onCancel}: AccountModalProp
       console.log('onCancel')
       form.resetFields();
       onCancel();
+    }} okButtonProps={{
+      loading: loading,
     }} destroyOnClose={false}>
       <Form
         initialValues={formValue}

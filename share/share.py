@@ -49,12 +49,13 @@ def search():
 @jwt_required
 @share_bp.route('/add', methods=['POST'])
 def share_add():
-    account_id = request.json.get('id')
+    account_id = request.json.get('account_id')
     unique_name = request.json.get('unique_name')
     password = request.json.get('password')
     comment = request.form.get('comment')
 
-    account = db.session.query(User).filter_by(id == account_id).first()
+    account = db.session.query(User).filter_by(id=account_id).first()
+
     if account:
         if account.access_token == '':
             return ApiResponse.error('请先登录账号')
@@ -68,14 +69,52 @@ def share_add():
             for share in _share_list:
                 if share['unique_name'] == unique_name:
                     _share_list.remove(share)
-            _share_list.add({
+            _share_list.append({
                 'unique_name': unique_name,
                 'password': password,
                 'comment': comment,
                 'share_token': res['token_key'],
             })
-            db.session.query(User).filter_by(id == account_id).update({'share_list': json.dumps(_share_list), 'update_time': datetime.now()})
+            db.session.query(User).filter_by(id=account_id).update({'share_list': json.dumps(_share_list), 'update_time': datetime.now()})
             db.session.commit()
             return ApiResponse.success({})
     else:
         return ApiResponse.error('账号不存在')
+
+
+@jwt_required
+@share_bp.route('/delete', methods=['POST'])
+def share_delete():
+    account_id = request.json.get('account_id')
+    unique_name = request.json.get('unique_name')
+    user = db.session.query(User).filter_by(id=account_id).first()
+    share_list = json.loads(user.share_list)
+    for share in share_list:
+        if share['unique_name'] == unique_name:
+            share_list.remove(share)
+            break
+    db.session.query(User).filter_by(id=account_id).update(
+        {'share_list': json.dumps(share_list), 'update_time': datetime.now()})
+    db.session.commit()
+    share_tools.get_share_token(user.access_token, unique_name, expires_in=-1)
+    return ApiResponse.success({})
+
+
+@jwt_required
+@share_bp.route('/update', methods=['POST'])
+def share_update():
+    account_id = request.json.get('account_id')
+    unique_name = request.json.get('unique_name')
+    password = request.json.get('password')
+    comment = request.json.get('comment')
+    user = db.session.query(User).filter_by(id=account_id).first()
+    share_list = json.loads(user.share_list)
+    for share in share_list:
+        if share['unique_name'] == unique_name:
+            share['password'] = password
+            share['comment'] = comment
+            break
+    db.session.query(User).filter_by(id=account_id).update(
+        {'share_list': json.dumps(share_list), 'update_time': datetime.now()})
+    db.session.commit()
+    return ApiResponse.success({})
