@@ -13,8 +13,10 @@
 * 一键启动定时器，自动检测Token失效后刷新`Access Token`和`Share Token`！
 * 在以上操作完成后，会自动更新`config.json`文件，并调用`reload` Api，直接生效 ！
 * 本项目保持低侵入性，不参与管理PandoraNext程序。只是方便刷新、管理账号和各种Token。
-![image](https://github.com/nianhua99/PandoraNext-Helper/assets/48168645/bbe7b786-0d0b-4de5-afa0-280f7386e592)
-![shareinfo.png](shareinfo.png)
+![1](./doc/1.png)
+![2](./doc/2.png)
+![3](./doc/3.png)
+![4](./doc/4.png)
 ## Docker部署
 ```shell
 $ docker pull q11391/pandora-next-helper
@@ -26,7 +28,7 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 ```
 * 请替换`<YOUR_PANDORA_NEXT_PATH>`为你的PandoraNext路径, 如`/opt/pandora-next`, 请确保PandoraNext的`config.json`文件在此目录下。
 * 请替换`<YOUR_PANDORA_NEXT_DOMAIN>`为你的PandoraNext域名, 如`https://www.baidu.com`，没有域名的话也可以使用IP，比如http://192.168.1.1:8181 这样，只能要访问到你的PandoraNext即可
-* **请访问`IP:8182/<PROXY_API_PREFIX>/login`进行使用！**
+
 ## 原生Python部署(Python3)
 ```shell
 $ git clone https://github.com/nianhua99/PandoraNext-Helper.git
@@ -42,7 +44,7 @@ $ python3 waitress_run.py
 # 或者在后台启动
 $ nohup python3 waitress_run.py &
 ```
-**请访问`IP:8182/<PROXY_API_PREFIX>/login`进行使用！**
+
 ## 如何借助本项目管理共享ChatGPT车？
 首先需要搭建完成PandoraNext项目，以及本项目  
 在Helper中，添加你的OpenAI账号 -> 点击刷新（获取登录凭证） -> 点击Share列的添加按钮 -> 定义乘客登录时需要的账号密码  
@@ -51,26 +53,12 @@ $ nohup python3 waitress_run.py &
 ## 注意事项
 * 本项目复用了PandoraNext的`config.json`文件，包括`setup_password`|`captcha`|`proxy_api_prefix`
 * 你的PandoraNext 必须启动Proxy模式，详情请看PandoraNext文档：[https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix](https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix)
-* 项目的首页是：`IP:8182/<PROXY_API_PREFIX>/login`
-* 项目依赖两个环境变量
+* 项目的首页是：`IP:8182`
+* 项目依赖两个环境变量,均为**必填**
   * `PANDORA_NEXT_PATH`: 指向PandoraNext的路径，如`/opt/pandora-next`,Docker部署不需要这个，只需挂载正确即可
   * `PANDORA_NEXT_DOMAIN`: 你的PandoraNext域名，如`https://www.baidu.com`
 * 目前验证码只支持`hcaptcha`，你可以在这里获得 hcaptcha ：https://www.hcaptcha.com
-* 以上配置全部是**必选**，否则无法使用本项目
 * 项目会在你的`YOUR_PANDORA_NEXT_PATH`中生成`helper.db`文件，用于存储Token信息
-## 其他说明
-> [!CAUTION]
-> 如果你实在不想开启**验证码**  
-> 项目本身不提供开关，这道门槛可以让小白也注意到安全问题。  
-> ~~如果你确保你的网络环境安全，你可以尝试使用 hcaptcha 提供的测试Key，它将直接Pass，无需你打码~~
-```json
-"captcha": {
-	"provider": "hcaptcha",
-	"site_key": "10000000-ffff-ffff-ffff-000000000001",
-	"site_secret": "0x0000000000000000000000000000000000000000",
-	// 其他配置
-}
-```
 ## Todo
 - [x] 展示Pandora额度信息
 - [x] 生成指定账号下各Share Token的用量情况柱状图

@@ -16,5 +16,12 @@ class User(db.Model):
     shared = db.Column(db.Integer)
     refresh_token = db.Column(db.Text)
 
+    def keys(self):
+        return ['id', 'email', 'password', 'session_token', 'access_token', 'share_list', 'create_time', 'update_time',
+                'shared', 'refresh_token']
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User %r>' % self.email

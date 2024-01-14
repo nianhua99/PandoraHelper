@@ -3,4 +3,5 @@ venv
 build
 dist
 *.db
-*.json
+
+node_modules
