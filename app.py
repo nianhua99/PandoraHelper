@@ -179,10 +179,10 @@ def catch_all(path):
 
 
 def create_app():
-    app.register_blueprint(auth.auth_bp, url_prefix='')
-    app.register_blueprint(account.account_bp, url_prefix='/account')
-    app.register_blueprint(share.share_bp, url_prefix='/share')
-    app.register_blueprint(sys_info.sys_info_bp, url_prefix='/sys_info')
+    app.register_blueprint(auth.auth_bp, url_prefix='/api')
+    app.register_blueprint(account.account_bp, url_prefix='/api/account')
+    app.register_blueprint(share.share_bp, url_prefix='/api/share')
+    app.register_blueprint(sys_info.sys_info_bp, url_prefix='/api/sys_info')
     app.jinja_env.filters['datetime'] = format_datetime
     return app
 
