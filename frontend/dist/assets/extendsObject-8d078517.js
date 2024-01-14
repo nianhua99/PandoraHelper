@@ -1,0 +1,1 @@
+function t(){const t=Object.assign({},arguments.length<=0?void 0:arguments[0]);for(let e=1;e<arguments.length;e++){const n=e<0||arguments.length<=e?void 0:arguments[e];n&&Object.keys(n).forEach((e=>{const o=n[e];void 0!==o&&(t[e]=o)}))}return t}export{t as e};

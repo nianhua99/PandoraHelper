@@ -1,7 +1,6 @@
 venv
 .idea
 build
-dist
 *.db
 
 node_modules
