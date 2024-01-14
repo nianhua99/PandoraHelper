@@ -21,7 +21,7 @@ function LoginForm() {
     console.log(captchaToken);
     setLoading(true);
     try {
-      await signIn({ password });
+      await signIn({ password, token: captchaToken });
     } finally {
       setLoading(false);
     }

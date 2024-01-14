@@ -5,6 +5,7 @@ import {UserInfo} from "#/entity.ts";
 
 export interface SignInReq {
   password: string;
+  token?: string
 }
 
 // export type SignInRes = UserToken & {user: UserInfo};
