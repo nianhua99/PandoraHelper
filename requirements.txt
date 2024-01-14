@@ -39,7 +39,6 @@ typing_extensions==4.9.0
 tzdata==2023.3
 tzlocal==5.2
 urllib3==2.1.0
-vboxapi==1.0
 visitor==0.1.3
 waitress==2.1.2
 Werkzeug==3.0.1
