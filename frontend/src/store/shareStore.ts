@@ -9,7 +9,7 @@ export const useAddShareMutation = () => {
     onSuccess: () => {
       /* onSuccess */
       client.invalidateQueries(['accounts']);
-      message.success('Add Share Success')
+      message.success('Success')
     },
   });
 }
@@ -20,7 +20,7 @@ export const useUpdateShareMutation = () => {
     onSuccess: () => {
       /* onSuccess */
       client.invalidateQueries(['shareList']);
-      message.success('Add Share Success')
+      message.success('Success')
     },
   });
 }
@@ -31,7 +31,7 @@ export const useDeleteShareMutation = () => {
     onSuccess: () => {
       /* onSuccess */
       client.invalidateQueries(['shareList']);
-      message.success('Delete Share Success')
+      message.success('Success')
     },
   })
 }

@@ -8,7 +8,7 @@ import {
   Modal,
   Popconfirm, Radio,
   Row,
-  Space, Switch,
+  Space, Spin, Switch, Typography,
 } from 'antd';
 import Table, {ColumnsType} from 'antd/es/table';
 import {useEffect, useState} from 'react';
@@ -17,17 +17,17 @@ import ProTag from '@/theme/antd/components/tag';
 
 import {Account, Share} from '#/entity';
 import {
+  CaretRightFilled,
   CheckCircleTwoTone, DeleteOutlined,
   EditOutlined,
-  ExclamationCircleTwoTone, PlusOutlined,
+  ExclamationCircleTwoTone, FundOutlined, PauseCircleFilled, PlusOutlined,
   ReloadOutlined, ShareAltOutlined
 } from "@ant-design/icons";
-import {useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import accountService, {
   AccountAddReq,
 } from "@/api/services/accountService.ts";
 import Password from "antd/es/input/Password";
-import {t} from "@/locales/i18n.ts";
 import {useNavigate} from "react-router-dom";
 import {useAddShareMutation} from "@/store/shareStore.ts";
 import {
@@ -35,11 +35,17 @@ import {
   useDeleteAccountMutation, useRefreshAccountMutation,
   useUpdateAccountMutation
 } from "@/store/accountStore.ts";
+import Chart from "@/components/chart/chart.tsx";
+import useChart from "@/components/chart/useChart.ts";
+import shareService from "@/api/services/shareService.ts";
+import {useTranslation} from "react-i18next";
 
 type SearchFormFieldType = Pick<Account, 'email'>;
 
 export default function AccountPage() {
   const [searchForm] = Form.useForm();
+  const {t} = useTranslation()
+  const client = useQueryClient();
 
   const addAccountMutation = useAddAccountMutation();
   const updateAccountMutation = useUpdateAccountMutation();
@@ -52,11 +58,14 @@ export default function AccountPage() {
   const [deleteAccountId, setDeleteAccountId] = useState<number | undefined>(-1);
   const [refreshAccountId, setRefreshAccountId] = useState<number | undefined>(-1);
 
+  const searchEmail = Form.useWatch('email', searchForm);
+
+
   const [AccountModalPros, setAccountModalProps] = useState<AccountModalProps>({
     formValue: {
       email: '',
       password: '',
-      custom_type: 'session_token',
+      custom_type: 'refresh_token',
       custom_token: '',
     },
     title: 'New',
@@ -106,14 +115,34 @@ export default function AccountPage() {
     },
   });
 
+  const [shareInfoModalProps, setShareInfoModalProps] = useState<ShareInfoModalProps>({
+    accountId: -1,
+    show: false,
+    onOk: () => {
+      setShareInfoModalProps((prev) => ({...prev, show: false}));
+    },
+  });
+
   const columns: ColumnsType<Account> = [
-    {title: 'Email', dataIndex: 'email', width: 120},
-    {title: 'Password', dataIndex: 'password', align: 'center', width: 120},
+    {title: t('token.email'), dataIndex: 'email', ellipsis: true, align: 'center',
+       render: (text) => (
+          <Typography.Text style={{maxWidth: 200}} ellipsis={true}>
+            {text}
+          </Typography.Text>
+        )
+    },
+    {title: t('token.password'), dataIndex: 'password', align: 'center',  ellipsis: true,
+      render: (text) => (
+          <Typography.Text style={{maxWidth: 200}} ellipsis={true}>
+            {text}
+          </Typography.Text>
+        )
+    },
     {
-      title: 'Token',
+      title: t('token.tokenType'),
       dataIndex: 'token',
       align: 'center',
-      width: 80,
+      width: 100,
       render: (_, record) => (
         // 当Refresh Token存在时，显示Refresh Token，否则显示Session Token，如果两者都不存在，则显示Error Tag
         record.refreshToken ? (
@@ -126,10 +155,10 @@ export default function AccountPage() {
       ),
     },
     {
-      title: 'Login Status',
+      title: t('token.loginStatus'),
       dataIndex: 'accessToken',
       align: 'center',
-      width: 150,
+      width: 100,
       render: (_, record) => (
         // 当accessToken存在时，显示accessToken，否则显示Error Tag
         record.accessToken ? (
@@ -140,10 +169,10 @@ export default function AccountPage() {
       ),
     },
     {
-      title: 'Share Status',
+      title: t('token.shareStatus'),
       dataIndex: 'shared',
       align: 'center',
-      width: 150,
+      width: 100,
       render: (_, record) => (
         // 当accessToken存在时，显示accessToken，否则显示Error Tag
         record.shared == 1 ? (
@@ -154,16 +183,15 @@ export default function AccountPage() {
       ),
     },
     {
-      title: 'Update Time',
+      title: t("token.updateTime"),
       dataIndex: 'updateTime',
       align: 'center',
-      width: 150,
+      width: 200,
     },
     {
-      title: 'Share',
+      title: t('token.share'),
       key: 'share',
       align: 'center',
-      width: 180,
       render: (_, record) => (
         <Button.Group>
           <Badge count={record.shareList?.length} style={{zIndex: 9}}>
@@ -171,15 +199,16 @@ export default function AccountPage() {
               pathname: '/token/share',
               search: `?email=${record.email}`,
             })}>
-              分享管理
+              {t('token.shareList')}
             </Button>
           </Badge>
           <Button icon={<PlusOutlined />} onClick={() => onShareAdd(record)}/>
+          <Button icon={<FundOutlined />} onClick={() => onShareInfo(record)}/>
         </Button.Group>
       ),
     },
     {
-      title: 'Action',
+      title: t('token.action'),
       key: 'operation',
       align: 'center',
       render: (_, record) => (
@@ -187,7 +216,7 @@ export default function AccountPage() {
           <Popconfirm title={t('common.refreshConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => {
             setRefreshAccountId(record.id);
             refreshAccountMutation.mutate(record.id, {
-              onSuccess: () => setRefreshAccountId(undefined)
+              onSettled: () => setRefreshAccountId(undefined),
             })
           }}>
             <Button key={record.id} icon={<ReloadOutlined/>} type={"primary"} loading={refreshAccountId === record.id}>
@@ -209,9 +238,30 @@ export default function AccountPage() {
   ];
 
   const {data} = useQuery({
-    queryKey: ['accounts'],
-    queryFn: accountService.getAccountList,
+    queryKey: ['accounts', searchEmail],
+    queryFn: () => accountService.searchAccountList(searchEmail)
   })
+
+  const { data: taskStatus } = useQuery({
+    queryKey: ['taskStatus'],
+    queryFn: () => accountService.statusTask(),
+  })
+
+  const startTask = useMutation(accountService.startTask, {
+      onSuccess: () => {
+        client.invalidateQueries(['taskStatus']);
+        console.log('startTask success');
+      }
+    }
+  )
+
+  const stopTask = useMutation(accountService.stopTask, {
+      onSuccess: () => {
+        client.invalidateQueries(['taskStatus']);
+        console.log('stopTask success');
+      }
+    }
+  )
 
   const onSearchFormReset = () => {
     searchForm.resetFields();
@@ -221,13 +271,13 @@ export default function AccountPage() {
     setAccountModalProps((prev) => ({
       ...prev,
       show: true,
-      title: 'Create New',
+      title: t('token.createNew'),
       formValue: {
         id: undefined,
         email: '',
         password: '',
         shared: 0,
-        custom_type: 'session_token',
+        custom_type: 'refresh_token',
         custom_token: '',
       },
     }));
@@ -237,13 +287,21 @@ export default function AccountPage() {
     setShareModalProps((prev) => ({
       ...prev,
       show: true,
-      title: 'Share',
+      title: t('token.share'),
       formValue: {
         accountId: record.id,
         uniqueName: '',
         password: '',
         comment: '',
       },
+    }));
+  }
+
+  const onShareInfo = (record: Account) => {
+    setShareInfoModalProps((prev) => ({
+      ...prev,
+      show: true,
+      accountId: record.id,
     }));
   }
 
@@ -254,7 +312,7 @@ export default function AccountPage() {
     setAccountModalProps((prev) => ({
       ...prev,
       show: true,
-      title: 'Edit',
+      title: t('token.edit'),
       formValue: {
         ...prev.formValue,
         id: record.id,
@@ -273,15 +331,15 @@ export default function AccountPage() {
         <Form form={searchForm}>
           <Row gutter={[16, 16]}>
             <Col span={6} lg={6}>
-              <Form.Item<SearchFormFieldType> label="Email" name="email" className="!mb-0">
+              <Form.Item<SearchFormFieldType> label={t('token.email')} name="email" className="!mb-0">
                 <Input/>
               </Form.Item>
             </Col>
-            <Col span={6} lg={18}>
+            <Col span={18} lg={18}>
               <div className="flex justify-end">
-                <Button onClick={onSearchFormReset}>Reset</Button>
+                <Button onClick={onSearchFormReset}>{t('token.reset')}</Button>
                 <Button type="primary" className="ml-4">
-                  Search
+                  {t('token.search')}
                 </Button>
               </div>
             </Col>
@@ -290,25 +348,32 @@ export default function AccountPage() {
       </Card>
 
       <Card
-        title="Account List"
+        title={t("token.accountList")}
         extra={
+        <Space>
+          {taskStatus?.status ?
+            <Button icon={<PauseCircleFilled />} onClick={() => stopTask.mutate()}>{t("token.stop")}</Button> :
+            <Button icon={<CaretRightFilled />} onClick={() => startTask.mutate()}>{t("token.start")}</Button>
+          }
           <Button type="primary" onClick={onCreate}>
-            New
+            {t("token.createNew")}
           </Button>
+        </Space>
+
         }
       >
         <Table
           rowKey="id"
           size="small"
-          scroll={{x: 'max-content'}}
-          pagination={false}
+          scroll={{ x: 'max-content' }}
+          pagination={{ pageSize: 10 }}
           columns={columns}
           dataSource={data}
         />
       </Card>
-
       <AccountModal {...AccountModalPros} />
       <ShareModal {...shareModalProps} />
+      <ShareInfoModal {...shareInfoModalProps}/>
     </Space>
   );
 }
@@ -324,6 +389,7 @@ export type ShareModalProps = {
 export const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalProps) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const {t} = useTranslation()
 
   useEffect(() => {
     form.setFieldsValue({...formValue});
@@ -337,7 +403,6 @@ export const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalP
 
   return (
     <Modal title={title} open={show} onOk={onModalOk} onCancel={() => {
-      console.log('onCancel')
       form.resetFields();
       onCancel();
     }} okButtonProps={{
@@ -352,13 +417,13 @@ export const ShareModal = ({title, show, formValue, onOk, onCancel}: ShareModalP
         <Form.Item<Share> name="accountId" hidden>
           <Input/>
         </Form.Item>
-        <Form.Item<Share> label="UniqueName" name="uniqueName"  required>
+        <Form.Item<Share> label="Unique Name" name="uniqueName"  required>
           <Input readOnly={title === 'Edit'} disabled={title === 'Edit'} />
         </Form.Item>
-        <Form.Item<Share> label="Password" name="password" required>
+        <Form.Item<Share> label={t('token.password')} name="password" required>
           <Input.Password />
         </Form.Item>
-        <Form.Item<Share> label="Comment" name="comment" >
+        <Form.Item<Share> label={t('token.comment')} name="comment" >
           <Input.TextArea />
         </Form.Item>
       </Form>
@@ -377,20 +442,22 @@ type AccountModalProps = {
 function AccountModal({title, show, formValue, onOk, onCancel}: AccountModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const {t} = useTranslation()
 
-  useEffect(() => {
-    form.setFieldsValue({...formValue});
-  }, [formValue, form]);
+  // useEffect(() => {
+  //   form.setFieldsValue({...formValue});
+  // }, [formValue, form]);
 
   const onModalOk = () => {
     form.validateFields().then((values) => {
+      setLoading(true)
       onOk(values, setLoading);
     });
   }
 
   const CustomTokenItem = () =>
     <div>
-      <Form.Item<AccountAddReq> label="Token Type" name="custom_type" required>
+      <Form.Item<AccountAddReq> label={t("token.tokenType")} name="custom_type" required>
         <Radio.Group>
           <Radio value="session_token">Session Token</Radio>
           <Radio value="refresh_token">Refresh Token</Radio>
@@ -403,7 +470,6 @@ function AccountModal({title, show, formValue, onOk, onCancel}: AccountModalProp
 
   return (
     <Modal title={title} open={show} onOk={onModalOk} onCancel={() => {
-      console.log('onCancel')
       form.resetFields();
       onCancel();
     }} okButtonProps={{
@@ -421,10 +487,10 @@ function AccountModal({title, show, formValue, onOk, onCancel}: AccountModalProp
         <Form.Item<AccountAddReq> label="Email" name="email" required>
           <Input/>
         </Form.Item>
-        <Form.Item<AccountAddReq> label="Password" name="password" required>
+        <Form.Item<AccountAddReq> label={t("token.password")} name="password" required>
           <Password/>
         </Form.Item>
-        <Form.Item<AccountAddReq> label="Shared" name="shared" labelAlign={'left'}
+        <Form.Item<AccountAddReq> label={t("token.share")} name="shared" labelAlign={'left'}
                                   valuePropName="checked" getValueFromEvent={
           (v) => {
             return v ? 1 : 0;
@@ -432,8 +498,63 @@ function AccountModal({title, show, formValue, onOk, onCancel}: AccountModalProp
         } required>
           <Switch/>
         </Form.Item>
-        <Collapse items={[{key: '1', label: '自定义Token', children: <CustomTokenItem/>}]}/>
+        <Collapse items={[{key: '1', label: t("token.customToken"), children: <CustomTokenItem/>}]}/>
       </Form>
     </Modal>
   );
+}
+
+type ShareInfoModalProps = {
+  accountId: number
+  onOk: VoidFunction
+  show: boolean;
+}
+
+const ShareInfoModal = ({accountId, onOk, show}: ShareInfoModalProps) => {
+
+  const { data: statistic, isLoading } = useQuery({
+    queryKey: ['shareInfo', accountId],
+    queryFn: () => shareService.getShareStatistic(accountId),
+    enabled: show,
+  })
+
+  const {t} = useTranslation()
+
+  let chartOptions = useChart({
+      legend: {
+        horizontalAlign: 'center',
+      },
+      stroke: {
+        show: true,
+      },
+      dataLabels: {
+        enabled: true,
+        dropShadow: {
+          enabled: false,
+        },
+      },
+      xaxis:{
+        categories: statistic?.categories || [],
+      },
+      tooltip: {
+        fillSeriesColor: false,
+      },
+      plotOptions: {
+        pie: {
+          donut: {
+            labels: {
+              show: false,
+            },
+          },
+        },
+      },
+    });
+
+  return (
+    <Modal title={t('token.statistic')} open={show} onOk={onOk} closable={false} onCancel={onOk}>
+      <Spin spinning={isLoading} tip={t("token.queryingInfo")}>
+        <Chart type="bar" series={statistic?.series || []}  options={chartOptions} height={320}/>
+      </Spin>
+    </Modal>
+  )
 }

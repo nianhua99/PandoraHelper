@@ -83,6 +83,9 @@
       "closeRight": "Close Right"
     },
     "menu": {
+      "token": "Token",
+      "account": "Account",
+      "share": "Share",
       "dashboard": "Dashboard",
       "workbench": "Workbench",
       "analysis": "Analysis",

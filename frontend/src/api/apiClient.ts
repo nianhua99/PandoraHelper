@@ -7,7 +7,7 @@ import {t} from '@/locales/i18n';
 
 import {Result} from '#/api';
 import {ResultEnum, StorageEnum} from '#/enum';
-import {getItem} from "@/utils/storage.ts";
+import {getItem, removeItem} from "@/utils/storage.ts";
 import {UserToken} from "#/entity.ts";
 
 // 创建 axios 实例
@@ -38,7 +38,7 @@ axiosInstance.interceptors.request.use(
 // 响应拦截
 axiosInstance.interceptors.response.use(
   (res: AxiosResponse<Result>) => {
-    if (!res.data) throw new Error(t('sys.api.apiRequestFailed'));
+    if (!res.data && !res.status) throw new Error(t('sys_info.api.apiRequestFailed'));
 
     let { status, data, message } = res.data;
 
@@ -50,10 +50,16 @@ axiosInstance.interceptors.response.use(
     }
 
     // 业务请求错误
-    throw new Error(message || t('sys.api.apiRequestFailed'));
+    throw new Error(message || t('sys_info.api.apiRequestFailed'));
   },
   (error: AxiosError<Result>) => {
     const { response, message } = error || {};
+    if(response?.status === 444){
+      // Token失效，移除Token并跳转到登录页
+      Message.error("登录失效", 5);
+      removeItem(StorageEnum.Token);
+      window.location.href = '#/login'
+    }
     let errMsg = '';
     try {
       errMsg = response?.data?.message || message;
@@ -64,7 +70,7 @@ axiosInstance.interceptors.response.use(
     if (isEmpty(errMsg)) {
       // checkStatus
       // errMsg = checkStatus(response.data.status);
-      errMsg = t('sys.api.errorMessage');
+      errMsg = t('sys_info.api.errorMessage');
     }
     Message.error(errMsg, 5);
     return Promise.reject(error);

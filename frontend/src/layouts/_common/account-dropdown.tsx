@@ -9,6 +9,7 @@ import { useLoginStateContext } from '@/pages/sys/login/providers/LoginStateProv
 import { useRouter } from '@/router/hooks';
 import { useUserInfo, useUserActions } from '@/store/userStore';
 import { useThemeToken } from '@/theme/hooks';
+import avatar from '@/assets/images/qinshihuang.jpg';
 
 const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
 
@@ -17,7 +18,7 @@ const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
  */
 export default function AccountDropdown() {
   const { replace } = useRouter();
-  const { username, email, avatar } = useUserInfo();
+  const { username, email } = useUserInfo();
   const { clearUserInfoAndToken } = useUserActions();
   const { backToLogin } = useLoginStateContext();
   const { t } = useTranslation();

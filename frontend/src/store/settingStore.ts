@@ -11,11 +11,15 @@ type SettingsType = {
   themeStretch: boolean;
   breadCrumb: boolean;
   multiTab: boolean;
+  captchaSiteKey?: string;
+  taskStatus?: boolean;
 };
 type SettingStore = {
   settings: SettingsType;
   // 使用 actions 命名空间来存放所有的 action
   actions: {
+    setTaskStatus: (taskStatus: boolean) => void;
+    setCaptchaSiteKey: (captchaSiteKey: string) => void;
     setSettings: (settings: SettingsType) => void;
     clearSettings: () => void;
   };
@@ -29,8 +33,25 @@ const useSettingStore = create<SettingStore>((set) => ({
     themeStretch: false,
     breadCrumb: true,
     multiTab: true,
+    taskStatus: false,
   },
   actions: {
+    setTaskStatus: (taskStatus) => {
+      set((state) => ({
+        settings: {
+          ...state.settings,
+          taskStatus,
+        },
+      }));
+    },
+    setCaptchaSiteKey: (captchaSiteKey) => {
+      set((state) => ({
+        settings: {
+          ...state.settings,
+          captchaSiteKey,
+        },
+      }));
+    },
     setSettings: (settings) => {
       set({ settings });
       setItem(StorageEnum.Settings, settings);
@@ -41,5 +62,6 @@ const useSettingStore = create<SettingStore>((set) => ({
   },
 }));
 
+export const useCaptchaSiteKey = () => useSettingStore((state) => state.settings.captchaSiteKey);
 export const useSettings = () => useSettingStore((state) => state.settings);
 export const useSettingActions = () => useSettingStore((state) => state.actions);

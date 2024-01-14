@@ -17,7 +17,7 @@ const token: AppRouteObject = {
     </Suspense>
   ),
   meta: {
-    label: 'sys.menu.dashboard',
+    label: 'sys_info.menu.dashboard',
     icon: <SvgIcon icon="ic-analysis" className="ant-menu-item-icon" size="24" />,
     key: '/token',
   },
@@ -29,7 +29,7 @@ const token: AppRouteObject = {
     {
       path: 'account',
       element: <AccountPage />,
-      meta: { label: 'sys.menu.account', key: '/token/account' },
+      meta: { label: 'sys_info.menu.account', key: '/token/account' },
     },
   ],
 };

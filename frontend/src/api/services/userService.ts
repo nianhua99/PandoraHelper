@@ -1,4 +1,5 @@
 import apiClient from '../apiClient';
+import {UserInfo} from "#/entity.ts";
 
 // import {UserInfo, UserToken} from '#/entity';
 
@@ -7,7 +8,10 @@ export interface SignInReq {
 }
 
 // export type SignInRes = UserToken & {user: UserInfo};
-export type SignInRes = {accessToken: string};
+export type SignInRes = {
+  accessToken: string
+  user: UserInfo
+};
 
 export enum UserApi {
   SignIn = 'login2',

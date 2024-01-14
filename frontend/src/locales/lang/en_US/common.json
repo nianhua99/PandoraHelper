@@ -20,6 +20,11 @@
     "dark": "Dark",
     "refresh": "Refresh",
     "refreshConfirm": "Refresh the Account",
-    "deleteConfirm": "Delete the Account"
-  }
+    "deleteConfirm": "Delete the Account",
+    "welcomeBack": "Welcome back \uD83D\uDC4B",
+    "desc": "Manage your PandoraNext account and token in 1 place.",
+    "goNow": "Go Now"
+  },
+  "%namespace%:password": "",
+  "%namespace%:shareStatus": ""
 }

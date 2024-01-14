@@ -5,7 +5,6 @@ class ApiResponse:
 
     @staticmethod
     def success(data):
-        current_app.json
         return jsonify({
             'status': 0,
             'message': '请求成功',
@@ -18,3 +17,10 @@ class ApiResponse:
             'status': status,
             'message': message
         }), 500
+
+    @staticmethod
+    def unauthorized(message):
+        return jsonify({
+            'status': 444,
+            'message': message
+        }), 444

@@ -5,10 +5,9 @@ import secrets
 from datetime import date, datetime
 
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, send_from_directory
 from flask.json.provider import JSONProvider
 from flask_bootstrap import Bootstrap5
-from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_apscheduler import APScheduler
@@ -17,35 +16,37 @@ from flask_jwt_extended import JWTManager
 
 import account
 import share
-from auth.auth import User
+import sys_info
+from util.api_response import ApiResponse
 
 DATABASE = 'helper.db'
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='frontend/dist', static_url_path='/')
 Bootstrap5(app)
 Moment().init_app(app)
 # 生成随机的secret_key
 app.secret_key = secrets.token_hex(16)
-login_manager = LoginManager()
-login_manager.init_app(app)
-app.config["JWT_SECRET_KEY"] = secrets.token_hex(16)
 jwt = JWTManager(app)
 
 
-# 用户加载函数
-@login_manager.user_loader
-def load_user(userid):
-    return User()
+@jwt.unauthorized_loader
+def custom_unauthorized_callback(error_string):
+    return ApiResponse.unauthorized(error_string, )
 
 
-@login_manager.unauthorized_handler
-def unauthorized():
-    return redirect(url_for('auth.login'))
+@jwt.invalid_token_loader
+def custom_invalid_token_callback(error_string):
+    return ApiResponse.unauthorized(error_string, )
+
+
+@jwt.expired_token_loader
+def custom_expired_token_callback(error_string, expired_token):
+    return ApiResponse.unauthorized(error_string, )
 
 
 @app.context_processor
 def context_api_prefix():
-    return dict(api_prefix=app.config['proxy_api_prefix'])
+    return dict(api_prefix='/api')
 
 
 def check_require_config():
@@ -87,15 +88,16 @@ def check_require_config():
             exit(1)
         app.config.update(proxy_api_prefix=config['proxy_api_prefix'])
         # 检查验证码是否已经配置
-        if config['captcha'] is None or config['captcha']['provider'] is None:
-            logger.error('请配置hcaptcha验证码')
-            exit(1)
-        if config['captcha']['provider'] != 'hcaptcha':
-            logger.error('不支持的验证码提供商')
-            exit(1)
+        if config['captcha'] is None or config['captcha']['provider'] is None or config['captcha']['provider'] != 'hcaptcha':
+            logger.warning('未检测到hcaptcha验证码配置，建议您开启验证码')
+            app.config.update(
+                license_id=config['license_id'],
+                captcha_enabled=False,
+            )
         else:
             app.config.update(
                 license_id=config['license_id'],
+                captcha_enabled=True,
                 captcha_provider=config['captcha']['provider'],
                 captcha_site_key=config['captcha']['site_key'],
                 captcha_secret_key=config['captcha']['site_secret']
@@ -103,7 +105,6 @@ def check_require_config():
 
 
 from auth import auth
-from main import main
 from model import db
 
 check_require_config()
@@ -165,11 +166,23 @@ class StandardJSONProvider(JSONProvider):
 app.json = StandardJSONProvider(app)
 
 
+#
+# @app.route('/')
+# def serve():
+#     return send_from_directory(app.template_folder, 'index.html')
+#
+#
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    return app.send_static_file("index.html")
+
+
 def create_app():
-    app.register_blueprint(auth.auth_bp, url_prefix='/' + app.config['proxy_api_prefix'])
-    app.register_blueprint(main.main_bp, url_prefix='/' + app.config['proxy_api_prefix'])
-    app.register_blueprint(account.account_bp, url_prefix='/' + app.config['proxy_api_prefix'] + '/account')
-    app.register_blueprint(share.share_bp, url_prefix='/' + app.config['proxy_api_prefix'] + '/share')
+    app.register_blueprint(auth.auth_bp, url_prefix='/api')
+    app.register_blueprint(account.account_bp, url_prefix='/api/account')
+    app.register_blueprint(share.share_bp, url_prefix='/api/share')
+    app.register_blueprint(sys_info.sys_info_bp, url_prefix='/api/sys_info')
     app.jinja_env.filters['datetime'] = format_datetime
     return app
 

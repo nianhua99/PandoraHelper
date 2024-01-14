@@ -8,6 +8,7 @@ export enum ShareApi {
   search = '/share/search',
   delete = '/share/delete',
   update = '/share/update',
+  statistic = '/share/statistic'
 }
 
 const getShareList = () => apiClient.get<Share[]>({ url: ShareApi.list });
@@ -19,10 +20,18 @@ const searchShare = (email?: string,uniqueName?:string ) => apiClient.post({ url
   uniqueName
 }});
 
+type ShareStatistic = {
+  series: ApexAxisChartSeries;
+  categories: string[]
+}
+
+const getShareStatistic = (accountId: number) => apiClient.post<ShareStatistic>({ url: ShareApi.statistic, data: { accountId } });
+
 export default {
   getShareList,
   addShare,
   updateShare,
   searchShare,
-  deleteShare
+  deleteShare,
+  getShareStatistic
 };

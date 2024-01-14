@@ -1,16 +1,18 @@
-import { Layout, Typography } from 'antd';
+import {Layout, Typography} from 'antd';
 import Color from 'color';
-import { useTranslation } from 'react-i18next';
-import { Navigate } from 'react-router-dom';
+import {useTranslation} from 'react-i18next';
+import {Navigate} from 'react-router-dom';
 
 import DashboardImg from '@/assets/images/background/dashboard.png';
 import Overlay2 from '@/assets/images/background/overlay_2.jpg';
 import LocalePicker from '@/components/locale-picker';
-import { useUserToken } from '@/store/userStore';
-import { useThemeToken } from '@/theme/hooks';
+import {useUserToken} from '@/store/userStore';
+import {useThemeToken} from '@/theme/hooks';
 
 import LoginForm from './LoginForm';
-import { LoginStateProvider } from './providers/LoginStateProvider';
+import {LoginStateProvider} from './providers/LoginStateProvider';
+import {getItem} from "@/utils/storage.ts";
+import {StorageEnum} from "#/enum.ts";
 
 const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
 
@@ -20,7 +22,7 @@ function Login() {
   const { colorBgElevated } = useThemeToken();
 
   // 判断用户是否有权限
-  if (token.accessToken) {
+  if (token.accessToken && getItem(StorageEnum.Token)) {
     // 如果有授权，则跳转到首页
     return <Navigate to={HOMEPAGE} replace />;
   }

@@ -5,22 +5,34 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 
 from model import db, User
-from util import login_tools, share_tools
+from util import login_tools, share_tools, pandora_tools
 from util.api_response import ApiResponse
 from loguru import logger
+
+from util.pandora_tools import sync_pandora
 
 account_bp = Blueprint('account_bp', __name__)
 
 
-@jwt_required
+@jwt_required()
 @account_bp.route('/list')
 def account_list():
     accounts = db.session.query(User).all()
     return ApiResponse.success(accounts)
 
 
-@jwt_required
+
+@account_bp.route('/search', methods=['POST'])
+@jwt_required()
+def account_search():
+    email = request.json.get('email') if request.json.get('email') else ''
+    accounts = db.session.query(User).filter(User.email.like(f'%{email}%')).all()
+    return ApiResponse.success(accounts)
+
+
+
 @account_bp.route('/add', methods=['POST'])
+@jwt_required()
 def account_add():
     email = request.json.get('email')
     password = request.json.get('password')
@@ -51,11 +63,12 @@ def account_add():
     db.session.add(user)
     db.session.commit()
 
+    sync_pandora()
     return ApiResponse.success({})
 
 
-@jwt_required
 @account_bp.route('/update', methods=['POST'])
+@jwt_required()
 def account_update():
     account_id = request.json.get('id')
     email = request.json.get('email')
@@ -85,12 +98,12 @@ def account_update():
     # 更新用户
 
     db.session.commit()
-
+    sync_pandora()
     return ApiResponse.success({})
 
 
-@jwt_required
 @account_bp.route('/delete', methods=['POST'])
+@jwt_required()
 def account_delete():
     account_id = request.json.get('id')
     user = db.session.query(User).filter_by(id=account_id).first()
@@ -99,15 +112,69 @@ def account_delete():
     return ApiResponse.success({})
 
 
-@jwt_required
 @account_bp.route('/refresh', methods=['POST'])
+@jwt_required()
 def account_refresh():
     account_id = request.json.get('id')
     try:
         refresh(account_id)
     except Exception as e:
         return ApiResponse.error(str(e))
+    sync_pandora()
     return ApiResponse.success('刷新成功')
+
+
+def refresh_all_user():
+    from app import scheduler
+    flag = False
+    with scheduler.app.app_context():
+        users = db.session.query(User).all()
+        for user in users:
+            try:
+                # jwt解析access_token 检查access_token是否过期
+                if user.access_token is None:
+                    continue
+                else:
+                    token_info = pandora_tools.get_email_by_jwt(user.access_token)
+                    # 根据exp判断是否过期,如果过期则刷新
+                    exp_time = datetime.fromtimestamp(token_info['exp'])
+                    if exp_time > datetime.now():
+                        continue
+                flag = True
+                refresh(user.id)
+            except Exception as e:
+                logger.error(e)
+        if flag:
+            sync_pandora()
+            logger.info('刷新成功')
+
+
+@account_bp.route('/start', methods=['post'])
+@jwt_required()
+def refresh_task():
+    from app import scheduler
+    scheduler.add_job(func=refresh_all_user, trigger='interval', minutes=1, id='my_job')
+    if not scheduler.running:
+        scheduler.start()
+    return ApiResponse.success('定时刷新已开启')
+
+
+@account_bp.route('/stop', methods=['post'])
+@jwt_required()
+def kill_refresh_task():
+    from app import scheduler
+    scheduler.remove_job(id='my_job')
+    return ApiResponse.success('定时刷新已关闭')
+
+
+@account_bp.route('/task_status')
+@jwt_required()
+def refresh_status():
+    from app import scheduler
+    if scheduler.running and scheduler.get_job(id='my_job') is not None:
+        return ApiResponse.success({'status': True})
+    else:
+        return ApiResponse.success({'status': False})
 
 
 def refresh(user_id):

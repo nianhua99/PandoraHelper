@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+ockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -35,6 +35,9 @@ dependencies:
   '@fullcalendar/timeline':
     specifier: ^6.1.9
     version: 6.1.9(@fullcalendar/core@6.1.9)
+  '@hcaptcha/react-hcaptcha':
+    specifier: ^1.9.3
+    version: 1.9.3(react-dom@18.2.0)(react@18.2.0)
   '@iconify/react':
     specifier: ^4.1.1
     version: 4.1.1(react@18.2.0)
@@ -2332,6 +2335,22 @@ packages:
       '@fullcalendar/core': 6.1.9
       '@fullcalendar/premium-common': 6.1.9(@fullcalendar/core@6.1.9)
       '@fullcalendar/scrollgrid': 6.1.9(@fullcalendar/core@6.1.9)
+    dev: false
+
+  /@hcaptcha/loader@1.1.2:
+    resolution: {integrity: sha512-YEBXCGNUBpPJUd5UZg64jBU6YMOhDjGdzS6dUCI9P8uIJttuQz3P76wVmK9kdKOuvLUaB7HwVBBmNv/bkAaIEw==}
+    dev: false
+
+  /@hcaptcha/react-hcaptcha@1.9.3(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-3aaXKT2tEXr317eWYNXm7JGC9z6FkhuDX46uLSFAevtVB3grxgwVxcVQuZy/Y5p6+TeQ6iDTAD0Ca2xwe4Muvw==}
+    peerDependencies:
+      react: '>= 16.3.0'
+      react-dom: '>= 16.3.0'
+    dependencies:
+      '@babel/runtime': 7.23.2
+      '@hcaptcha/loader': 1.1.2
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
     dev: false
 
   /@humanwhocodes/config-array@0.11.11:
