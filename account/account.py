@@ -30,7 +30,6 @@ def account_search():
     return ApiResponse.success(accounts)
 
 
-
 @account_bp.route('/add', methods=['POST'])
 @jwt_required()
 def account_add():
@@ -45,13 +44,13 @@ def account_add():
                 create_time=datetime.now(),
                 update_time=datetime.now())
 
-    if custom_token != '':
+    if custom_token:
         if custom_token_type == 'session_token':
             user.session_token = custom_token
         elif custom_token_type == 'refresh_token':
             user.refresh_token = custom_token
 
-    if custom_token == '' and custom_token_type == 'refresh_token':
+    if not custom_token and custom_token_type == 'refresh_token':
         try:
             res = login_tools.get_refresh_token(email, password)
             user.refresh_token = res['refresh_token']
@@ -83,13 +82,13 @@ def account_update():
     user.shared = shared
     user.update_time = datetime.now()
 
-    if custom_token != '':
+    if custom_token:
         if custom_token_type == 'session_token':
             user.session_token = custom_token
         elif custom_token_type == 'refresh_token':
             user.refresh_token = custom_token
 
-    if custom_token == '' and custom_token_type == 'refresh_token':
+    if not custom_token and custom_token_type == 'refresh_token':
         try:
             res = login_tools.get_refresh_token(email, password)
             user.refresh_token = res['refresh_token']
@@ -132,7 +131,7 @@ def refresh_all_user():
         for user in users:
             try:
                 # jwt解析access_token 检查access_token是否过期
-                if user.access_token is None:
+                if not user.access_token:
                     continue
                 else:
                     token_info = pandora_tools.get_email_by_jwt(user.access_token)
@@ -171,7 +170,7 @@ def kill_refresh_task():
 @jwt_required()
 def refresh_status():
     from app import scheduler
-    if scheduler.running and scheduler.get_job(id='my_job') is not None:
+    if scheduler.running and scheduler.get_job(id='my_job'):
         return ApiResponse.success({'status': True})
     else:
         return ApiResponse.success({'status': False})
@@ -180,7 +179,7 @@ def refresh_status():
 def refresh(user_id):
     user = db.session.query(User).filter_by(id=user_id).first()
 
-    if user is None:
+    if not user:
         raise Exception('用户不存在')
 
     def login_by_refresh_token():
@@ -214,7 +213,7 @@ def refresh(user_id):
 
     access_token, session_token = None, None
 
-    if user.refresh_token is not None:
+    if user.refresh_token:
         try:
             access_token = login_by_refresh_token()
             db.session.query(User).filter_by(id=user_id).update(
@@ -224,7 +223,7 @@ def refresh(user_id):
             logger.error(e)
 
     else:
-        if user.session_token is not None:
+        if user.session_token:
             try:
                 access_token, session_token = login_by_session_token()
                 db.session.query(User).filter_by(id=user_id).update(
@@ -233,7 +232,7 @@ def refresh(user_id):
             except Exception as e:
                 logger.error(e)
 
-    if access_token is None:
+    if not access_token:
         try:
             access_token, session_token = login_by_password()
             db.session.query(User).filter_by(id=user_id).update(

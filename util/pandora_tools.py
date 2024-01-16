@@ -74,8 +74,9 @@ def make_json():
     with open(os.path.join(current_app.config['pandora_path'], 'tokens.json'), 'r') as f:
         tokens = json.loads(f.read())
     # 丢弃原json中token字段以fk开头的键值对
-    tokens = {k: v for k, v in tokens.items() if 'token' in v and not v['token'].startswith('fk')}
-
+    for key in list(tokens.keys()):
+        if tokens[key] and tokens[key]['token'] and tokens[key]['token'].startswith('fk'):
+            tokens.pop(key)
     # 将share_list转换为json对象
     for user in users:
         # 当存在share_list时, 取所有share_token, 并写入tokens.json
@@ -89,7 +90,9 @@ def make_json():
                         'password': share['password']
                     }
         else:
-            if user.session_token is None and user.refresh_token is None:
+            if not user.access_token:
+                continue
+            if not user.session_token and not user.refresh_token:
                 continue
             # 当不存在share_list时, 取session_token, 并写入tokens.json
             # Todo 自定义 plus / show_user_info

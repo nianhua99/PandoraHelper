@@ -31,7 +31,7 @@ def get_share_token(access_token, unique_name, expires_in=0, show_conversations=
 def get_share_token_info(share_token, access_token=None):
     host = get_host()
     headers = {}
-    if access_token is not None:
+    if access_token:
         headers = {
             'Authorization': f'Bearer {access_token}'
         }

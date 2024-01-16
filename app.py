@@ -43,6 +43,7 @@ def custom_invalid_token_callback(error_string):
 def custom_expired_token_callback(error_string, expired_token):
     return ApiResponse.unauthorized(error_string, )
 
+
 #
 # @app.context_processor
 # def context_api_prefix():
@@ -52,14 +53,14 @@ def custom_expired_token_callback(error_string, expired_token):
 def check_require_config():
     PANDORA_NEXT_PATH = os.getenv('PANDORA_NEXT_PATH')
     # 如果PANDORA_NEXT_PATH 为空则检查/data下是否存在config.json
-    if PANDORA_NEXT_PATH is None:
+    if not PANDORA_NEXT_PATH:
         if os.path.exists('/data/config.json'):
             PANDORA_NEXT_PATH = '/data'
         else:
             logger.error("请配置PandoraNext相关环境变量")
             exit(1)
     PANDORA_NEXT_DOMAIN = os.getenv('PANDORA_NEXT_DOMAIN')
-    if PANDORA_NEXT_DOMAIN is None:
+    if not PANDORA_NEXT_DOMAIN:
         logger.error("请配置PandoraNext相关环境变量")
         exit(1)
     else:
@@ -82,25 +83,34 @@ def check_require_config():
             exit(1)
         app.config.update(setup_password=config['setup_password'])
         # 必须配置proxy_api_prefix,且不少于8位，同时包含字母和数字
-        if config['proxy_api_prefix'] is None or re.match(r'^(?=.*[a-zA-Z])(?=.*\d).{8,}$',
-                                                          config['proxy_api_prefix']) is None:
+        if not config['proxy_api_prefix'] or re.match(r'^(?=.*[a-zA-Z])(?=.*\d).{8,}$',
+                                                      config['proxy_api_prefix']) is None:
             logger.error('请配置proxy_api_prefix')
             exit(1)
         app.config.update(proxy_api_prefix=config['proxy_api_prefix'])
+
+        DISABLE_CAPTCHA = os.getenv('DISABLE_CAPTCHA')
+
         # 检查验证码是否已经配置
-        if config['captcha'] is None or config['captcha']['provider'] is None or config['captcha']['provider'] != 'hcaptcha':
-            logger.warning('未检测到hcaptcha验证码配置，建议您开启验证码')
+        if DISABLE_CAPTCHA:
+            logger.warning('已关闭验证码配置，建议您开启验证码')
             app.config.update(
                 license_id=config['license_id'],
                 captcha_enabled=False,
             )
-        else:
+        elif config['captcha'] and config['captcha']['provider'] and config['captcha']['provider'] == 'hcaptcha':
             app.config.update(
                 license_id=config['license_id'],
                 captcha_enabled=True,
                 captcha_provider=config['captcha']['provider'],
                 captcha_site_key=config['captcha']['site_key'],
                 captcha_secret_key=config['captcha']['site_secret']
+            )
+        else:
+            logger.warning('未读取到有效的 hcaptcha 配置，建议您开启验证码')
+            app.config.update(
+                license_id=config['license_id'],
+                captcha_enabled=False,
             )
 
 
@@ -166,12 +176,6 @@ class StandardJSONProvider(JSONProvider):
 app.json = StandardJSONProvider(app)
 
 
-#
-# @app.route('/')
-# def serve():
-#     return send_from_directory(app.template_folder, 'index.html')
-#
-#
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):

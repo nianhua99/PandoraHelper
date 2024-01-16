@@ -59,7 +59,7 @@ def share_add():
     account = db.session.query(User).filter_by(id=account_id).first()
 
     if account:
-        if account.access_token == '':
+        if not account.access_token:
             return ApiResponse.error('请先登录账号')
         else:
             try:
