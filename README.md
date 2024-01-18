@@ -52,6 +52,7 @@ $ nohup python3 waitress_run.py &
 至此，即完成了分享，每个乘客之间互相屏蔽，你也可以随时吊销乘客
 ## 注意事项
 * 本项目复用了PandoraNext的`config.json`文件，包括`setup_password`|`captcha`|`proxy_api_prefix`
+* `setup_password` 即为你的登录密码
 * 你的PandoraNext 必须启动Proxy模式，详情请看PandoraNext文档：[https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix](https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix)
 * **项目的首页是：`IP:8182`**
 * 项目依赖两个环境变量
