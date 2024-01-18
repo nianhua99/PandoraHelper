@@ -54,9 +54,10 @@ $ nohup python3 waitress_run.py &
 * 本项目复用了PandoraNext的`config.json`文件，包括`setup_password`|`captcha`|`proxy_api_prefix`
 * 你的PandoraNext 必须启动Proxy模式，详情请看PandoraNext文档：[https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix](https://docs.pandoranext.com/zh-CN/configuration/config#proxy_api_prefix)
 * **项目的首页是：`IP:8182`**
-* 项目依赖两个环境变量,均为**必填**
-  * `PANDORA_NEXT_PATH`: 指向PandoraNext的路径，如`/opt/pandora-next`,Docker部署不需要这个，只需挂载正确即可
-  * `PANDORA_NEXT_DOMAIN`: 你的PandoraNext域名，如`https://www.baidu.com`
+* 项目依赖两个环境变量
+  * `PANDORA_NEXT_PATH`: **必填** 指向PandoraNext的路径，如`/opt/pandora-next`,Docker部署不需要这个，只需挂载正确即可
+  * `PANDORA_NEXT_DOMAIN`: **必填** 你的PandoraNext域名，如`https://www.baidu.com`
+* `DISABLE_CAPTCHA`: **选填** 设置`DISABLE_CAPTCHA=1`可以禁用验证码
 * 目前验证码只支持`hcaptcha`，你可以在这里获得 hcaptcha ：https://www.hcaptcha.com
 * 项目会在你的`YOUR_PANDORA_NEXT_PATH`中生成`helper.db`文件，用于存储Token信息
 ## Todo
