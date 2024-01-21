@@ -29,6 +29,16 @@ $ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
 * 请替换`<YOUR_PANDORA_NEXT_PATH>`为你的PandoraNext路径, 如`/opt/pandora-next`, 请确保PandoraNext的`config.json`文件在此目录下。
 * 请替换`<YOUR_PANDORA_NEXT_DOMAIN>`为你的PandoraNext域名, 如`https://www.baidu.com`，没有域名的话也可以使用IP，比如http://192.168.1.1:8181 这样，只能要访问到你的PandoraNext即可
 
+## Docker-Compose 部署
+**一键部署PandoraNext+Helper双服务**  
+如果已部署PandoraNext，则不推荐此方式
+```shell
+git clone https://github.com/pandora-next/deploy.git
+cd ./deploy
+curl -o ./docker-compose.yml https://raw.githubusercontent.com/nianhua99/PandoraNext-Helper/main/docker-compose.yml
+docker-compose up -d
+```
+
 ## 原生Python部署(Python3)
 ```shell
 $ git clone https://github.com/nianhua99/PandoraNext-Helper.git
