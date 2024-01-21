@@ -1,0 +1,22 @@
+version: '3'
+services:
+  pandora-next:
+    image: pengzhile/pandora-next
+    container_name: PandoraNext
+    restart: always
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./data:/data
+      - ./sessions:/root/.cache/PandoraNext
+
+  pandoranext-helper:
+    image: q11391/pandora-next-helper
+    container_name: PandoraNext-Helper
+    restart: always
+    ports:
+      - "8182:8182"
+    volumes:
+      - ./data:/data
+    environment:
+      - PANDORA_NEXT_DOMAIN=http://pandora-next:8181
