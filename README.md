@@ -20,14 +20,14 @@
 ## Docker部署
 ```shell
 $ docker pull q11391/pandora-next-helper
-$ docker run -d --restart=always --name PandoraNext-Helper --net=bridge \
+$ docker run -d --restart=always --name PandoraNext-Helper --net=host \
     -p 8182:8182 \
     -v <YOUR_PANDORA_NEXT_PATH>:/data \
-    -e PANDORA_NEXT_DOMAIN="<YOUR_PANDORA_NEXT_DOMAIN>" \
+    -e PANDORA_NEXT_DOMAIN=http://127.0.0.1:8181 \
     q11391/pandora-next-helper
 ```
 * 请替换`<YOUR_PANDORA_NEXT_PATH>`为你的PandoraNext路径, 如`/opt/pandora-next`, 请确保PandoraNext的`config.json`文件在此目录下。
-* 请替换`<YOUR_PANDORA_NEXT_DOMAIN>`为你的PandoraNext域名, 如`https://www.baidu.com`，没有域名的话也可以使用IP，比如http://192.168.1.1:8181 这样，只能要访问到你的PandoraNext即可
+* `<PANDORA_NEXT_DOMAIN>`为你的PandoraNext域名, 一般不需要修改，或者只需要修改为正确的端口即可
 
 ## Docker-Compose 部署
 **一键部署PandoraNext+Helper双服务**  
