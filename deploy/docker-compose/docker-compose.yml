@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  user-db:
+    image: mysql:8.0.31-debian
+    hostname: user-db
+    container_name: user-db
+    ports:
+      - 3380:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_DATABASE=user
+    volumes:
+      - ./data/mysql/user:/var/lib/mysql
+      - ./conf/mysql/conf.d:/etc/mysql/conf.d
+  cache-redis:
+    image: redis:6-alpine
+    hostname: cache-redis
+    volumes:
+      - ./data/redis/cache/:/data
+      - ./conf/redis/cache/redis.conf:/etc/redis/redis.conf
+    ports:
+      - 6350:6379
+    command: ["redis-server","/etc/redis/redis.conf"]

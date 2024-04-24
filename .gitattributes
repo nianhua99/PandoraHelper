@@ -1,0 +1,14 @@
+* text=auto
+
+# Force the following filetypes to have unix eols, so Windows does not break them
+*.* text eol=lf
+
+# Windows forced line-endings
+/.idea/* text eol=crlf
+
+#
+## These files are binary and should be left untouched
+#
+
+# (binary is a macro for -text -diff)
+*.png binary
