@@ -54,7 +54,6 @@ func newApp(httpServer *http.Server, job *server.Job) *app.App {
 }
 
 func NewWire(*viper.Viper, *log.Logger) (*app.App, func(), error) {
-
 	panic(wire.Build(
 		repositorySet,
 		serviceSet,
@@ -64,4 +63,5 @@ func NewWire(*viper.Viper, *log.Logger) (*app.App, func(), error) {
 		jwt.NewJwt,
 		newApp,
 	))
+
 }

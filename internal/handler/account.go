@@ -23,6 +23,22 @@ func NewAccountHandler(
 	}
 }
 
+func (h *AccountHandler) RefreshAccount(ctx *gin.Context) {
+	req := new(v1.RefreshAccountRequest)
+
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+		return
+	}
+
+	err := h.accountService.RefreshAccount(ctx, req.Id)
+	if err != nil {
+		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
+}
+
 func (h *AccountHandler) SearchAccount(ctx *gin.Context) {
 	req := new(v1.SearchAccountRequest)
 

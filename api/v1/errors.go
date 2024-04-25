@@ -10,4 +10,5 @@ var (
 
 	// more biz errors
 	ErrEmailAlreadyUse = newError(1001, "The email is already in use.")
+	ErrCannotRefresh   = newError(1002, "Can not refresh account.")
 )

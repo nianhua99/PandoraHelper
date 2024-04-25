@@ -70,6 +70,7 @@ func NewHTTPServer(
 		accountAuthRouter := v1.Group("/account").Use(middleware.StrictAuth(jwt, logger))
 		{
 			accountAuthRouter.POST("/add", accountHandler.CreateAccount)
+			accountAuthRouter.POST("/refresh", accountHandler.RefreshAccount)
 			accountAuthRouter.POST("/search", accountHandler.SearchAccount)
 			accountAuthRouter.POST("/delete", accountHandler.DeleteAccount)
 			accountAuthRouter.POST("/update", accountHandler.UpdateAccount)
