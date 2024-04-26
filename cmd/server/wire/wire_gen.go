@@ -33,14 +33,16 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	userService := service.NewUserService(serviceService, viperViper)
 	userHandler := handler.NewUserHandler(handlerHandler, userService)
 	shareRepository := repository.NewShareRepository(repositoryRepository)
-	shareService := service.NewShareService(serviceService, shareRepository, viperViper)
-	shareHandler := handler.NewShareHandler(handlerHandler, shareService)
 	accountRepository := repository.NewAccountRepository(repositoryRepository)
-	accountService := service.NewAccountService(serviceService, accountRepository, viperViper)
+	coordinator := service.NewServiceCoordinator(serviceService, accountRepository, shareRepository, viperViper)
+	shareService := service.NewShareService(serviceService, shareRepository, viperViper, coordinator)
+	shareHandler := handler.NewShareHandler(handlerHandler, shareService)
+	accountService := service.NewAccountService(serviceService, accountRepository, viperViper, coordinator)
 	accountHandler := handler.NewAccountHandler(handlerHandler, accountService)
 	httpServer := server.NewHTTPServer(logger, viperViper, jwtJWT, userHandler, shareHandler, accountHandler)
 	job := server.NewJob(logger)
-	appApp := newApp(httpServer, job)
+	task := server.NewTask(logger, accountService, shareService)
+	appApp := newApp(httpServer, job, task)
 	return appApp, func() {
 	}, nil
 }
@@ -49,13 +51,15 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewAccountRepository, repository.NewShareRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewAccountService, service.NewShareService)
+var serviceCoordinatorSet = wire.NewSet(service.NewServiceCoordinator)
+
+var serviceSet = wire.NewSet(service.NewService, service.NewUserService, serviceCoordinatorSet, service.NewAccountService, service.NewShareService, server.NewTask)
 
 var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewShareHandler, handler.NewAccountHandler)
 
 var serverSet = wire.NewSet(server.NewHTTPServer, server.NewJob)
 
 // build App
-func newApp(httpServer *http.Server, job *server.Job) *app.App {
-	return app.NewApp(app.WithServer(httpServer, job), app.WithName("demo-server"))
+func newApp(httpServer *http.Server, job *server.Job, task *server.Task) *app.App {
+	return app.NewApp(app.WithServer(httpServer, job, task), app.WithName("demo-server"))
 }

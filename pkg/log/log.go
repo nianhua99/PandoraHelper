@@ -87,7 +87,7 @@ func NewLog(conf *viper.Viper) *Logger {
 
 func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	//enc.AppendString(t.Format("2006-01-02 15:04:05"))
-	enc.AppendString(t.Format("2006-01-02 15:04:05.000000000"))
+	enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 }
 
 // WithValue Adds a field to the specified context

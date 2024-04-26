@@ -11,7 +11,8 @@ import (
 )
 
 type ShareService interface {
-	RefreshShareToken(accessToken string, share *model.Share, resetLimit bool) (string, error)
+	RefreshShareToken(ctx context.Context, share *model.Share, accessToken string, resetLimit bool) (string, error)
+	ResetShareLimit(ctx context.Context, id int64) error
 	GetShare(ctx context.Context, id int64) (*model.Share, error)
 	Update(ctx context.Context, share *model.Share) error
 	Create(ctx context.Context, share *model.Share) error
@@ -19,12 +20,12 @@ type ShareService interface {
 	DeleteShare(ctx context.Context, id int64) error
 }
 
-func NewShareService(service *Service, shareRepository repository.ShareRepository, viper *viper.Viper, accountService AccountService) ShareService {
+func NewShareService(service *Service, shareRepository repository.ShareRepository, viper *viper.Viper, coordinator *Coordinator) ShareService {
 	return &shareService{
 		Service:         service,
 		shareRepository: shareRepository,
 		viper:           viper,
-		accountService:  accountService,
+		accountService:  coordinator.AccountSvc,
 	}
 }
 
@@ -35,7 +36,7 @@ type shareService struct {
 	accountService  AccountService
 }
 
-func (s *shareService) RefreshShareToken(accessToken string, share *model.Share, resetLimit bool) (string, error) {
+func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *model.Share, resetLimit bool) (string, error) {
 	chatDomain := fmt.Sprintf("%s/token/register", s.viper.GetString("pandora.domain.chat"))
 	var resp struct {
 		TokenKey string `json:"token_key"`
@@ -64,8 +65,23 @@ func (s *shareService) RefreshShareToken(accessToken string, share *model.Share,
 	return resp.TokenKey, nil
 }
 
+func (s *shareService) RefreshShareToken(ctx context.Context, share *model.Share, accessToken string, resetLimit bool) (string, error) {
+	if accessToken == "" {
+		account, err := s.accountService.GetAccount(ctx, int64(share.AccountID))
+		if err != nil {
+			return "", err
+		}
+		accessToken = account.AccessToken
+	}
+	return s.GetShareTokenByAccessToken(accessToken, share, resetLimit)
+}
+
 func (s *shareService) Update(ctx context.Context, share *model.Share) error {
-	err := s.shareRepository.Update(ctx, share)
+	_, err := s.RefreshShareToken(ctx, share, "", false)
+	if err != nil {
+		return err
+	}
+	err = s.shareRepository.Update(ctx, share)
 	if err != nil {
 		return err
 	}
@@ -73,11 +89,12 @@ func (s *shareService) Update(ctx context.Context, share *model.Share) error {
 }
 
 func (s *shareService) Create(ctx context.Context, share *model.Share) error {
-	err := s.shareRepository.Create(ctx, share)
+	token, err := s.RefreshShareToken(ctx, share, "", false)
 	if err != nil {
 		return err
 	}
-	s.RefreshShareToken(share.Account.AccessToken, share, true)
+	share.ShareToken = token
+	err = s.shareRepository.Create(ctx, share)
 	return nil
 }
 
@@ -86,9 +103,30 @@ func (s *shareService) SearchShare(ctx context.Context, email string, uniqueName
 }
 
 func (s *shareService) DeleteShare(ctx context.Context, id int64) error {
+	share, err := s.GetShare(ctx, id)
+	if err != nil {
+		return err
+	}
+	share.ExpiresIn = -1
+	_, err = s.RefreshShareToken(ctx, share, "", false)
+	if err != nil {
+		return err
+	}
 	return s.shareRepository.DeleteShare(ctx, id)
 }
 
 func (s *shareService) GetShare(ctx context.Context, id int64) (*model.Share, error) {
 	return s.shareRepository.GetShare(ctx, id)
+}
+
+func (s *shareService) ResetShareLimit(ctx context.Context, id int64) error {
+	share, err := s.GetShare(ctx, id)
+	if err != nil {
+		return err
+	}
+	_, err = s.RefreshShareToken(ctx, share, "", true)
+	if err != nil {
+		return err
+	}
+	return nil
 }

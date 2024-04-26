@@ -26,11 +26,17 @@ var repositorySet = wire.NewSet(
 	repository.NewShareRepository,
 )
 
+var serviceCoordinatorSet = wire.NewSet(
+	service.NewServiceCoordinator,
+)
+
 var serviceSet = wire.NewSet(
 	service.NewService,
 	service.NewUserService,
+	serviceCoordinatorSet,
 	service.NewAccountService,
 	service.NewShareService,
+	server.NewTask,
 )
 
 var handlerSet = wire.NewSet(
@@ -46,9 +52,9 @@ var serverSet = wire.NewSet(
 )
 
 // build App
-func newApp(httpServer *http.Server, job *server.Job) *app.App {
+func newApp(httpServer *http.Server, job *server.Job, task *server.Task) *app.App {
 	return app.NewApp(
-		app.WithServer(httpServer, job),
+		app.WithServer(httpServer, job, task),
 		app.WithName("demo-server"),
 	)
 }

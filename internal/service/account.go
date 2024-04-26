@@ -20,12 +20,12 @@ type AccountService interface {
 	DeleteAccount(ctx context.Context, id int64) error
 }
 
-func NewAccountService(service *Service, accountRepository repository.AccountRepository, viper *viper.Viper, shareService ShareService) AccountService {
+func NewAccountService(service *Service, accountRepository repository.AccountRepository, viper *viper.Viper, coordinator *Coordinator) AccountService {
 	return &accountService{
 		Service:           service,
 		accountRepository: accountRepository,
 		viper:             viper,
-		shareService:      shareService,
+		shareService:      coordinator.ShareSvc,
 	}
 }
 
@@ -81,7 +81,7 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 		return err
 	}
 	for _, share := range shares {
-		_, err = s.shareService.RefreshShareToken(accessToken, share, false)
+		_, err = s.shareService.RefreshShareToken(ctx, share, accessToken, false)
 		if err != nil {
 			return err
 		}
@@ -114,5 +114,23 @@ func (s *accountService) DeleteAccount(ctx context.Context, id int64) error {
 }
 
 func (s *accountService) GetAccount(ctx context.Context, id int64) (*model.Account, error) {
-	return s.accountRepository.GetAccount(ctx, id)
+	account, err := s.accountRepository.GetAccount(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if account.AccessToken == "" {
+		if account.RefreshToken == "" {
+			return nil, v1.ErrNotFound
+		}
+		newAccessToken, err := s.GetAccessTokenByRefreshToken(account.RefreshToken)
+		account.AccessToken = newAccessToken
+		if err != nil {
+			return nil, err
+		}
+		err = s.accountRepository.Update(ctx, account)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return account, nil
 }
