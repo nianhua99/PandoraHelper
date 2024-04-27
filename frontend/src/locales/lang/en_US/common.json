@@ -1,0 +1,32 @@
+{
+  "common": {
+    "okText": "OK",
+    "closeText": "Close",
+    "cancelText": "Cancel",
+    "loadingText": "Loading...",
+    "saveText": "Save",
+    "delText": "Delete",
+    "resetText": "Reset",
+    "searchText": "Search",
+    "queryText": "Search",
+
+    "inputText": "Please enter",
+    "chooseText": "Please choose",
+
+    "redo": "Refresh",
+    "back": "Back",
+
+    "light": "Light",
+    "dark": "Dark",
+    "refresh": "Refresh",
+    "refreshConfirm": "Refresh the Account",
+    "deleteConfirm": "Delete the Account",
+    "welcomeBack": "Welcome back \uD83D\uDC4B",
+    "desc": "Manage your PandoraNext account and token in 1 place.",
+    "goNow": "Go Now",
+
+    "optional": "Optional"
+  },
+  "%namespace%:password": "",
+  "%namespace%:shareStatus": ""
+}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 
@@ -27,13 +28,18 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	var envConf = flag.String("conf", "config/local.yml", "config path, eg: -conf ./config/local.yml")
+	var envConf = flag.String("conf", "./config/", "config path, eg: -conf ./config/local.yml")
 	flag.Parse()
 	conf := config.NewConfig(*envConf)
 
 	logger := log.NewLog(conf)
 
 	app, cleanup, err := wire.NewWire(conf, logger)
+	pwd := conf.GetString("security.admin_password")
+	if pwd == "" || len(pwd) < 8 {
+		panic(errors.New("未设置密码或密码长度小于8"))
+	}
+
 	defer cleanup()
 	if err != nil {
 		panic(err)

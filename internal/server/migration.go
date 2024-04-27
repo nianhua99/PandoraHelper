@@ -6,7 +6,6 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"os"
 )
 
 type Migrate struct {
@@ -29,7 +28,6 @@ func (m *Migrate) Start(ctx context.Context) error {
 		return err
 	}
 	m.log.Info("AutoMigrate success")
-	os.Exit(0)
 	return nil
 }
 func (m *Migrate) Stop(ctx context.Context) error {

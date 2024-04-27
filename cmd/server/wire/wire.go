@@ -39,6 +39,10 @@ var serviceSet = wire.NewSet(
 	server.NewTask,
 )
 
+var migrateSet = wire.NewSet(
+	server.NewMigrate,
+)
+
 var handlerSet = wire.NewSet(
 	handler.NewHandler,
 	handler.NewUserHandler,
@@ -52,9 +56,9 @@ var serverSet = wire.NewSet(
 )
 
 // build App
-func newApp(httpServer *http.Server, job *server.Job, task *server.Task) *app.App {
+func newApp(httpServer *http.Server, job *server.Job, task *server.Task, migrate *server.Migrate) *app.App {
 	return app.NewApp(
-		app.WithServer(httpServer, job, task),
+		app.WithServer(httpServer, job, task, migrate),
 		app.WithName("demo-server"),
 	)
 }
@@ -65,6 +69,7 @@ func NewWire(*viper.Viper, *log.Logger) (*app.App, func(), error) {
 		serviceSet,
 		handlerSet,
 		serverSet,
+		migrateSet,
 		sid.NewSid,
 		jwt.NewJwt,
 		newApp,

@@ -68,12 +68,12 @@ func (t *Task) Start(ctx context.Context) error {
 
 	t.scheduler = gocron.NewScheduler(time.UTC)
 
-	_, err := t.scheduler.Every("1d").Do(t.RefreshAllAccountEveryday, ctx)
+	_, err := t.scheduler.Every(1).Day().At("00:00").Do(t.RefreshAllAccountEveryday, ctx)
 	if err != nil {
 		return err
 	}
 
-	_, err = t.scheduler.Every("1d").Do(t.RefreshShareLimitEveryday, ctx)
+	_, err = t.scheduler.Every(1).Day().At("00:05").Do(t.RefreshShareLimitEveryday, ctx)
 	if err != nil {
 		return err
 	}

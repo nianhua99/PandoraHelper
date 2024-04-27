@@ -42,7 +42,8 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	httpServer := server.NewHTTPServer(logger, viperViper, jwtJWT, userHandler, shareHandler, accountHandler)
 	job := server.NewJob(logger)
 	task := server.NewTask(logger, accountService, shareService)
-	appApp := newApp(httpServer, job, task)
+	migrate := server.NewMigrate(db, logger)
+	appApp := newApp(httpServer, job, task, migrate)
 	return appApp, func() {
 	}, nil
 }
@@ -55,11 +56,13 @@ var serviceCoordinatorSet = wire.NewSet(service.NewServiceCoordinator)
 
 var serviceSet = wire.NewSet(service.NewService, service.NewUserService, serviceCoordinatorSet, service.NewAccountService, service.NewShareService, server.NewTask)
 
+var migrateSet = wire.NewSet(server.NewMigrate)
+
 var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewShareHandler, handler.NewAccountHandler)
 
 var serverSet = wire.NewSet(server.NewHTTPServer, server.NewJob)
 
 // build App
-func newApp(httpServer *http.Server, job *server.Job, task *server.Task) *app.App {
-	return app.NewApp(app.WithServer(httpServer, job, task), app.WithName("demo-server"))
+func newApp(httpServer *http.Server, job *server.Job, task *server.Task, migrate *server.Migrate) *app.App {
+	return app.NewApp(app.WithServer(httpServer, job, task, migrate), app.WithName("demo-server"))
 }

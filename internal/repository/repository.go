@@ -4,13 +4,12 @@ import (
 	"PandoraHelper/pkg/log"
 	"PandoraHelper/pkg/zapgorm2"
 	"context"
-	"fmt"
 	"github.com/glebarez/sqlite"
-	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
 	"time"
 )
 
@@ -68,8 +67,8 @@ func NewDB(conf *viper.Viper, l *log.Logger) *gorm.DB {
 	)
 
 	logger := zapgorm2.New(l.Logger)
-	driver := conf.GetString("data.db.user.driver")
-	dsn := conf.GetString("data.db.user.dsn")
+	driver := conf.GetString("database.driver")
+	dsn := conf.GetString("database.dsn")
 
 	// GORM doc: https://gorm.io/docs/connecting_to_the_database.html
 	switch driver {
@@ -83,6 +82,17 @@ func NewDB(conf *viper.Viper, l *log.Logger) *gorm.DB {
 			PreferSimpleProtocol: true, // disables implicit prepared statement usage
 		}), &gorm.Config{})
 	case "sqlite":
+		_, err := os.Stat(dsn)
+		if err != nil {
+			if os.IsNotExist(err) {
+				_, err := os.Create(dsn)
+				if err != nil {
+					return nil
+				}
+			} else {
+				panic(err)
+			}
+		}
 		db, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{})
 	default:
 		panic("unknown db driver")
@@ -101,21 +111,4 @@ func NewDB(conf *viper.Viper, l *log.Logger) *gorm.DB {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	return db
-}
-func NewRedis(conf *viper.Viper) *redis.Client {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     conf.GetString("data.redis.addr"),
-		Password: conf.GetString("data.redis.password"),
-		DB:       conf.GetInt("data.redis.db"),
-	})
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	_, err := rdb.Ping(ctx).Result()
-	if err != nil {
-		panic(fmt.Sprintf("redis error: %s", err.Error()))
-	}
-
-	return rdb
 }

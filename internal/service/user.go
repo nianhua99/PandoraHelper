@@ -46,5 +46,5 @@ func (s *userService) Login(ctx context.Context, req *v1.LoginRequest) (string, 
 
 		return token, user, nil
 	}
-	return "", nil, v1.ErrUnauthorized
+	return "", nil, v1.ErrBadRequest
 }

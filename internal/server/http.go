@@ -1,15 +1,17 @@
 package server
 
 import (
-	apiV1 "PandoraHelper/api/v1"
+	"PandoraHelper"
 	"PandoraHelper/docs"
 	"PandoraHelper/internal/handler"
 	"PandoraHelper/internal/middleware"
 	"PandoraHelper/pkg/jwt"
 	"PandoraHelper/pkg/log"
 	"PandoraHelper/pkg/server/http"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -22,7 +24,7 @@ func NewHTTPServer(
 	shareHandler *handler.ShareHandler,
 	accountHandler *handler.AccountHandler,
 ) *http.Server {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	s := http.NewServer(
 		gin.Default(),
 		logger,
@@ -44,12 +46,8 @@ func NewHTTPServer(
 		middleware.RequestLogMiddleware(logger),
 		//middleware.SignMiddleware(log),
 	)
-	s.GET("/", func(ctx *gin.Context) {
-		logger.WithContext(ctx).Info("hello")
-		apiV1.HandleSuccess(ctx, map[string]interface{}{
-			":)": "Thank you for using nunu!",
-		})
-	})
+
+	s.Use(static.Serve("/", static.EmbedFolder(PandoraHelper.EmbedFrontendFS, "frontend/dist")))
 
 	v1 := s.Group("/api")
 	{

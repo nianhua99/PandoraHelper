@@ -21,7 +21,7 @@ func RequestLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 		trace := cryptor.Md5String(uuid)
 		logger.WithValue(ctx, zap.String("trace", trace))
 		logger.WithValue(ctx, zap.String("request_method", ctx.Request.Method))
-		logger.WithValue(ctx, zap.Any("request_headers", ctx.Request.Header))
+		//logger.WithValue(ctx, zap.Any("request_headers", ctx.Request.Header))
 		logger.WithValue(ctx, zap.String("request_url", ctx.Request.URL.String()))
 		if ctx.Request.Body != nil {
 			bodyBytes, _ := ctx.GetRawData()
@@ -39,7 +39,7 @@ func ResponseLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 		startTime := time.Now()
 		ctx.Next()
 		duration := time.Since(startTime).String()
-		logger.WithContext(ctx).Info("Response", zap.Any("response_body", blw.body.String()), zap.Any("time", duration))
+		logger.WithContext(ctx).Info("Response", zap.Any("time", duration))
 	}
 }
 

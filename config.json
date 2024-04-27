@@ -1,0 +1,29 @@
+{
+  "security": {
+    "admin_password": ""
+  },
+  "http": {
+    "host": "127.0.0.1",
+    "port": 8080
+  },
+  "database": {
+    "driver": "sqlite",
+    "dsn": "./data.db"
+  },
+  "pandora": {
+    "domain": {
+      "chat": "https://chat.oaifree.com",
+      "token": "https://token.oaifree.com",
+      "new": "https://new.oaifree.com"
+    }
+  },
+  "log": {
+    "level": "info",
+    "output": "console",
+    "log_file_name": "./logs/server.log",
+    "max_backups": 30,
+    "max_age": 7,
+    "max_size": 1024,
+    "compress": true
+  }
+}
