@@ -4,4 +4,4 @@ storage/*
 deploy/docker-compose/conf
 deploy/docker-compose/data
 builds
-
+data.db

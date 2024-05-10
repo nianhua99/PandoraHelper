@@ -8,7 +8,8 @@ export enum ShareApi {
   search = '/share/search',
   delete = '/share/delete',
   update = '/share/update',
-  statistic = '/share/statistic'
+  statistic = '/share/statistic',
+  chatLogin = '/login_share'
 }
 
 const getShareList = () => apiClient.get<Share[]>({ url: ShareApi.list });
@@ -18,6 +19,10 @@ const deleteShare = (data: Share) => apiClient.post({ url: ShareApi.delete, data
 const searchShare = (email?: string,uniqueName?:string ) => apiClient.post({ url: ShareApi.search, data: {
   email,
   uniqueName
+}});
+const chatLoginShare = (username: string, password: string) => apiClient.post({ url: ShareApi.chatLogin, data: {
+  username,
+  password
 }});
 
 type ShareStatistic = {
@@ -33,5 +38,6 @@ export default {
   updateShare,
   searchShare,
   deleteShare,
-  getShareStatistic
+  getShareStatistic,
+  chatLoginShare
 };

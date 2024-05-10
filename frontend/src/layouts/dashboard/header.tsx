@@ -1,4 +1,4 @@
-import { Drawer } from 'antd';
+import { Drawer} from 'antd';
 import Color from 'color';
 import { CSSProperties, useState } from 'react';
 
@@ -75,7 +75,10 @@ export default function Header({ className = '', offsetTop = false }: Props) {
             {/*<PandoraUsage />*/}
             <SearchBar />
             <LocalePicker />
-            <IconButton onClick={() => window.open('https://github.com/nianhua99/PandoraNext-Helper')}>
+            <IconButton onClick={() => window.open('https://linux.do')}>
+              <Iconify icon="ant-design:linux-outlined" size={24} style={{color: "#006eff"}} />
+            </IconButton>
+            <IconButton onClick={() => window.open('https://github.com/nianhua99/PandoraHelper')}>
               <Iconify icon="mdi:github" size={24} />
             </IconButton>
             <SettingButton />

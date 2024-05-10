@@ -4,17 +4,18 @@ import {
   Card,
   Col,
   Form,
-  Input,
+  Input, message,
   Popconfirm,
   Row,
-  Space, Typography,
+  Space, Tooltip, Typography,
 } from 'antd';
 import Table, { ColumnsType } from 'antd/es/table';
 import {useEffect, useState} from 'react';
 
 import {defaultShare, Share} from '#/entity';
 import {
-  DeleteOutlined, EditOutlined,
+  CheckOutlined, CloseOutlined,
+  DeleteOutlined, EditOutlined, RobotOutlined,
 } from "@ant-design/icons";
 import {useQuery} from "@tanstack/react-query";
 import {useSearchParams} from "@/router/hooks";
@@ -34,6 +35,7 @@ export default function SharePage() {
   const updateShareMutation = useUpdateShareMutation()
 
   const {t} = useTranslation()
+  const [loading, setLoading] = useState(false)
 
   const params = useSearchParams();
   const [searchForm] = Form.useForm();
@@ -53,18 +55,15 @@ export default function SharePage() {
     },
   });
 
-
   useEffect(() => {
     searchForm.setFieldValue('email', params.get('email'))
   }, [params]);
 
   const columns: ColumnsType<Share> = [
-    {title: t('token.email'), dataIndex: ['account','email'],
+    {title: t('token.email'), dataIndex: ['account','email'], width: 120,
       render: (text) => (
-          <Typography.Text style={{maxWidth: 200}} ellipsis={true}>
-            {text}
-          </Typography.Text>
-        )
+        <Input value={text} onClick={(e) => onCopy(text, t, e)} readOnly/>
+      ),
     },
     { title: 'Unique Name', dataIndex: 'uniqueName', align: 'center', width: 120 },
     { title: t('token.password'), dataIndex: 'password', align: 'center', width: 120 },
@@ -75,12 +74,15 @@ export default function SharePage() {
       render: text => text == -1 ? '无限制' : text
     },
     { title: t('token.refreshEveryday'), dataIndex: 'refreshEveryday', align: 'center', width: 120,
-      render: text => text ? '是' : '否'
+      render: text => text ? <CheckOutlined /> : <CloseOutlined />
+    },
+    { title: t('token.temporaryChat'), dataIndex: 'temporaryChat', align: 'center', width: 80,
+      render: text => text ? <CheckOutlined /> : <CloseOutlined />
     },
     { title: t('token.expiresIn'), dataIndex: 'expiresIn', align: 'center', width: 120,
       render: text => text == 0 ? '最大' : text
     },
-    { title: 'Share Token', dataIndex: 'shareToken', align: 'center',
+    { title: 'Share Token', dataIndex: 'shareToken', align: 'center', width: 120,
       render: (text) => (
         <Input value={text} onClick={(e) => onCopy(text, t, e)} readOnly/>
       ),
@@ -98,6 +100,9 @@ export default function SharePage() {
       align: 'center',
       render: (_,record) => (
         <Button.Group>
+          <Tooltip title={"登录并跳转至对话"} placement={"bottom"}>
+            <Button icon={<RobotOutlined />} type={"primary"} onClick={() => onChatLogin(record)}/>
+          </Tooltip>
           <Button icon={<EditOutlined />} type={"primary"} onClick={() => onEdit(record)}/>
           <Popconfirm title={t('token.deleteConfirm')} okText="Yes" cancelText="No" placement="left" onConfirm={() => handleDelete(record)}>
             <Button icon={<DeleteOutlined />} type={"primary"} loading={deleteRowKey == record.accountId + record.uniqueName}  danger/>
@@ -124,6 +129,19 @@ export default function SharePage() {
         setShareModalProps((prev) => ({...prev, show: false}));
       },
     })
+  }
+
+  const onChatLogin = (record: Share) => {
+    setLoading(true)
+    message.info({content: "正在跳转至对话...", key: 'chatLogin', duration: 5})
+    shareService.chatLoginShare(record.uniqueName, record.password)
+      .then((data) => {
+        if(data){
+          window.open(data, '_blank')
+        }
+      }).finally(() => {
+        setLoading(false)
+      })
   }
 
   const handleDelete = (record: Share) => {
@@ -188,6 +206,7 @@ export default function SharePage() {
           pagination={{ pageSize: 10 }}
           columns={columns}
           dataSource={data}
+          loading={loading}
         />
       </Card>
       <ShareModal {...shareModalProps}/>

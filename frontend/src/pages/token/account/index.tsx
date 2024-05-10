@@ -214,7 +214,7 @@ export default function AccountPage() {
               icon={<ShareAltOutlined />}
               onClick={() =>
                 navigate({
-                  pathname: '/token/share',
+                  pathname: '/admin/token/share',
                   search: `?email=${record.email}`,
                 })
               }
@@ -237,6 +237,7 @@ export default function AccountPage() {
             title={t('common.refreshConfirm')}
             okText="Yes"
             cancelText="No"
+            disabled={record.refreshToken != ""}
             placement="left"
             onConfirm={() => {
               setRefreshAccountId(record.id);

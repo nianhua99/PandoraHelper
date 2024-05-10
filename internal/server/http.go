@@ -54,6 +54,7 @@ func NewHTTPServer(
 
 	s.GET("/login", userHandler.ChatLoginIndex)
 	s.POST("/login_share", shareHandler.LoginShare)
+	s.POST("/api/login_share", shareHandler.LoginShare)
 
 	v1 := s.Group("/api")
 	{

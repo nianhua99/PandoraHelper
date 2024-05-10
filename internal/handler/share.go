@@ -6,7 +6,6 @@ import (
 	"PandoraHelper/internal/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	"net/http"
 )
 
@@ -28,7 +27,7 @@ func NewShareHandler(
 func (h *ShareHandler) LoginShare(ctx *gin.Context) {
 	req := new(v1.LoginShareRequest)
 
-	if err := ctx.ShouldBindWith(req, binding.Form); err != nil {
+	if err := ctx.ShouldBind(req); err != nil {
 		fmt.Println(err)
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
 		return

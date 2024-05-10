@@ -24,6 +24,5 @@ dist-ssr
 
 # vite 打包分析产物
 stats.html
-dist
 
 
