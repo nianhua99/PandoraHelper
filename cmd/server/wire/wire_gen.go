@@ -31,7 +31,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	sidSid := sid.NewSid()
 	serviceService := service.NewService(transaction, logger, sidSid, jwtJWT)
 	userService := service.NewUserService(serviceService, viperViper)
-	userHandler := handler.NewUserHandler(handlerHandler, userService)
+	userHandler := handler.NewUserHandler(handlerHandler, userService, viperViper)
 	shareRepository := repository.NewShareRepository(repositoryRepository)
 	accountRepository := repository.NewAccountRepository(repositoryRepository)
 	coordinator := service.NewServiceCoordinator(serviceService, accountRepository, shareRepository, viperViper)

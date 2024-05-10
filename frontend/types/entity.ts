@@ -78,6 +78,7 @@ export interface Share {
   gpt35Limit?: number;
   gpt4Limit?: number;
   showUserinfo?: boolean;
+  temporaryChat?: boolean;
   showConversations?: boolean;
 }
 
@@ -96,5 +97,6 @@ export const defaultShare: Share = {
   gpt35Limit: -1,
   gpt4Limit: -1,
   showUserinfo: false,
+  temporaryChat: false,
   showConversations: false
 };

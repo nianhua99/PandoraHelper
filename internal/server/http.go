@@ -11,7 +11,6 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -47,15 +46,19 @@ func NewHTTPServer(
 		//middleware.SignMiddleware(log),
 	)
 
+	s.LoadHTMLFiles("web/auth/login_auth0.html")
+
+	s.Static("/static", "./web")
+
 	s.Use(static.Serve("/", static.EmbedFolder(PandoraHelper.EmbedFrontendFS, "frontend/dist")))
+
+	s.GET("/login", userHandler.ChatLoginIndex)
+	s.POST("/login_share", shareHandler.LoginShare)
 
 	v1 := s.Group("/api")
 	{
 		// No route group has permission
-		noAuthRouter := v1.Group("/")
-		{
-			noAuthRouter.POST("/login", userHandler.Login)
-		}
+		v1.POST("/login", userHandler.Login)
 
 		shareAuthRouter := v1.Group("/share").Use(middleware.StrictAuth(jwt, logger))
 		{

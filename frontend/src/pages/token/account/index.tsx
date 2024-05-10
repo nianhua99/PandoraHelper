@@ -525,7 +525,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        <Row>
           <Col span={8}>
             <Form.Item<Share>
               label={
@@ -537,7 +537,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
               <Checkbox />
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col span={7}>
             <Form.Item<Share>
               label={t('token.showUserinfo')}
               name="showUserinfo"
@@ -548,10 +548,19 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
               <Checkbox defaultChecked={false} />
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col span={5}>
             <Form.Item<Share>
               label={t('token.showConversations')}
               name="showConversations"
+              valuePropName="checked"
+            >
+              <Checkbox defaultChecked />
+            </Form.Item>
+          </Col>
+          <Col span={4}>
+            <Form.Item<Share>
+              label={t('token.temporaryChat')}
+              name="temporaryChat"
               valuePropName="checked"
             >
               <Checkbox defaultChecked />

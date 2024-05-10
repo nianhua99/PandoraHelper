@@ -7,6 +7,11 @@ type SearchShareRequest struct {
 	UniqueName string `json:"uniqueName" example:"uniqueName"`
 }
 
+type LoginShareRequest struct {
+	Username string `form:"username" binding:"required"`
+	Password string `form:"password" binding:"required"`
+}
+
 type AddShareRequest struct {
 	Share model.Share `json:"share" binding:"required"`
 }

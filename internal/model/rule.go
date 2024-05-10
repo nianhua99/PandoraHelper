@@ -7,7 +7,7 @@ var (
 		"label":     "sys.menu.analysis",
 		"name":      "Analysis",
 		"type":      1,
-		"route":     "home",
+		"route":     "admin/home",
 		"icon":      "ic-analysis",
 		"order":     1,
 		"component": "/dashboard/analysis/index.tsx",
@@ -20,7 +20,7 @@ var (
 		"name":     "Token",
 		"icon":     "ph:key",
 		"type":     0,
-		"route":    "token",
+		"route":    "admin/token",
 		"order":    2,
 		"children": []map[string]interface{}{
 			{

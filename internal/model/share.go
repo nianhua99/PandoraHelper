@@ -14,6 +14,7 @@ type Share struct {
 	ShowUserinfo      bool     `json:"showUserinfo" gorm:"column:show_userinfo"`
 	ShowConversations bool     `json:"showConversations" gorm:"column:show_conversations"`
 	RefreshEveryday   bool     `json:"refreshEveryday" gorm:"column:refresh_everyday"`
+	TemporaryChat     bool     `json:"temporaryChat" gorm:"column:temporary_chat"`
 	Account           *Account `json:"account" gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE"`
 }
 

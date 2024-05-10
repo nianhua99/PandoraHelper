@@ -4,23 +4,33 @@ import (
 	"PandoraHelper/api/v1"
 	"PandoraHelper/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"net/http"
 )
 
 type UserHandler struct {
 	*Handler
 	userService service.UserService
+	viper       *viper.Viper
 }
 
-func NewUserHandler(handler *Handler, userService service.UserService) *UserHandler {
+func NewUserHandler(handler *Handler, userService service.UserService, viper *viper.Viper) *UserHandler {
 	return &UserHandler{
 		Handler:     handler,
 		userService: userService,
+		viper:       viper,
 	}
 }
 
+func (h *UserHandler) ChatLoginIndex(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "login_auth0.html", &gin.H{
+		"IndexDomain": h.viper.GetString("pandora.domain.index"),
+		"Title":       h.viper.GetString("http.title"),
+	})
+}
+
 // Login godoc
-// @Summary 账号登录
+// @Summary 后台账号登录
 // @Schemes
 // @Description
 // @Tags 用户模块

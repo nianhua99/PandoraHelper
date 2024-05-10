@@ -10,7 +10,7 @@ import { AppRouteObject } from '#/router';
 
 const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
 const LoginRoute: AppRouteObject = {
-  path: '/login',
+  path: '/admin/login',
   Component: lazy(() => import('@/pages/sys/login/Login')),
 };
 const PAGE_NOT_FOUND_ROUTE: AppRouteObject = {

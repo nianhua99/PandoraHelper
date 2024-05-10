@@ -1,6 +1,7 @@
 package service
 
 import (
+	v1 "PandoraHelper/api/v1"
 	"PandoraHelper/internal/model"
 	"PandoraHelper/internal/repository"
 	"context"
@@ -18,6 +19,7 @@ type ShareService interface {
 	Create(ctx context.Context, share *model.Share) error
 	SearchShare(ctx context.Context, email string, uniqueName string) ([]*model.Share, error)
 	DeleteShare(ctx context.Context, id int64) error
+	LoginShareByPassword(ctx context.Context, username string, password string) (string, error)
 }
 
 func NewShareService(service *Service, shareRepository repository.ShareRepository, viper *viper.Viper, coordinator *Coordinator) ShareService {
@@ -36,6 +38,37 @@ type shareService struct {
 	accountService  AccountService
 }
 
+func (s *shareService) LoginShareByPassword(ctx context.Context, username string, password string) (string, error) {
+	share, err := s.shareRepository.GetShareByUniqueName(ctx, username)
+	if err != nil {
+		return "", v1.ErrUsernameOrPassword
+	}
+	if share.Password != password {
+		return "", v1.ErrUsernameOrPassword
+	}
+
+	indexDomain := fmt.Sprintf("%s/api/auth/oauth_token", s.viper.GetString("pandora.domain.index"))
+	reqBody := map[string]interface{}{
+		"share_token": share.ShareToken,
+	}
+	result := struct {
+		LoginUrl   string `json:"login_url"`
+		OauthToken string `json:"oauth_token"`
+	}{}
+	client := resty.New()
+	_, err = client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(reqBody).
+		SetResult(&result).
+		Post(indexDomain)
+	if err != nil {
+		s.logger.Error("LoginShareByPassword error", zap.Any("err", err))
+		return "", err
+	}
+	s.logger.Info("LoginShareByPassword resp", zap.Any("resp", result))
+	return result.LoginUrl, nil
+}
+
 func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *model.Share, resetLimit bool) (string, error) {
 	chatDomain := fmt.Sprintf("%s/token/register", s.viper.GetString("pandora.domain.chat"))
 	var resp struct {
@@ -52,6 +85,7 @@ func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *mod
 			"reset_limit":        fmt.Sprintf("%t", resetLimit),
 			"show_conversations": fmt.Sprintf("%t", !share.ShowConversations),
 			"show_userinfo":      fmt.Sprintf("%t", share.ShowUserinfo),
+			"temporary_chat":     fmt.Sprintf("%t", share.TemporaryChat),
 			"gpt35_limit":        fmt.Sprintf("%d", share.Gpt35Limit),
 			"gpt4_limit":         fmt.Sprintf("%d", share.Gpt4Limit),
 		}).
