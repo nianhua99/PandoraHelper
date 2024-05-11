@@ -13,8 +13,8 @@ export default function AuthGuard({ children }: Props) {
   const { accessToken } = useUserToken();
 
   const check = useCallback(() => {
-    if (!accessToken && location.pathname !== '/admin/login') {
-      router.push('/admin/login');
+    if (!accessToken && location.pathname !== '/login') {
+      router.push('/login');
     }
   }, [router, accessToken]);
 

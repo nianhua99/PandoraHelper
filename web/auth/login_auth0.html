@@ -375,23 +375,31 @@ document.getElementById('login_form').addEventListener('submit', function (event
         body: form
     }).then(response => {
         if (response.ok) {
-            return response.json()
+            return response.json();
+        } else if (response.status === 500) {
+            // 当状态码为402时，特别处理
+            return response.json().then(json => {
+                throw new Error(json.message || "登录失败");
+            });
+        } else {
+            // 处理其他可能的错误状态
+            throw new Error('服务异常，请稍后重试');
         }
     }).then(json => {
         if (json.data) {
-            window.location.href = json.data
+            window.open(json.data);
         }
         submitButton.disabled = false;
-        submitButton.innerHTML = 'Continue'
+        submitButton.innerHTML = 'Continue';
     }).catch(error => {
         submitButton.disabled = false;
-        submitButton.innerHTML = 'Continue'
+        submitButton.innerHTML = 'Continue';
         Swal.fire({
             icon: 'error',
             title: 'Oops...',
-            text: '登录失败'
+            text: error.message  // 使用从响应中提取的错误消息
         })
-    })
+    });
 
 })
 

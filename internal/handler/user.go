@@ -23,6 +23,7 @@ func NewUserHandler(handler *Handler, userService service.UserService, viper *vi
 }
 
 func (h *UserHandler) ChatLoginIndex(ctx *gin.Context) {
+	//从fs中读取文件
 	ctx.HTML(http.StatusOK, "login_auth0.html", &gin.H{
 		"IndexDomain": h.viper.GetString("pandora.domain.index"),
 		"Title":       h.viper.GetString("http.title"),

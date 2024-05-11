@@ -8,11 +8,13 @@ import (
 	"PandoraHelper/pkg/jwt"
 	"PandoraHelper/pkg/log"
 	"PandoraHelper/pkg/server/http"
-	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"html/template"
+	"io/fs"
+	nethttp "net/http"
 )
 
 func NewHTTPServer(
@@ -45,14 +47,31 @@ func NewHTTPServer(
 		middleware.RequestLogMiddleware(logger),
 		//middleware.SignMiddleware(log),
 	)
+	subFS, err := fs.Sub(PandoraHelper.EmbedWebFS, "web")
+	if err != nil {
+		panic(err)
+	}
+	s.StaticFS("/static", nethttp.FS(subFS))
+	tmpl := template.Must(template.New("").ParseFS(subFS, "auth/*.html"))
+	s.SetHTMLTemplate(tmpl)
 
-	s.LoadHTMLFiles("web/auth/login_auth0.html")
-
-	s.Static("/static", "./web")
-
-	s.Use(static.Serve("/", static.EmbedFolder(PandoraHelper.EmbedFrontendFS, "frontend/dist")))
-
+	// 首页重定向到登录页
+	s.GET("/", func(c *gin.Context) {
+		c.Redirect(nethttp.StatusMovedPermanently, "/login")
+	})
 	s.GET("/login", userHandler.ChatLoginIndex)
+
+	//s.Use(static.Serve("/admin", static.EmbedFolder(PandoraHelper.EmbedFrontendFS, "frontend/dist")))
+	subFS1, err := fs.Sub(PandoraHelper.EmbedFrontendFS, "frontend/dist")
+	s.StaticFS("/admin", nethttp.FS(subFS1))
+	s.NoRoute(func(c *gin.Context) {
+		file, err := PandoraHelper.EmbedFrontendFS.ReadFile("frontend/dist/index.html")
+		if err != nil {
+			return
+		}
+		c.Data(nethttp.StatusOK, "text/html; charset=utf-8", file)
+	})
+
 	s.POST("/login_share", shareHandler.LoginShare)
 	s.POST("/api/login_share", shareHandler.LoginShare)
 

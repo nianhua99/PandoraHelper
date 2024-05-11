@@ -1,6 +1,6 @@
 {
   "security": {
-    "admin_password": ""
+    "admin_password": "123456789"
   },
   "http": {
     "host": "127.0.0.1",
