@@ -1,10 +1,10 @@
 {
   "security": {
-    "admin_password": "123456789"
+    "admin_password": ""
   },
   "http": {
     "host": "127.0.0.1",
-    "port": 8080,
+    "port": 9000,
     "title": "Pandora"
   },
   "database": {
