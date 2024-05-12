@@ -643,13 +643,21 @@ function AccountModal({ title, show, formValue, onOk, onCancel }: AccountModalPr
           <Switch />
         </Form.Item>
         <Form.Item<AccountAddReq>
-          label={`Refresh Token(${t('common.optional')})`}
+          label={
+            <a href={"https://token.oaifree.com/auth"} target={"_blank"}>
+              Refresh Token(点击获取)
+            </a>
+          }
           name="refreshToken"
         >
           <Input.TextArea />
         </Form.Item>
         <Form.Item<AccountAddReq>
-          label={`Access Token(${t('common.optional')})`}
+          label={
+            <a href={"https://token.oaifree.com/auth"} target={"_blank"}>
+              Access Token(点击获取)
+            </a>
+          }
           name="accessToken"
         >
           <Input.TextArea />

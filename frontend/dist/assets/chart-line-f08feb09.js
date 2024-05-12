@@ -1,1 +1,0 @@
-import{j as s}from"./index-82a332fb.js";import{u as e,C as t}from"./useChart-2949cd9a.js";const o=[{name:"Desktops",data:[10,41,35,51,49,62,69,91,148]}];function a(){const a=e({xaxis:{categories:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep"]},tooltip:{x:{show:!1},marker:{show:!1}}});return s.jsx(t,{type:"line",series:o,options:a,height:320})}export{a as default};
