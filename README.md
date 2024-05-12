@@ -27,7 +27,7 @@
 
 ## 使用说明
 * 管理员登录：访问`/admin`页面，输入`admin_password`即可登录。
-* 普通用户登录：访问`/login`页面，输入`Unique Name`和`密码`即可登录。
+* 普通用户登录：访问`首页`或`/login`页面，输入`Unique Name`和`密码`即可登录。
 ### 账号管理
 * **账号管理**：在`账号管理`中可以查看所有账号的`Refresh Token`、`Access Token`、`Email`。
 * **刷新Token**：在`账号管理`中点击`刷新`可以刷新`Access Token`。**只有你填入了`Refresh Token`才能使用此功能**。程序会在每日凌晨自动刷新。
@@ -50,8 +50,7 @@
 
 ### 分享登录
 本系统使用原生的Pandora登录页面，你可以在`/login`页面使用`Unique Name`和`密码`登录。
-![login.gif](imgs/login.gif)
-
+![img_2.png](imgs/img_2.png)
 ## 写在最后
 - 特别鸣谢: [LinuxDo](https://linux.do/)
 - 本项目前端基于 [Slash-Admin](https://github.com/d3george/slash-admin)
