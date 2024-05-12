@@ -32,8 +32,9 @@
 * **账号管理**：在`账号管理`中可以查看所有账号的`Refresh Token`、`Access Token`、`Email`。
 * **刷新Token**：在`账号管理`中点击`刷新`可以刷新`Access Token`。**只有你填入了`Refresh Token`才能使用此功能**。程序会在每日凌晨自动刷新。
 * **添加账号**：在`账号管理`中点击`新建`，输入`Refresh Token`或`Access Token`，以及`Email`点击`保存`。请注意，这里的`密码`没有实际作用。
-* **用量统计**：统计本账号下各个`Share Token`的用量情况。当前版本暂不可用。
+* **用量统计**：统计本账号下各个`Share Token`的用量情况。
 * ![1.png](imgs/1.png)
+* ![img_3.png](imgs/img_3.png)
 ### 生成共享账号
 在`账号管理`中可以生成`Share Token`。点击`共享`列的 + 号，输入`Email`和`限额`等信息。点击`保存`即可生成`Share Token`。
 - Unique Name / 密码: 你的伙伴将在本系统的 /login 页面使用Unique Name和这个密码登录。

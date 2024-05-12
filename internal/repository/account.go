@@ -55,7 +55,7 @@ func (r *accountRepository) DeleteAccount(ctx context.Context, id int64) error {
 
 func (r *accountRepository) GetAccount(ctx context.Context, id int64) (*model.Account, error) {
 	var account model.Account
-	if err := r.DB(ctx).Where("id = ?", id).First(&account).Error; err != nil {
+	if err := r.DB(ctx).Preload("Shares").Where("id = ?", id).First(&account).Error; err != nil {
 		return nil, err
 	}
 	return &account, nil

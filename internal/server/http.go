@@ -86,6 +86,7 @@ func NewHTTPServer(
 			shareAuthRouter.POST("/update", shareHandler.UpdateShare)
 			shareAuthRouter.POST("/delete", shareHandler.DeleteShare)
 			shareAuthRouter.POST("/search", shareHandler.SearchShare)
+			shareAuthRouter.POST("/statistic", shareHandler.ShareStatistic)
 		}
 
 		accountAuthRouter := v1.Group("/account").Use(middleware.StrictAuth(jwt, logger))

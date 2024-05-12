@@ -6,9 +6,11 @@ import (
 	"PandoraHelper/internal/repository"
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"strconv"
 )
 
 type ShareService interface {
@@ -20,6 +22,7 @@ type ShareService interface {
 	SearchShare(ctx context.Context, email string, uniqueName string) ([]*model.Share, error)
 	DeleteShare(ctx context.Context, id int64) error
 	LoginShareByPassword(ctx context.Context, username string, password string) (string, error)
+	ShareStatistic(ctx *gin.Context, accountId int) (interface{}, interface{})
 }
 
 func NewShareService(service *Service, shareRepository repository.ShareRepository, viper *viper.Viper, coordinator *Coordinator) ShareService {
@@ -36,6 +39,46 @@ type shareService struct {
 	shareRepository repository.ShareRepository
 	viper           *viper.Viper
 	accountService  AccountService
+}
+
+// ShareStatistic 转换为Go语言
+func (s *shareService) ShareStatistic(ctx *gin.Context, accountId int) (interface{}, interface{}) {
+	account, err := s.accountService.GetAccount(ctx, int64(accountId))
+	if err != nil {
+		return nil, err
+	}
+	shares := account.Shares
+
+	uniqueNames := make([]string, 0)
+	gpt35Counts := make([]int, 0)
+	gpt4Counts := make([]int, 0)
+
+	for _, share := range shares {
+		uniqueNames = append(uniqueNames, share.UniqueName)
+		gpt35count, gpt4Count, err := s.GetShareTokenInfo(share.ShareToken, account.AccessToken)
+		if err != nil {
+			return nil, nil
+		}
+		gpt35Counts = append(gpt35Counts, gpt35count)
+		gpt4Counts = append(gpt4Counts, gpt4Count)
+	}
+
+	series := []map[string]interface{}{
+		{
+			"name": "GPT-3.5",
+			"data": gpt35Counts,
+		},
+		{
+			"name": "GPT-4",
+			"data": gpt4Counts,
+		},
+	}
+
+	return map[string]interface{}{
+		"categories": uniqueNames,
+		"series":     series,
+	}, nil
+
 }
 
 func (s *shareService) LoginShareByPassword(ctx context.Context, username string, password string) (string, error) {
@@ -163,4 +206,39 @@ func (s *shareService) ResetShareLimit(ctx context.Context, id int64) error {
 		return err
 	}
 	return nil
+}
+
+func (s *shareService) GetShareTokenInfo(shareToken string, accessToken string) (int, int, error) {
+	host := fmt.Sprintf("%s/token/info/%s", s.viper.GetString("pandora.domain.chat"), shareToken)
+	headers := map[string]string{}
+	if accessToken != "" {
+		headers["Authorization"] = fmt.Sprintf("Bearer %s", accessToken)
+	}
+	var result struct {
+		Gpt35Limit string `json:"gpt35_limit"`
+		Gpt4Limit  string `json:"gpt4_limit"`
+	}
+	client := resty.New()
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetHeaders(headers).
+		SetResult(&result).
+		Get(host)
+
+	if err != nil {
+		return 0, 0, err
+	}
+
+	// 将字符串转换为整数
+	gpt35Limit, err := strconv.Atoi(result.Gpt35Limit)
+	if err != nil {
+		gpt35Limit = 0
+	}
+
+	gpt4Limit, err := strconv.Atoi(result.Gpt4Limit)
+	if err != nil {
+		gpt4Limit = 0
+	}
+	s.logger.Info("GetShareTokenInfo resp", zap.Any("resp", resp))
+	return gpt35Limit, gpt4Limit, nil
 }

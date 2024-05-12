@@ -106,3 +106,19 @@ func (h *ShareHandler) SearchShare(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, shareList)
 }
+
+func (h *ShareHandler) ShareStatistic(ctx *gin.Context) {
+	var req struct {
+		AccountId int `json:"accountId"`
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误"})
+		return
+	}
+	shareStatistic, err := h.shareService.ShareStatistic(ctx, req.AccountId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "服务器错误"})
+		return
+	}
+	v1.HandleSuccess(ctx, shareStatistic)
+}
