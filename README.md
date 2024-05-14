@@ -19,13 +19,71 @@
 * Windows系统双击`PandoraHelper.exe`即可，当然需要在cmd中启动。
 
 ## Docker部署
-待补充
+```bash
+docker pull q11391/pandora-helper
+docker run -d --name PandoraHelper --net=bridge \
+      -p 9000:9000 \
+      -v ./data:/app/data \
+      q11391/pandora-helper:1.0.0
+```
+- 容器内使用9000端口，你可以映射到其他端口。
+- `config.json`会保存在`./data`目录下, 修改其中的 **admin_password** 后再启动Docker。
+- 第一次启动容器时, 会自动生成`data.db`文件。
+## Docker Compose部署
+- 创建或拉取`config.json`配置文件到`./data`目录下。并修改其中的 **admin_password**。
+- 创建`docker-compose.yml`文件，内容如下：
+- `docker-compose up -d`**原神, 启动！**。
+```yaml
+version: '3'
+
+services:
+  pandora-next:
+    image: q11391/pandora-helper
+    container_name: PandoraHelper
+    network_mode: bridge
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./data:/app/data
+```
 
 ## 配置文件
-* **admin_password**：后台管理登录密码，必须设置。
+* **admin_password**：后台管理登录密码，**必须设置**。
 * 有关Pandora.domain下的设置, 如果你反代了`new.oaifree.com`则需要修改为你反代后的域名。
-* **title**：登录页的标题。
-
+* **title**：前台登录页的标题。
+```json
+{
+  "security": {
+    "admin_password": ""
+  },
+  "http": {
+    "host": "0.0.0.0",
+    "port": 9000,
+    "title": "Pandora"
+  },
+  "database": {
+    "driver": "sqlite",
+    "dsn": "./data/data.db"
+  },
+  "pandora": {
+    "domain": {
+      "chat": "https://chat.oaifree.com",
+      "token": "https://token.oaifree.com",
+      "index": "https://new.oaifree.com"
+    }
+  },
+  "log": {
+    "level": "info",
+    "output": "console",
+    "log_file_name": "./logs/server.log",
+    "max_backups": 30,
+    "max_age": 7,
+    "max_size": 1024,
+    "compress": true
+  }
+}
+```
 ## 使用说明
 * 管理员登录：访问`/admin`页面，输入`admin_password`即可登录。
 * 普通用户登录：访问`首页`或`/login`页面，输入`Unique Name`和`密码`即可登录。
