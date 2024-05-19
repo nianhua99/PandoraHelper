@@ -24,7 +24,7 @@ docker pull q11391/pandora-helper
 docker run -d --name PandoraHelper --net=bridge \
       -p 9000:9000 \
       -v ./data:/app/data \
-      q11391/pandora-helper:1.0.0
+      q11391/pandora-helper
 ```
 - 容器内使用9000端口，你可以映射到其他端口。
 - `config.json`会保存在`./data`目录下, 修改其中的 **admin_password** 后再启动Docker。
