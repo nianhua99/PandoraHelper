@@ -51,8 +51,4 @@ mkdir %OUTPUT_DIR%\data
 go build -ldflags="-s -w" -o %OUTPUT_DIR%\PandoraHelper .\cmd\server\main.go
 copy .\data\config.json "%OUTPUT_DIR%"\data\
 
-docker buildx build --build-arg VERSION=%1 -f ./deploy/build/Dockerfile -t q11391/pandora-helper:%1 .
-
-docker push q11391/pandora-helper:%1
-
 echo Compilation and compression complete.
