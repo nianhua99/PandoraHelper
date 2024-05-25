@@ -74,6 +74,7 @@ export interface Share {
   comment?: string;
   refreshEveryday?: boolean;
   expiresIn?: number;
+  expiresAt?: string;
   siteLimit?: string;
   gpt35Limit?: number;
   gpt4Limit?: number;
@@ -93,6 +94,7 @@ export const defaultShare: Share = {
   refreshEveryday: false,
   comment: '',
   expiresIn: 0,
+  expiresAt: undefined,
   siteLimit: '',
   gpt35Limit: -1,
   gpt4Limit: -1,

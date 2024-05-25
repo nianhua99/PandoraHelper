@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type ShareService interface {
@@ -23,6 +25,7 @@ type ShareService interface {
 	DeleteShare(ctx context.Context, id int64) error
 	LoginShareByPassword(ctx context.Context, username string, password string) (string, error)
 	ShareStatistic(ctx *gin.Context, accountId int) (interface{}, interface{})
+	ShareResetPassword(ctx *gin.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error
 }
 
 func NewShareService(service *Service, shareRepository repository.ShareRepository, viper *viper.Viper, coordinator *Coordinator) ShareService {
@@ -39,6 +42,25 @@ type shareService struct {
 	shareRepository repository.ShareRepository
 	viper           *viper.Viper
 	accountService  AccountService
+}
+
+func (s *shareService) ShareResetPassword(ctx *gin.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error {
+	share, err := s.shareRepository.GetShareByUniqueName(ctx, uniqueName)
+	if err != nil {
+		return err
+	}
+	if share.Password != password {
+		return v1.ErrUsernameOrPassword
+	}
+	if newPassword != confirmNewPassword {
+		return v1.ErrPasswordNotMatch
+	}
+	share.Password = newPassword
+	err = s.shareRepository.Update(ctx, share)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ShareStatistic 转换为Go语言
@@ -109,7 +131,8 @@ func (s *shareService) LoginShareByPassword(ctx context.Context, username string
 		return "", err
 	}
 	s.logger.Info("LoginShareByPassword resp", zap.Any("resp", result))
-	return result.LoginUrl, nil
+	finalLoginUrl := fmt.Sprintf("%s/auth/login_oauth?token=%s", s.viper.GetString("pandora.domain.index"), result.OauthToken)
+	return finalLoginUrl, nil
 }
 
 func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *model.Share, resetLimit bool) (string, error) {
@@ -150,6 +173,40 @@ func (s *shareService) RefreshShareToken(ctx context.Context, share *model.Share
 		}
 		accessToken = account.AccessToken
 	}
+	// 判断ExpiresAt YYYY-MM-DD 23:59:59
+	if share.ExpiresAt != "" {
+		atExp, err := s.jwt.ParseTokenExp(accessToken)
+		if err != nil {
+			return "", err
+		}
+		now := time.Now().Unix()
+		shareExp, err := time.Parse("2006-01-02 15:04:05", share.ExpiresAt+" 23:59:59")
+		if err != nil {
+			return "", err
+		}
+		shareExpUnix := shareExp.Unix()
+		// 如果 过期日期 大于 AccessToken的过期日期，则将ExpiresIn设置0
+		if shareExpUnix > atExp {
+			share.ExpiresIn = 0
+		} else if shareExpUnix > now {
+			// 过期时间大于当前时间，小于AccessToken的过期时间，设置ExpiresIn
+			share.ExpiresIn = int(shareExpUnix - now)
+		} else {
+			// 过期时间小于当前时间，已过期
+			// 如果备注为[已过期]开头，则不再添加
+			if strings.HasPrefix(share.Comment, "[已过期]") {
+				return "", nil
+			}
+			share.ExpiresIn = -1
+			share.Comment = "[已过期]" + share.Comment
+			err := s.shareRepository.Update(ctx, share)
+			if err != nil {
+				return "", err
+			}
+			return "", nil
+		}
+	}
+
 	return s.GetShareTokenByAccessToken(accessToken, share, resetLimit)
 }
 

@@ -41,6 +41,21 @@ func (h *ShareHandler) LoginShare(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, share)
 }
 
+func (h *ShareHandler) ShareResetPassword(ctx *gin.Context) {
+	req := new(v1.ShareResetPasswordRequest)
+
+	if err := ctx.ShouldBind(req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+		return
+	}
+
+	if err := h.shareService.ShareResetPassword(ctx, req.UniqueName, req.Password, req.NewPassword, req.ConfirmNewPassword); err != nil {
+		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
+}
+
 func (h *ShareHandler) GetShare(ctx *gin.Context) {
 
 }

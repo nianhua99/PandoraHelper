@@ -12,6 +12,13 @@ type LoginShareRequest struct {
 	Password string `json:"password" form:"password" binding:"required"`
 }
 
+type ShareResetPasswordRequest struct {
+	UniqueName         string `json:"uniqueName" binding:"required"`
+	Password           string `json:"password" binding:"required"`
+	NewPassword        string `json:"newPassword" binding:"required"`
+	ConfirmNewPassword string `json:"confirmNewPassword" binding:"required"`
+}
+
 type AddShareRequest struct {
 	Share model.Share `json:"share" binding:"required"`
 }

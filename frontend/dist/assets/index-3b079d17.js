@@ -1,1 +1,0 @@
-import{j as r,v as e}from"./index-782b2cb8.js";import i from"./banner-9b28ea62.js";import"./row-e9a81e97.js";function t(){return r.jsx(e,{direction:"vertical",size:"large",style:{width:"100%"},children:r.jsx(i,{})})}export{t as default};

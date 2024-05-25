@@ -8,10 +8,15 @@ import (
 	"PandoraHelper/pkg/jwt"
 	"PandoraHelper/pkg/log"
 	"PandoraHelper/pkg/server/http"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	limiter "github.com/ulule/limiter/v3"
+
+	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
+	smem "github.com/ulule/limiter/v3/drivers/store/memory"
 	"html/template"
 	"io/fs"
 	nethttp "net/http"
@@ -32,6 +37,23 @@ func NewHTTPServer(
 		http.WithServerHost(conf.GetString("http.host")),
 		http.WithServerPort(conf.GetInt("http.port")),
 	)
+
+	// rate limiter
+	var rateStr string
+	if conf.InConfig("http.rate") {
+		rateStr = fmt.Sprintf("%d-M", conf.GetInt("http.rate"))
+	} else {
+		rateStr = "100-M"
+	}
+
+	rate, err := limiter.NewRateFromFormatted(rateStr)
+	if err != nil {
+		panic(err)
+	}
+	store := smem.NewStore()
+	limitMiddleware := mgin.NewMiddleware(limiter.New(store, rate))
+	s.ForwardedByClientIP = true
+	s.Use(limitMiddleware)
 
 	// swagger doc
 	docs.SwaggerInfo.BasePath = "/v1"
@@ -73,6 +95,7 @@ func NewHTTPServer(
 	})
 
 	s.POST("/login_share", shareHandler.LoginShare)
+	s.POST("/reset_password", shareHandler.ShareResetPassword)
 	s.POST("/api/login_share", shareHandler.LoginShare)
 
 	v1 := s.Group("/api")

@@ -6,6 +6,7 @@ var (
 	ErrBadRequest          = newError(400, "Bad Request")
 	ErrUnauthorized        = newError(401, "Unauthorized")
 	ErrUsernameOrPassword  = newError(402, "Username or Password error")
+	ErrPasswordNotMatch    = newError(403, "Password not match")
 	ErrNotFound            = newError(404, "Not Found")
 	ErrInternalServerError = newError(500, "Internal Server Error")
 

@@ -84,3 +84,22 @@ func (j *JWT) ParseToken(tokenString string) (*MyCustomClaims, error) {
 		return nil, err
 	}
 }
+
+// 解析openai accessToken，返回token的exp
+func (j *JWT) ParseTokenExp(tokenString string) (int64, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return 0, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		// 检查 exp 字段是否存在并且是正确的类型
+		if exp, ok := claims["exp"].(float64); ok {
+			return int64(exp), nil
+		} else {
+			return 0, fmt.Errorf("exp field is missing or not an integer")
+		}
+	}
+
+	return 0, fmt.Errorf("invalid token claims")
+}

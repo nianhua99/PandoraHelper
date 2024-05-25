@@ -13,30 +13,20 @@ import {
   Badge,
   Button,
   Card,
-  Checkbox,
   Col,
   Form,
   Input,
-  InputNumber,
-  Modal,
   Popconfirm,
   Row,
   Space,
-  Spin,
-  Switch,
   Typography,
 } from 'antd';
-import Password from 'antd/es/input/Password';
 import Table, { ColumnsType } from 'antd/es/table';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import accountService, { AccountAddReq } from '@/api/services/accountService.ts';
-import shareService from '@/api/services/shareService.ts';
-import Chart from '@/components/chart/chart.tsx';
-import useChart from '@/components/chart/useChart.ts';
-import LabelWithInfo from '@/pages/components/form/label';
 import {
   useAddAccountMutation,
   useDeleteAccountMutation,
@@ -49,6 +39,12 @@ import { onCopy } from '@/utils/copy.ts';
 import { useAddShareMutation } from '@/store/shareStore.ts';
 
 import { Account, defaultShare, Share } from '#/entity';
+import {ShareModal, ShareModalProps} from "@/pages/token/account/components/ShareModal.tsx";
+import {AccountModal, AccountModalProps} from "@/pages/token/account/components/AccountModal.tsx";
+import {
+  ShareInfoModal,
+  ShareInfoModalProps
+} from "@/pages/token/account/components/ShareInfoModal.tsx";
 
 type SearchFormFieldType = Pick<Account, 'email'>;
 
@@ -237,7 +233,6 @@ export default function AccountPage() {
             title={t('common.refreshConfirm')}
             okText="Yes"
             cancelText="No"
-            disabled={record.refreshToken != ""}
             placement="left"
             onConfirm={() => {
               setRefreshAccountId(record.id);
@@ -394,329 +389,4 @@ export default function AccountPage() {
   );
 }
 
-export type ShareModalProps = {
-  formValue: Share;
-  title: string;
-  show: boolean;
-  onOk: (values: Share, callback: any) => void;
-  onCancel: VoidFunction;
-};
 
-export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModalProps) {
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
-
-  const mode = title === 'Edit' || title === '编辑' ? 'edit' : 'create';
-
-  useEffect(() => {
-    form.setFieldsValue({ ...formValue });
-  }, [formValue, form]);
-
-  const onModalOk = () => {
-    form.validateFields().then((values) => {
-      onOk(values, setLoading);
-    });
-  };
-
-  return (
-    <Modal
-      title={title}
-      open={show}
-      onOk={onModalOk}
-      onCancel={() => {
-        form.resetFields();
-        onCancel();
-      }}
-      okButtonProps={{
-        loading,
-      }}
-      destroyOnClose={false}
-    >
-      <Form initialValues={formValue} form={form} layout="vertical" preserve={false}>
-        <Form.Item<Share> name="id" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item<Share> name="shareToken" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item<Share> name="accountId" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item<Share> label="Unique Name" name="uniqueName" required>
-          <Input readOnly={mode === 'edit'} disabled={mode === 'edit'} />
-        </Form.Item>
-        <Form.Item<Share> label={t('token.password')} name="password" required>
-          <Input.Password />
-        </Form.Item>
-        <Row gutter={16}>
-          <Col span={6}>
-            <Form.Item<Share> label={t('token.expiresIn')} name="expiresIn">
-              <InputNumber formatter={(value) => (value == 0 ? '默认' : `${value} 秒`)} />
-            </Form.Item>
-          </Col>
-          <Col span={18}>
-            <Form.Item<Share> label={t('token.siteLimit')} name="siteLimit">
-              <Input placeholder="eg: https://demo.oaifree.com" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item<Share> label={t('token.gpt35Limit')} name="gpt35Limit">
-              <InputNumber<number>
-                style={{ width: '100%' }}
-                formatter={(value) => {
-                  switch (value?.toString()) {
-                    case '-1':
-                      return '无限制';
-                    case '0':
-                      return '禁用';
-                    default:
-                      return `${value}`;
-                  }
-                }}
-                parser={(value) => {
-                  switch (value) {
-                    case '无限制':
-                      return -1;
-                    case '禁用':
-                      return 0;
-                    default:
-                      return parseInt(value!);
-                  }
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item<Share>
-              label={
-                <LabelWithInfo
-                  label={t('token.gpt4Limit')}
-                  info="这里的限制只是在FK限制，而不是OpenAi的限额"
-                />
-              }
-              name="gpt4Limit"
-            >
-              <InputNumber<number>
-                style={{ width: '100%' }}
-                formatter={(value) => {
-                  switch (value?.toString()) {
-                    case '-1':
-                      return '无限制';
-                    case '0':
-                      return '禁用';
-                    default:
-                      return `${value}`;
-                  }
-                }}
-                parser={(value) => {
-                  switch (value) {
-                    case '无限制':
-                      return -1;
-                    case '禁用':
-                      return 0;
-                    default:
-                      return parseInt(value!);
-                  }
-                }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row>
-          <Col span={8}>
-            <Form.Item<Share>
-              label={
-                <LabelWithInfo label={t('token.refreshEveryday')} info="刷新次数限制的频率，" />
-              }
-              name="refreshEveryday"
-              valuePropName="checked"
-            >
-              <Checkbox />
-            </Form.Item>
-          </Col>
-          <Col span={7}>
-            <Form.Item<Share>
-              label={t('token.showUserinfo')}
-              name="showUserinfo"
-              labelCol={{ span: 18 }}
-              wrapperCol={{ span: 6 }}
-              valuePropName="checked"
-            >
-              <Checkbox defaultChecked={false} />
-            </Form.Item>
-          </Col>
-          <Col span={5}>
-            <Form.Item<Share>
-              label={t('token.showConversations')}
-              name="showConversations"
-              valuePropName="checked"
-            >
-              <Checkbox defaultChecked />
-            </Form.Item>
-          </Col>
-          <Col span={4}>
-            <Form.Item<Share>
-              label={t('token.temporaryChat')}
-              name="temporaryChat"
-              valuePropName="checked"
-            >
-              <Checkbox defaultChecked />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Form.Item<Share> label={t('token.comment')} name="comment">
-          <Input.TextArea />
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-}
-
-type AccountModalProps = {
-  formValue: AccountAddReq;
-  title: string;
-  show: boolean;
-  onOk: (values: AccountAddReq, setLoading: any) => void;
-  onCancel: VoidFunction;
-};
-
-function AccountModal({ title, show, formValue, onOk, onCancel }: AccountModalProps) {
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
-
-  // useEffect(() => {
-  //   form.setFieldsValue({...formValue});
-  // }, [formValue, form]);
-
-  const onModalOk = () => {
-    form.validateFields().then((values) => {
-      setLoading(true);
-      onOk(values, setLoading);
-    });
-  };
-
-  return (
-    <Modal
-      title={title}
-      open={show}
-      onOk={onModalOk}
-      onCancel={() => {
-        form.resetFields();
-        onCancel();
-      }}
-      okButtonProps={{
-        loading,
-      }}
-      destroyOnClose={false}
-    >
-      <Form
-        initialValues={formValue}
-        form={form}
-        layout="vertical"
-        preserve={false}
-        autoComplete="off"
-      >
-        <Form.Item<AccountAddReq> name="id" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item<AccountAddReq> label="Email" name="email" required>
-          <Input />
-        </Form.Item>
-        <Form.Item<AccountAddReq> label={t('token.password')} name="password">
-          <Password />
-        </Form.Item>
-        <Form.Item<AccountAddReq>
-          label={t('token.share')}
-          name="shared"
-          labelAlign="left"
-          valuePropName="checked"
-          getValueFromEvent={(v) => {
-            return v ? 1 : 0;
-          }}
-          required
-        >
-          <Switch />
-        </Form.Item>
-        <Form.Item<AccountAddReq>
-          label={
-            <a href={"https://token.oaifree.com/auth"} target={"_blank"}>
-              Refresh Token(点击获取)
-            </a>
-          }
-          name="refreshToken"
-        >
-          <Input.TextArea />
-        </Form.Item>
-        <Form.Item<AccountAddReq>
-          label={
-            <a href={"https://token.oaifree.com/auth"} target={"_blank"}>
-              Access Token(点击获取)
-            </a>
-          }
-          name="accessToken"
-        >
-          <Input.TextArea />
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-}
-
-type ShareInfoModalProps = {
-  accountId: number;
-  onOk: VoidFunction;
-  show: boolean;
-};
-
-function ShareInfoModal({ accountId, onOk, show }: ShareInfoModalProps) {
-  const { data: statistic, isLoading } = useQuery({
-    queryKey: ['shareInfo', accountId],
-    queryFn: () => shareService.getShareStatistic(accountId),
-    enabled: show,
-  });
-
-  const { t } = useTranslation();
-
-  const chartOptions = useChart({
-    legend: {
-      horizontalAlign: 'center',
-    },
-    stroke: {
-      show: true,
-    },
-    dataLabels: {
-      enabled: true,
-      dropShadow: {
-        enabled: false,
-      },
-    },
-    xaxis: {
-      categories: statistic?.categories || [],
-    },
-    tooltip: {
-      fillSeriesColor: false,
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          labels: {
-            show: false,
-          },
-        },
-      },
-    },
-  });
-
-  return (
-    <Modal title={t('token.statistic')} open={show} onOk={onOk} closable={false} onCancel={onOk}>
-      <Spin spinning={isLoading} tip={t('token.queryingInfo')}>
-        <Chart type="bar" series={statistic?.series || []} options={chartOptions} height={320} />
-      </Spin>
-    </Modal>
-  );
-}

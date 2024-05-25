@@ -313,7 +313,16 @@
                                   data-form-secondary="true">
                                 <button type="submit" id="submit-token" class="c2722e13e cb5eb711c c23b439c3"
                                         data-provider="oidc" data-action-button-secondary="true"><span
-                                        class="c9e9b9b93 c2d1b7819" data-provider="oidc"></span><span class="c5eadc3c8">Continue with Share Token</span>
+                                        class="c9e9b9b93 c2d1b7819" data-provider="oidc"></span><span class="c5eadc3c8">使用 Share Token 登录</span>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="cf7726552 c7b062c64">
+                            <form method="post" data-provider="oidc" class="c1d4ec969 c45b177cb c7166f891"
+                                  data-form-secondary="true">
+                                <button type="submit" id="reset-password" class="c2722e13e cb5eb711c c23b439c3"
+                                        data-provider="oidc" data-action-button-secondary="true"><span
+                                        class="c9e9b9b93 c2d1b7819" data-provider="oidc"></span><span class="c5eadc3c8">重置密码</span>
                                 </button>
                             </form>
                         </div>
@@ -362,6 +371,73 @@ window.addEventListener('load', function () {
             window.location.href = "{{ .IndexDomain }}" + '/auth/login_share?token=' + result.value
         })
     })
+
+    const resetBtn = document.querySelector('#reset-password');
+    resetBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+        Swal.fire({
+            title: '重置密码',
+            html:
+                '<input id="swal-input1" class="swal2-input" placeholder="账号">' +
+                '<input id="swal-input2" class="swal2-input" placeholder="原密码" type="password">' +
+                '<input id="swal-input3" class="swal2-input" placeholder="新密码" type="password">' +
+                '<input id="swal-input4" class="swal2-input" placeholder="确认新密码" type="password">',
+            showCancelButton: true,
+            confirmButtonText: '提交',
+            cancelButtonText: '取消',
+        }).then((result) => {
+            // 在这里处理对话框关闭后的结果
+            if (result.isConfirmed) {
+                const uniqueName = document.getElementById('swal-input1').value;
+                const password = document.getElementById('swal-input2').value;
+                const newPassword = document.getElementById('swal-input3').value;
+                const confirmNewPassword = document.getElementById('swal-input4').value;
+
+                if (!uniqueName || !password || !newPassword || !confirmNewPassword) {
+                    Swal.fire('重置密码失败', '请填写完整信息', 'error');
+                    return;
+                }
+
+                if (newPassword !== confirmNewPassword) {
+                    Swal.fire('重置密码失败', '两次输入的新密码不一致', 'error');
+                    return;
+                }
+
+                if (newPassword.length < 8) {
+                    Swal.fire('重置密码失败', '新密码长度不能小于8位', 'error');
+                    return;
+                }
+
+                // 在这里执行重置密码的逻辑
+                fetch('/reset_password', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        uniqueName: uniqueName,
+                        password: password,
+                        newPassword: newPassword,
+                        confirmNewPassword: confirmNewPassword
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(res => {
+                    if (res.ok) {
+                        return res.json();
+                    } else {
+                        throw new Error('重置密码失败');
+                    }
+                }).then(json => {
+                    if (json.status === 0) {
+                        Swal.fire('密码已重置', '请使用新密码登录', 'success');
+                    } else {
+                        Swal.fire('重置密码失败', json.message, 'error');
+                    }
+                }).catch(error => {
+                    Swal.fire('重置密码失败', error.message, 'error');
+                });
+            }
+        });
+    })
 });
 document.getElementById('login_form').addEventListener('submit', function (event) {
     event.preventDefault()
@@ -387,7 +463,13 @@ document.getElementById('login_form').addEventListener('submit', function (event
         }
     }).then(json => {
         if (json.data) {
-            window.open(json.data);
+            const timeoutId = setTimeout(
+                () => {
+                    window.open(json.data);
+                    clearTimeout(timeoutId);
+                },
+                0
+            );
         }
         submitButton.disabled = false;
         submitButton.innerHTML = 'Continue';

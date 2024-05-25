@@ -8,6 +8,7 @@ type Share struct {
 	ShareToken        string   `json:"shareToken" gorm:"column:share_token"`
 	Comment           string   `json:"comment" gorm:"column:comment"`
 	ExpiresIn         int      `json:"expiresIn" gorm:"column:expires_in"`
+	ExpiresAt         string   `json:"expiresAt" gorm:"column:expires_at"`
 	SiteLimit         string   `json:"siteLimit" gorm:"column:site_limit"`
 	Gpt4Limit         int      `json:"gpt4Limit" gorm:"column:gpt4_limit"`
 	Gpt35Limit        int      `json:"gpt35Limit" gorm:"column:gpt35_limit"`

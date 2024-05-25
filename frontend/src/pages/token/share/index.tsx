@@ -7,7 +7,7 @@ import {
   Input, message,
   Popconfirm,
   Row,
-  Space, Tooltip, Typography,
+  Space, Switch, Tooltip, Typography,
 } from 'antd';
 import Table, { ColumnsType } from 'antd/es/table';
 import {useEffect, useState} from 'react';
@@ -21,7 +21,8 @@ import {useQuery} from "@tanstack/react-query";
 import {useSearchParams} from "@/router/hooks";
 import shareService from "@/api/services/shareService.ts";
 import {useDeleteShareMutation, useUpdateShareMutation} from "@/store/shareStore.ts";
-import {ShareModal, ShareModalProps} from "@/pages/token/account";
+import {ShareModal} from "@/pages/token/account/components/ShareModal";
+import {ShareModalProps} from "@/pages/token/account/components/ShareModal";
 import {useTranslation} from "react-i18next";
 import {onCopy} from "@/utils/copy.ts";
 type SearchFormFieldType = {
@@ -30,64 +31,36 @@ type SearchFormFieldType = {
 };
 
 export default function SharePage() {
-
-  const deleteShareMutation = useDeleteShareMutation()
-  const updateShareMutation = useUpdateShareMutation()
-
   const {t} = useTranslation()
-  const [loading, setLoading] = useState(false)
-
-  const params = useSearchParams();
-  const [searchForm] = Form.useForm();
-  const email = Form.useWatch('email', searchForm);
-  const uniqueName = Form.useWatch('uniqueName', searchForm);
-  const [deleteRowKey, setDeleteRowKey] = useState<string | undefined>(undefined);
-  const [shareModalProps, setShareModalProps] = useState<ShareModalProps>({
-    formValue: {...defaultShare,},
-    title: t('token.edit'),
-    show: false,
-    onOk: (values: Share) => {
-      console.log(values)
-      setShareModalProps((prev) => ({...prev, show: false}));
-    },
-    onCancel: () => {
-      setShareModalProps((prev) => ({...prev, show: false}));
-    },
-  });
-
-  useEffect(() => {
-    searchForm.setFieldValue('email', params.get('email'))
-  }, [params]);
-
   const columns: ColumnsType<Share> = [
-    {title: t('token.email'), dataIndex: ['account','email'], width: 120,
+    { key: 'email', title: t('token.email'), dataIndex: ['account','email'], width: 120,
       render: (text) => (
         <Input value={text} onClick={(e) => onCopy(text, t, e)} readOnly/>
       ),
     },
-    { title: 'Unique Name', dataIndex: 'uniqueName', align: 'center', width: 120 },
-    { title: t('token.password'), dataIndex: 'password', align: 'center', width: 120 },
-    { title: t('token.gpt35Limit'), dataIndex: 'gpt35Limit', align: 'center', width: 120,
+    { key: 'uniqueName', title: 'Unique Name', dataIndex: 'uniqueName', align: 'center', width: 120 },
+    { key: 'password', title: t('token.password'), dataIndex: 'password', align: 'center', width: 120 },
+    { key: 'gpt35Limit', title: t('token.gpt35Limit'), dataIndex: 'gpt35Limit', align: 'center', width: 120,
       render: text => text == -1 ? '无限制' : text
     },
-    { title: t('token.gpt4Limit'), dataIndex: 'gpt4Limit', align: 'center', width: 120,
+    { key: 'gpt4Limit', title: t('token.gpt4Limit'), dataIndex: 'gpt4Limit', align: 'center', width: 120,
       render: text => text == -1 ? '无限制' : text
     },
-    { title: t('token.refreshEveryday'), dataIndex: 'refreshEveryday', align: 'center', width: 120,
+    { key: 'refreshEveryday', title: t('token.refreshEveryday'), dataIndex: 'refreshEveryday', align: 'center', width: 120,
       render: text => text ? <CheckOutlined /> : <CloseOutlined />
     },
-    { title: t('token.temporaryChat'), dataIndex: 'temporaryChat', align: 'center', width: 80,
+    { key: 'temporaryChat', title: t('token.temporaryChat'), dataIndex: 'temporaryChat', align: 'center', width: 80,
       render: text => text ? <CheckOutlined /> : <CloseOutlined />
     },
-    { title: t('token.expiresIn'), dataIndex: 'expiresIn', align: 'center', width: 120,
-      render: text => text == 0 ? '最大' : text
+    { key: 'expiresAt', title: t('token.expiresAt'), dataIndex: 'expiresAt', align: 'center', width: 120,
+      render: text => text == "" ? '未知' : text
     },
-    { title: 'Share Token', dataIndex: 'shareToken', align: 'center', width: 120,
+    { key: 'shareToken', title: 'Share Token', dataIndex: 'shareToken', align: 'center', width: 120,
       render: (text) => (
         <Input value={text} onClick={(e) => onCopy(text, t, e)} readOnly/>
       ),
     },
-    { title: t('token.comment'), dataIndex: 'comment', align: 'center',
+    { key: 'comment', title: t('token.comment'), dataIndex: 'comment', align: 'center',
       render: (text) => (
         <Typography.Text style={{maxWidth: 500}} ellipsis={true}>
           {text}
@@ -111,6 +84,39 @@ export default function SharePage() {
       ),
     },
   ];
+
+  const simpleColumns = ['uniqueName','gpt4Limit','expiresAt','comment','operation']
+
+  const detailColumns = columns.map(column => column.key)
+
+  const deleteShareMutation = useDeleteShareMutation()
+  const updateShareMutation = useUpdateShareMutation()
+
+  const [loading, setLoading] = useState(false)
+
+  const params = useSearchParams();
+  const [searchForm] = Form.useForm();
+  const email = Form.useWatch('email', searchForm);
+  const uniqueName = Form.useWatch('uniqueName', searchForm);
+
+  const [displayColumns, setDisplayColumns] = useState(simpleColumns);
+  const [deleteRowKey, setDeleteRowKey] = useState<string | undefined>(undefined);
+  const [shareModalProps, setShareModalProps] = useState<ShareModalProps>({
+    formValue: {...defaultShare},
+    title: t('token.edit'),
+    show: false,
+    onOk: (values: Share) => {
+      console.log(values)
+      setShareModalProps((prev) => ({...prev, show: false}));
+    },
+    onCancel: () => {
+      setShareModalProps((prev) => ({...prev, show: false}));
+    },
+  });
+
+  useEffect(() => {
+    searchForm.setFieldValue('email', params.get('email'))
+  }, [params]);
 
   const onEdit = (record: Share) => {
     setShareModalProps({
@@ -164,6 +170,15 @@ export default function SharePage() {
     searchForm.resetFields();
   };
 
+  const onSwitchChange = (checked: boolean) => {
+    setDisplayColumns((checked ? [...simpleColumns] : [...detailColumns]) as string[])
+  }
+
+  const newColumns = columns.map((item) => ({
+    ...item,
+    hidden: !displayColumns.includes(item.key as string),
+  }));
+
   return (
     <Space direction="vertical" size="large" className="w-full">
       <Card>
@@ -198,13 +213,22 @@ export default function SharePage() {
 
       <Card
         title={t('token.shareList')}
+        extra={
+          <Switch
+            title={"abc"}
+            defaultChecked
+            checkedChildren={"简洁"}
+            unCheckedChildren={"详细"}
+            onChange={onSwitchChange}
+          />
+        }
       >
         <Table
           rowKey={record => record.accountId + record.uniqueName}
           size="small"
           scroll={{ x: 'max-content' }}
           pagination={{ pageSize: 10 }}
-          columns={columns}
+          columns={newColumns}
           dataSource={data}
           loading={loading}
         />
