@@ -115,6 +115,7 @@ services:
 ## 写在最后
 - 特别鸣谢: [LinuxDo](https://linux.do/)
 - 本项目前端基于 [Slash-Admin](https://github.com/d3george/slash-admin)
+- 本项目后端基于 [go-nunu](https://github.com/go-nunu/nunu)
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nianhua99/PandoraNext-Helper&type=Date)](https://star-history.com/#nianhua99/PandoraNext-Helper&Date)
