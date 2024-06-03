@@ -2,7 +2,8 @@
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-next-helper?color=gold)
 ![Static Badge](https://img.shields.io/badge/%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9-green?label=doc)  
-预览地址：https://www.ggpt.fun（前台）https://www.ggpt.fun/admin（后台管理） 管理密码：linux.do 
+预览地址（前台）：https://www.ggpt.fun
+后台管理：https://www.ggpt.fun/admin 管理密码：linux.do 
 **仅预览使用，不要输入敏感信息**
 ## 简单介绍
 * **使用Web页面管理你Pandora的所有Token！**
