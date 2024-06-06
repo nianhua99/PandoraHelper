@@ -76,7 +76,7 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 		return err
 	}
 	// 刷新此Account的所有ShareToken
-	shares, err := s.shareService.SearchShare(ctx, account.Email, "")
+	shares, err := s.shareService.GetSharesByAccountId(ctx, int(account.ID))
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,12 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 }
 
 func (s *accountService) Update(ctx context.Context, account *model.Account) error {
-	err := s.accountRepository.Update(ctx, account)
+	// 刷新所有share
+	err := s.RefreshAccount(ctx, int64(account.ID))
+	if err != nil {
+		return err
+	}
+	err = s.accountRepository.Update(ctx, account)
 	if err != nil {
 		return err
 	}

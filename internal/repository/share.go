@@ -12,6 +12,7 @@ type ShareRepository interface {
 	SearchShare(ctx context.Context, email string, uniqueName string) ([]*model.Share, error)
 	DeleteShare(ctx context.Context, id int64) error
 	GetShareByUniqueName(ctx context.Context, uniqueName string) (*model.Share, error)
+	GetSharesByAccountId(ctx context.Context, accountId int) ([]*model.Share, error)
 }
 
 func NewShareRepository(
@@ -24,6 +25,14 @@ func NewShareRepository(
 
 type shareRepository struct {
 	*Repository
+}
+
+func (r *shareRepository) GetSharesByAccountId(ctx context.Context, accountId int) ([]*model.Share, error) {
+	var shares []*model.Share
+	if err := r.DB(ctx).Where("account_id = ?", accountId).Find(&shares).Error; err != nil {
+		return nil, err
+	}
+	return shares, nil
 }
 
 func (r *shareRepository) GetShareByUniqueName(ctx context.Context, uniqueName string) (*model.Share, error) {

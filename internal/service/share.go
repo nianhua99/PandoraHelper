@@ -6,7 +6,6 @@ import (
 	"PandoraHelper/internal/repository"
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -24,8 +23,9 @@ type ShareService interface {
 	SearchShare(ctx context.Context, email string, uniqueName string) ([]*model.Share, error)
 	DeleteShare(ctx context.Context, id int64) error
 	LoginShareByPassword(ctx context.Context, username string, password string) (string, error)
-	ShareStatistic(ctx *gin.Context, accountId int) (interface{}, interface{})
-	ShareResetPassword(ctx *gin.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error
+	ShareStatistic(ctx context.Context, accountId int) (interface{}, interface{})
+	ShareResetPassword(ctx context.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error
+	GetSharesByAccountId(ctx context.Context, accountId int) ([]*model.Share, error)
 }
 
 func NewShareService(service *Service, shareRepository repository.ShareRepository, viper *viper.Viper, coordinator *Coordinator) ShareService {
@@ -44,7 +44,11 @@ type shareService struct {
 	accountService  AccountService
 }
 
-func (s *shareService) ShareResetPassword(ctx *gin.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error {
+func (s *shareService) GetSharesByAccountId(ctx context.Context, accountId int) ([]*model.Share, error) {
+	return s.shareRepository.GetSharesByAccountId(ctx, accountId)
+}
+
+func (s *shareService) ShareResetPassword(ctx context.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error {
 	share, err := s.shareRepository.GetShareByUniqueName(ctx, uniqueName)
 	if err != nil {
 		return err
@@ -64,7 +68,7 @@ func (s *shareService) ShareResetPassword(ctx *gin.Context, uniqueName string, p
 }
 
 // ShareStatistic 转换为Go语言
-func (s *shareService) ShareStatistic(ctx *gin.Context, accountId int) (interface{}, interface{}) {
+func (s *shareService) ShareStatistic(ctx context.Context, accountId int) (interface{}, interface{}) {
 	account, err := s.accountService.GetAccount(ctx, int64(accountId))
 	if err != nil {
 		return nil, err
