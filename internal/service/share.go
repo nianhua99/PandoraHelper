@@ -145,7 +145,7 @@ func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *mod
 		TokenKey string `json:"token_key"`
 	}
 	client := resty.New()
-	_, err := client.R().
+	oresp, err := client.R().
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetFormData(map[string]string{
 			"unique_name":        share.UniqueName,
@@ -161,6 +161,12 @@ func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *mod
 		}).
 		SetResult(&resp).
 		Post(chatDomain)
+	// 如果code不为200，返回body中的错误信息
+	if oresp.StatusCode() != 200 {
+		s.logger.Error("RefreshShareToken error", zap.Any("err", oresp))
+		return "", fmt.Errorf(oresp.String())
+	}
+	s.logger.Info("RefreshShareToken error", zap.Any("err", oresp))
 	if err != nil {
 		s.logger.Error("RefreshShareToken error", zap.Any("err", err))
 		return "", err

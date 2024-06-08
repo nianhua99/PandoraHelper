@@ -62,13 +62,13 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 	if err != nil {
 		return err
 	}
-	if account == nil || account.RefreshToken == "" {
-		return v1.ErrCannotRefresh
-	}
-	accessToken, err := s.GetAccessTokenByRefreshToken(account.RefreshToken)
-	if err != nil {
-		s.logger.Error("GetAccessTokenByRefreshToken error", zap.Any("err", err))
-		return err
+	accessToken := account.AccessToken
+	if account.RefreshToken != "" {
+		accessToken, err = s.GetAccessTokenByRefreshToken(account.RefreshToken)
+		if err != nil {
+			s.logger.Error("GetAccessTokenByRefreshToken error", zap.Any("err", err))
+			return err
+		}
 	}
 	account.AccessToken = accessToken
 	err = s.accountRepository.Update(ctx, account)
