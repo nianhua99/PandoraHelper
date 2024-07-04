@@ -54,6 +54,14 @@ services:
       - ./data:/app/data
 ```
 
+## k8s部署
+- 修改`deploy/k8s/deploy.yaml`中的`pvc`部分至你需要的参数。
+- 修改`deploy/k8s/deploy.yaml`中的`config.json`部分至你需要的参数。
+- 在k8s中部署
+```bash
+kubectl apply -f deploy/k8s/deploy.yaml
+```
+
 ## 配置文件
 * **admin_password**：后台管理登录密码，**必须设置**。
 * 有关Pandora.domain下的设置, 如果你反代了`new.oaifree.com`则需要修改为你反代后的域名。
