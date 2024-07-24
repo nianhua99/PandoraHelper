@@ -127,6 +127,7 @@ func (s *shareService) LoginShareByPassword(ctx context.Context, username string
 	client := resty.New()
 	_, err = client.R().
 		SetHeader("Content-Type", "application/json").
+		SetHeader("Origin", s.viper.GetString("pandora.domain.index")).
 		SetBody(reqBody).
 		SetResult(&result).
 		Post(indexDomain)
@@ -184,7 +185,7 @@ func (s *shareService) RefreshShareToken(ctx context.Context, share *model.Share
 		accessToken = account.AccessToken
 	}
 	// 判断ExpiresAt YYYY-MM-DD 23:59:59
-	if share.ExpiresAt != "" {
+	if share.ExpiresIn != -1 && share.ExpiresAt != "" {
 		atExp, err := s.jwt.ParseTokenExp(accessToken)
 		if err != nil {
 			return "", err
