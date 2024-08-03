@@ -6,7 +6,8 @@
 后台管理：https://www.ggpt.fun/admin 管理密码：linux.do   
 **仅预览使用，不要输入敏感信息**
 ## Pandora Car
-我在本项目的基础上，开发了Pandora Car项目，这是一个公益项目，让不会部署或者没有VPS的小伙伴，也可以0门槛开GPT Plus车！  
+我在本项目的基础上，开发了Pandora Car项目，这是一个公益项目，你可以理解为托管式的PandoraHelper  
+目的是让不会部署或者没有VPS的小伙伴，也可以0门槛开GPT Plus车！  
 地址：https://www.oai2b.com  
 详细介绍：https://linux.do/t/topic/118652  
 ## 简单介绍
