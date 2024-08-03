@@ -29,6 +29,7 @@ func NewHTTPServer(
 	userHandler *handler.UserHandler,
 	shareHandler *handler.ShareHandler,
 	accountHandler *handler.AccountHandler,
+	hearthCheckHandler *handler.HealthCheckHandler,
 ) *http.Server {
 	gin.SetMode(gin.ReleaseMode)
 	s := http.NewServer(
@@ -37,6 +38,10 @@ func NewHTTPServer(
 		http.WithServerHost(conf.GetString("http.host")),
 		http.WithServerPort(conf.GetInt("http.port")),
 	)
+
+	// health check
+	s.GET("/health", hearthCheckHandler.GetHealthCheck)
+	s.GET("/readiness", hearthCheckHandler.ReadinessHandler)
 
 	// rate limiter
 	var rateStr string

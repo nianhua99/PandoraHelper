@@ -48,6 +48,7 @@ var handlerSet = wire.NewSet(
 	handler.NewUserHandler,
 	handler.NewShareHandler,
 	handler.NewAccountHandler,
+	handler.NewHealthCheckHandler,
 )
 
 var serverSet = wire.NewSet(

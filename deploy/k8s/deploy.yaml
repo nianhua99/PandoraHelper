@@ -1,0 +1,173 @@
+# pvc,使用nfs作为SC，自行改成自己使用的方式，比如local-path
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdh-data-pvc
+  namespace: default
+  labels:
+    app: pdh-data-pvc
+spec:
+  storageClassName: nfs-169
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+   
+
+# configMap，自行修改admin_password的密码
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pdh-config
+data:
+  config.json: |
+    {
+      "security": {
+        "admin_password": ""
+      },
+      "http": {
+        "host": "0.0.0.0",
+        "port": 9000,
+        "title": "Pandora",
+        "rate": 100
+      },
+      "database": {
+        "driver": "sqlite",
+        "dsn": "./data/data.db"
+      },
+      "pandora": {
+        "domain": {
+          "chat": "https://chat.oaifree.com",
+          "token": "https://token.oaifree.com",
+          "index": "https://new.oaifree.com"
+        }
+      },
+      "log": {
+        "level": "info",
+        "output": "console",
+        "log_file_name": "./logs/server.log",
+        "max_backups": 30,
+        "max_age": 7,
+        "max_size": 1024,
+        "compress": true
+      }
+    }
+
+# deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pandora-helper
+  namespace: default
+  labels:
+    app: pandora-helper
+spec:
+  selector:
+    matchLabels:
+      app: pandora-helper
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: pandora-helper
+    spec:
+      volumes:
+        - name: pdh-data
+          persistentVolumeClaim:
+            claimName: pdh-data-pvc
+        - name: pdh-config
+          configMap:
+            name: pdh-config
+      containers:
+        - name: pandora-helper
+          # 这里我使用了私有仓库存储打包好的镜像，需要提前创建secret
+          image: harbor.xxx.xxx.me/pandora-helper/pandora-helper:v1.0.4
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 500m
+              memory: 500Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: 9000
+            initialDelaySeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 3
+            periodSeconds: 10
+          ports:
+            - containerPort: 9000
+              name: pandora-helper
+          volumeMounts:
+            - mountPath: /app/data
+              name: pdh-data
+            - mountPath: /app/data/config.json
+              subPath: config.json
+              name: pdh-config
+      restartPolicy: Always
+      # 私有仓库的secret，如果镜像来源于公有地址，无需鉴权，请把这两行注释
+#      imagePullSecrets:
+#        - name: harbor-secret
+
+# service,默认使用nodePort暴露服务，下面也提供了ingressRoute的方式
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pandora-helper
+  namespace: default
+spec:
+  selector:
+    app: pandora-helper
+  type: NodePort
+  ports:
+    - name: pandora-helper
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+      nodePort: 9000
+      
+
+# traefik ingressRoute，与上面的nodePort二选一
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pandora-helper-route-tls
+  annotations:
+    # 使用cert-manager的证书
+    cert-manager.io/cluster-issuer: self-ca-issuer  # self-ca-issuer为ClusterIssuer名称
+spec:
+  entryPoints:
+    - websecure #使用https的方式访问
+  routes:
+    - match: Host(`pdh.xxx.xxx.xxx`)
+      kind: Rule
+      services:
+        - name: pandora-helper
+          port: 9000
+  # tls证书，需要提前创建secret
+  tls:
+    secretName: xxx-xxx-xxx-xxx-tls
+
