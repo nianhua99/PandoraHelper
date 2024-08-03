@@ -3,7 +3,8 @@ package v1
 import "PandoraHelper/internal/model"
 
 type SearchAccountRequest struct {
-	Email string `json:"email" example:"1234@gmail.com"`
+	Email       string `json:"email" example:"1234@gmail.com"`
+	AccountType string `json:"accountType" example:"1234@gmail.com"`
 }
 
 type AddAccountRequest struct {

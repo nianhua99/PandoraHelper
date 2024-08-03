@@ -15,6 +15,8 @@ export interface UserInfo {
   permissions?: Permission[];
 }
 
+export type ProductType = "chatgpt" | "claude";
+
 export interface Organization {
   id: string;
   name: string;
@@ -55,13 +57,20 @@ export interface Account {
   id: number;
   email: string;
   password: string;
-  sessionToken?: string;
-  accessToken?: string;
+  accountType: ProductType;
   createTime?: string;
   updateTime?: string;
   shared?: number;
   shareList?: string;
+}
+
+export interface ChatGPTAccount extends Account {
   refreshToken?: string;
+  accessToken?: string;
+}
+
+export interface ClaudeAccount extends Account {
+  sessionKey?: string;
 }
 
 export interface Share {
@@ -70,21 +79,29 @@ export interface Share {
   email?: string;
   uniqueName: string;
   password: string;
-  shareToken?: string;
   comment?: string;
-  refreshEveryday?: boolean;
   expiresIn?: number;
   expiresAt?: string;
   siteLimit?: string;
+  shareType?: ProductType;
+}
+
+export interface ClaudeShare extends Share {
+
+}
+
+export interface ChatGPTShare extends Share {
+  showConversations?: boolean;
+  shareToken?: string;
+  refreshEveryday?: boolean;
   gpt35Limit?: number;
   gpt4Limit?: number;
   showUserinfo?: boolean;
   temporaryChat?: boolean;
-  showConversations?: boolean;
 }
 
 // share默认值
-export const defaultShare: Share = {
+export const defaultShare: ChatGPTShare & ClaudeShare = {
   id: undefined,
   accountId: -1,
   email: '',
@@ -100,5 +117,5 @@ export const defaultShare: Share = {
   gpt4Limit: -1,
   showUserinfo: false,
   temporaryChat: false,
-  showConversations: false
+  showConversations: false,
 };

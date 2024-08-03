@@ -10,6 +10,8 @@ type Account struct {
 	UpdateTime   *LocalTime `json:"updateTime" gorm:"autoUpdateTime" gorm:"column:update_time"`
 	Shared       int        `json:"shared" gorm:"column:shared"`
 	RefreshToken string     `json:"refreshToken" gorm:"column:refresh_token"`
+	AccountType  string     `json:"accountType" gorm:"column:account_type" gorm:"default:chatgpt"`
+	SessionKey   string     `json:"sessionKey" gorm:"column:session_key"`
 	Shares       []Share    `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE"` // 外键关系
 }
 

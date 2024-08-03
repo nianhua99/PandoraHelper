@@ -114,7 +114,7 @@ func (h *ShareHandler) SearchShare(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
 		return
 	}
-	shareList, err := h.shareService.SearchShare(ctx, req.Email, req.UniqueName)
+	shareList, err := h.shareService.SearchShare(ctx, req.AccountType, req.Email, req.UniqueName)
 	if err != nil {
 		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
 		return

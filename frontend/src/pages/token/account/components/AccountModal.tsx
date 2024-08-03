@@ -1,5 +1,5 @@
 import {AccountAddReq} from "@/api/services/accountService.ts";
-import {Form, Input, Modal, Switch} from "antd";
+import {Button, Form, Input, Modal, Space, Switch} from "antd";
 import {useState} from "react";
 import {useTranslation} from "react-i18next";
 import Password from "antd/es/input/Password";
@@ -13,20 +13,29 @@ export type AccountModalProps = {
 };
 
 export function AccountModal({ title, show, formValue, onOk, onCancel }: AccountModalProps) {
-  const [form] = Form.useForm();
+  const [form1] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
 
-  // useEffect(() => {
-  //   form.setFieldsValue({...formValue});
-  // }, [formValue, form]);
-
   const onModalOk = () => {
-    form.validateFields().then((values) => {
+    form1.validateFields().then((values) => {
       setLoading(true);
+      console.log(values)
       onOk(values, setLoading);
     });
   };
+
+  const onClickSessionKey = () => {
+    Modal.info({
+      title: 'Session Key 获取方法',
+      content: (
+        <ul>
+          <li>1. <Button type={'link'} href={'https://demo.fuclaude.com/'} target={'_blank'}>点击登录 Fuclaude </Button> </li>
+          <li>2. <Button type={'link'} href={'https://demo.fuclaude.com/api/auth/session'} target={'_blank'}>点击获取SessionKey</Button></li>
+        </ul>
+      ),
+    })
+  }
 
   return (
     <Modal
@@ -34,22 +43,25 @@ export function AccountModal({ title, show, formValue, onOk, onCancel }: Account
       open={show}
       onOk={onModalOk}
       onCancel={() => {
-        form.resetFields();
+        form1.resetFields();
         onCancel();
       }}
       okButtonProps={{
         loading,
       }}
-      destroyOnClose={false}
+      destroyOnClose={true}
     >
       <Form
         initialValues={formValue}
-        form={form}
+        form={form1}
         layout="vertical"
         preserve={false}
         autoComplete="off"
       >
         <Form.Item<AccountAddReq> name="id" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item<AccountAddReq> name="accountType" hidden>
           <Input />
         </Form.Item>
         <Form.Item<AccountAddReq> label="Email" name="email" required>
@@ -70,26 +82,44 @@ export function AccountModal({ title, show, formValue, onOk, onCancel }: Account
         >
           <Switch />
         </Form.Item>
-        <Form.Item<AccountAddReq>
-          label={
-            <a href={"https://token.oaifree.com/auth"} target={"_blank"}>
-              Refresh Token(点击获取)
-            </a>
-          }
-          name="refreshToken"
-        >
-          <Input.TextArea />
-        </Form.Item>
-        <Form.Item<AccountAddReq>
-          label={
-            <a href={"https://token.oaifree.com/auth"} target={"_blank"}>
-              Access Token(点击获取)
-            </a>
-          }
-          name="accessToken"
-        >
-          <Input.TextArea />
-        </Form.Item>
+        {formValue.accountType === 'chatgpt' ? (
+          <>
+            <Form.Item
+              label={
+                <a href="https://token.oaifree.com/auth" target="_blank" rel="noopener noreferrer">
+                  Refresh Token (点击获取)
+                </a>
+              }
+              name="refreshToken"
+            >
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              label={
+                <a href="https://token.oaifree.com/auth" target="_blank" rel="noopener noreferrer">
+                  Access Token (点击获取)
+                </a>
+              }
+              name="accessToken"
+            >
+              <Input.TextArea />
+            </Form.Item>
+          </>
+        ) : (
+          <Form.Item
+            label={
+              <Space>
+                Session Key
+                <Button type={'link'} onClick={onClickSessionKey}>
+                  获取方法
+                </Button>
+              </Space>
+            }
+            name="sessionKey"
+          >
+            <Input.TextArea />
+          </Form.Item>
+        )}
       </Form>
     </Modal>
   );

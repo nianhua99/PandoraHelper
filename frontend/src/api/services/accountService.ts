@@ -1,6 +1,6 @@
 import apiClient from '../apiClient';
 
-import { Account } from '#/entity';
+import {Account, ProductType} from '#/entity';
 
 export enum AccountApi {
   list = '/account/list',
@@ -22,8 +22,8 @@ const getAccountList = () =>
     return res;
   });
 
-const searchAccountList = (email: string) =>
-  apiClient.post<Account[]>({ url: AccountApi.search, data: { email } }).then((res) => {
+const searchAccountList = (email: string, accountType: ProductType ) =>
+  apiClient.post<Account[]>({ url: AccountApi.search, data: { email, accountType } }).then((res) => {
     // 将shareList转为json对象
     res.forEach((item) => {
       if (item.shareList) {
@@ -37,6 +37,8 @@ export interface AccountAddReq {
   email: string;
   password?: string;
   shared?: number;
+  accountType: ProductType;
+  sessionKey?: string;
   refreshToken?: string;
   accessToken?: string;
 }

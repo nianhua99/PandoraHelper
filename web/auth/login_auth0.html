@@ -344,6 +344,28 @@
 //默认使用Pandora标题
 updateHeader("{{ .Title }}");
 
+document.querySelectorAll('button[data-action="toggle"]').forEach(function(button) {
+    button.addEventListener('click', function(event) {
+        // 获取对应的密码输入框
+        var passwordInput = document.querySelector('input[name="password"]');
+        // 切换密码输入框的类型
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            button.querySelector('.show-password-tooltip').classList.add('hide');
+            button.querySelector('.hide-password-tooltip').classList.remove('hide');
+            button.querySelector('.password-toggle-label[data-label="show-password"]').classList.add('hide');
+            button.querySelector('.password-toggle-label[data-label="hide-password"]').classList.remove('hide');
+        } else {
+            passwordInput.type = 'password';
+            button.querySelector('.show-password-tooltip').classList.remove('hide');
+            button.querySelector('.hide-password-tooltip').classList.add('hide');
+            button.querySelector('.password-toggle-label[data-label="show-password"]').classList.remove('hide');
+            button.querySelector('.password-toggle-label[data-label="hide-password"]').classList.add('hide');
+        }
+    });
+});
+
+
 function setCookie(name, value) {
     let date = new Date();
     date.setFullYear(date.getFullYear() + 1);

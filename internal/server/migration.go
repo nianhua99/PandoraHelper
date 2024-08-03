@@ -27,6 +27,8 @@ func (m *Migrate) Start(ctx context.Context) error {
 		m.log.Error("user migrate error", zap.Error(err))
 		return err
 	}
+	m.db.Exec("UPDATE account set account_type = 'chatgpt' where account_type = '' or account_type is null")
+	m.db.Exec("UPDATE share set share_type = 'chatgpt' where share_type = '' or share_type is null")
 	m.log.Info("AutoMigrate success")
 	return nil
 }

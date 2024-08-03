@@ -16,7 +16,7 @@ type AccountService interface {
 	GetAccount(ctx context.Context, id int64) (*model.Account, error)
 	Update(ctx context.Context, account *model.Account) error
 	Create(ctx context.Context, account *model.Account) error
-	SearchAccount(ctx context.Context, keyword string) ([]*model.Account, error)
+	SearchAccount(ctx context.Context, accountType string, keyword string) ([]*model.Account, error)
 	DeleteAccount(ctx context.Context, id int64) error
 }
 
@@ -91,11 +91,13 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 
 func (s *accountService) Update(ctx context.Context, account *model.Account) error {
 	// 刷新所有share
-	err := s.RefreshAccount(ctx, int64(account.ID))
-	if err != nil {
-		return err
+	if account.AccountType == "chatgpt" || account.AccountType == "" {
+		err := s.RefreshAccount(ctx, int64(account.ID))
+		if err != nil {
+			return err
+		}
 	}
-	err = s.accountRepository.Update(ctx, account)
+	err := s.accountRepository.Update(ctx, account)
 	if err != nil {
 		return err
 	}
@@ -110,8 +112,8 @@ func (s *accountService) Create(ctx context.Context, account *model.Account) err
 	return nil
 }
 
-func (s *accountService) SearchAccount(ctx context.Context, keyword string) ([]*model.Account, error) {
-	return s.accountRepository.SearchAccount(ctx, keyword)
+func (s *accountService) SearchAccount(ctx context.Context, accountType string, keyword string) ([]*model.Account, error) {
+	return s.accountRepository.SearchAccount(ctx, accountType, keyword)
 }
 
 func (s *accountService) DeleteAccount(ctx context.Context, id int64) error {
@@ -123,7 +125,7 @@ func (s *accountService) GetAccount(ctx context.Context, id int64) (*model.Accou
 	if err != nil {
 		return nil, err
 	}
-	if account.AccessToken == "" {
+	if (account.AccountType == "" || account.AccountType == "chatgpt") && account.AccessToken == "" {
 		if account.RefreshToken == "" {
 			return nil, v1.ErrNotFound
 		}

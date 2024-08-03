@@ -17,6 +17,7 @@ type Share struct {
 	RefreshEveryday   bool     `json:"refreshEveryday" gorm:"column:refresh_everyday"`
 	TemporaryChat     bool     `json:"temporaryChat" gorm:"column:temporary_chat"`
 	Account           *Account `json:"account" gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE"`
+	ShareType         string   `json:"shareType" gorm:"column:share_type"`
 }
 
 func (m *Share) TableName() string {

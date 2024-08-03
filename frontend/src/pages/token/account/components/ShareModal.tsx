@@ -1,15 +1,15 @@
-import {Share} from "#/entity.ts";
 import {Checkbox, Col, DatePicker, Form, Input, InputNumber, Modal, Row} from "antd";
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
 import LabelWithInfo from "@/pages/components/form/label";
 import dayjs from "dayjs";
+import {AddShareReq} from "@/api/services/shareService.ts";
 
 export type ShareModalProps = {
-  formValue: Share;
+  formValue: AddShareReq;
   title: string;
   show: boolean;
-  onOk: (values: Share, callback: any) => void;
+  onOk: (values: AddShareReq, callback: any) => void;
   onCancel: VoidFunction;
 };
 
@@ -37,6 +37,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
       title={title}
       open={show}
       onOk={onModalOk}
+      getContainer={false}
       onCancel={() => {
         // form.resetFields();
         onCancel();
@@ -47,38 +48,41 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
       destroyOnClose={false}
     >
       <Form initialValues={formValue} form={form} layout="vertical" preserve={false}>
-        <Form.Item<Share> name="id" hidden>
+        <Form.Item<AddShareReq> name="id" hidden>
           <Input />
         </Form.Item>
-        <Form.Item<Share> name="shareToken" hidden>
+        <Form.Item<AddShareReq> name="shareType" hidden>
           <Input />
         </Form.Item>
-        <Form.Item<Share> name="accountId" hidden>
+        {formValue.shareType === 'chatgpt' && <Form.Item<AddShareReq> name="shareToken" hidden>
+          <Input />
+        </Form.Item>}
+        <Form.Item<AddShareReq> name="accountId" hidden>
           <Input />
         </Form.Item>
-        <Form.Item<Share> label="Unique Name" name="uniqueName" required>
+        <Form.Item<AddShareReq> label="Unique Name" name="uniqueName" required>
           <Input readOnly={mode === 'edit'} disabled={mode === 'edit'} />
         </Form.Item>
-        <Form.Item<Share> label={t('token.password')} name="password" required>
+        <Form.Item<AddShareReq> label={t('token.password')} name="password" required>
           <Input.Password />
         </Form.Item>
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item<Share> label={t('token.expiresAt')} name="expiresAt" >
+            <Form.Item<AddShareReq> label={t('token.expiresAt')} name="expiresAt" >
               <DatePicker style={{ width: '100%' }}
                 format="YYYY-MM-DD"
               />
             </Form.Item>
           </Col>
-          <Col span={12}>
-            <Form.Item<Share> label={t('token.siteLimit')} name="siteLimit">
+          {formValue.shareType === 'chatgpt' &&<Col span={12}>
+            <Form.Item<AddShareReq> label={t('token.siteLimit')} name="siteLimit">
               <Input placeholder="eg: https://demo.oaifree.com" />
             </Form.Item>
-          </Col>
+          </Col>}
         </Row>
-        <Row gutter={16}>
+        {formValue.shareType === 'chatgpt' && <Row gutter={16}>
           <Col span={12}>
-            <Form.Item<Share> label={t('token.gpt35Limit')} name="gpt35Limit">
+            <Form.Item<AddShareReq> label={t('token.gpt35Limit')} name="gpt35Limit">
               <InputNumber<number>
                 style={{ width: '100%' }}
                 formatter={(value) => {
@@ -105,7 +109,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item<Share>
+            <Form.Item<AddShareReq>
               label={
                 <LabelWithInfo
                   label={t('token.gpt4Limit')}
@@ -139,11 +143,11 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
               />
             </Form.Item>
           </Col>
-        </Row>
+        </Row>}
 
-        <Row>
+        {formValue.shareType === 'chatgpt' && <Row>
           <Col span={8}>
-            <Form.Item<Share>
+            <Form.Item<AddShareReq>
               label={
                 <LabelWithInfo label={t('token.refreshEveryday')} info="刷新次数限制的频率，" />
               }
@@ -154,7 +158,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
             </Form.Item>
           </Col>
           <Col span={7}>
-            <Form.Item<Share>
+            <Form.Item<AddShareReq>
               label={t('token.showUserinfo')}
               name="showUserinfo"
               labelCol={{ span: 18 }}
@@ -165,7 +169,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
             </Form.Item>
           </Col>
           <Col span={5}>
-            <Form.Item<Share>
+            <Form.Item<AddShareReq>
               label={t('token.showConversations')}
               name="showConversations"
               valuePropName="checked"
@@ -174,7 +178,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
             </Form.Item>
           </Col>
           <Col span={4}>
-            <Form.Item<Share>
+            <Form.Item<AddShareReq>
               label={t('token.temporaryChat')}
               name="temporaryChat"
               valuePropName="checked"
@@ -182,8 +186,8 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
               <Checkbox defaultChecked />
             </Form.Item>
           </Col>
-        </Row>
-        <Form.Item<Share> label={t('token.comment')} name="comment">
+        </Row>}
+        <Form.Item<AddShareReq> label={t('token.comment')} name="comment">
           <Input.TextArea />
         </Form.Item>
       </Form>

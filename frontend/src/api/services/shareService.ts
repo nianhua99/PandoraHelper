@@ -1,6 +1,6 @@
 import apiClient from '../apiClient';
 
-import {Share} from '#/entity';
+import {ChatGPTShare, ClaudeShare, ProductType, Share} from '#/entity';
 
 export enum ShareApi {
   list = '/share/list',
@@ -16,9 +16,10 @@ const getShareList = () => apiClient.get<Share[]>({ url: ShareApi.list });
 const addShare = (data: Share) => apiClient.post({ url: ShareApi.add, data });
 const updateShare = (data: Share) => apiClient.post({ url: ShareApi.update, data });
 const deleteShare = (data: Share) => apiClient.post({ url: ShareApi.delete, data });
-const searchShare = (email?: string,uniqueName?:string ) => apiClient.post({ url: ShareApi.search, data: {
+const searchShare = (accountType: ProductType, email?: string,uniqueName?:string ) => apiClient.post({ url: ShareApi.search, data: {
   email,
-  uniqueName
+  uniqueName,
+    accountType
 }});
 const chatLoginShare = (username: string, password: string) => apiClient.post({ url: ShareApi.chatLogin, data: {
   username,
@@ -31,6 +32,8 @@ type ShareStatistic = {
 }
 
 const getShareStatistic = (accountId: number) => apiClient.post<ShareStatistic>({ url: ShareApi.statistic, data: { accountId } });
+
+export type AddShareReq = ChatGPTShare & ClaudeShare;
 
 export default {
   getShareList,

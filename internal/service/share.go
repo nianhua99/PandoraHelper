@@ -20,7 +20,7 @@ type ShareService interface {
 	GetShare(ctx context.Context, id int64) (*model.Share, error)
 	Update(ctx context.Context, share *model.Share) error
 	Create(ctx context.Context, share *model.Share) error
-	SearchShare(ctx context.Context, email string, uniqueName string) ([]*model.Share, error)
+	SearchShare(ctx context.Context, accountType string, email string, uniqueName string) ([]*model.Share, error)
 	DeleteShare(ctx context.Context, id int64) error
 	LoginShareByPassword(ctx context.Context, username string, password string) (string, error)
 	ShareStatistic(ctx context.Context, accountId int) (interface{}, interface{})
@@ -110,12 +110,41 @@ func (s *shareService) ShareStatistic(ctx context.Context, accountId int) (inter
 func (s *shareService) LoginShareByPassword(ctx context.Context, username string, password string) (string, error) {
 	share, err := s.shareRepository.GetShareByUniqueName(ctx, username)
 	if err != nil {
-		return "", v1.ErrUsernameOrPassword
+		return "", err
 	}
 	if share.Password != password {
 		return "", v1.ErrUsernameOrPassword
 	}
+	url := ""
+	if share.ShareType == "" || share.ShareType == "chatgpt" {
+		url, err = s.GetChatGPTOauthLoginUrl(share)
+		if err != nil {
+			return "", err
+		}
+	} else if share.ShareType == "claude" {
+		expiresIn := 0
+		if share.ExpiresAt != "" {
+			expiresAt := share.ExpiresAt + " 23:59:59"
+			// 把expires_at 转为unix时间戳
+			expiresAtTime, err := time.Parse("2006-01-02 15:04:05", expiresAt)
+			if err != nil {
+				return "", err
+			}
+			expiresAtUnix := expiresAtTime.Unix()
+			// 如果过期时间小于当前时间，返回错误
+			if expiresAtUnix < time.Now().Unix() {
+				return "", fmt.Errorf("share token expired")
+			}
+			// 获取相隔的秒数
+			expiresIn = int(expiresAtUnix - time.Now().Unix())
+		}
+		share.ExpiresIn = expiresIn
+		url, err = s.GetClaudeOauthLoginUrl(ctx, share)
+	}
+	return url, nil
+}
 
+func (s *shareService) GetChatGPTOauthLoginUrl(share *model.Share) (string, error) {
 	indexDomain := fmt.Sprintf("%s/api/auth/oauth_token", s.viper.GetString("pandora.domain.index"))
 	reqBody := map[string]interface{}{
 		"share_token": share.ShareToken,
@@ -125,7 +154,7 @@ func (s *shareService) LoginShareByPassword(ctx context.Context, username string
 		OauthToken string `json:"oauth_token"`
 	}{}
 	client := resty.New()
-	_, err = client.R().
+	_, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Origin", s.viper.GetString("pandora.domain.index")).
 		SetBody(reqBody).
@@ -138,6 +167,41 @@ func (s *shareService) LoginShareByPassword(ctx context.Context, username string
 	s.logger.Info("LoginShareByPassword resp", zap.Any("resp", result))
 	finalLoginUrl := fmt.Sprintf("%s/auth/login_oauth?token=%s", s.viper.GetString("pandora.domain.index"), result.OauthToken)
 	return finalLoginUrl, nil
+}
+
+func (s *shareService) GetClaudeOauthLoginUrl(ctx context.Context, share *model.Share) (string, error) {
+	account, err := s.accountService.GetAccount(ctx, int64(share.AccountID))
+	if err != nil {
+		return "", err
+	}
+	if account.SessionKey == "" {
+		return "", fmt.Errorf("session key is empty")
+	}
+	indexDomain := fmt.Sprintf("%s/manage-api/auth/oauth_token", s.viper.GetString("pandora.domain.claude"))
+	reqBody := map[string]interface{}{
+		"session_key": account.SessionKey,
+		"unique_name": share.UniqueName,
+		"expires_in":  share.ExpiresIn,
+	}
+	result := struct {
+		ExpiresAt  int64  `json:"expires_at"`
+		LoginUrl   string `json:"login_url"`
+		OauthToken string `json:"oauth_token"`
+	}{}
+	client := resty.New()
+	_, err = client.R().
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Origin", s.viper.GetString("pandora.domain.claude")).
+		SetBody(reqBody).
+		SetResult(&result).
+		Post(indexDomain)
+	if err != nil {
+		s.logger.Error("LoginShareByPassword error", zap.Any("err", err))
+		return "", err
+	}
+	s.logger.Info("LoginShareByPassword resp", zap.Any("resp", result))
+	url := fmt.Sprintf("%s%s", s.viper.GetString("pandora.domain.claude"), result.LoginUrl)
+	return url, nil
 }
 
 func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *model.Share, resetLimit bool) (string, error) {
@@ -177,6 +241,9 @@ func (s *shareService) GetShareTokenByAccessToken(accessToken string, share *mod
 }
 
 func (s *shareService) RefreshShareToken(ctx context.Context, share *model.Share, accessToken string, resetLimit bool) (string, error) {
+	if share.ShareType != "" && share.ShareType != "chatgpt" {
+		return "", fmt.Errorf("share type error")
+	}
 	if accessToken == "" {
 		account, err := s.accountService.GetAccount(ctx, int64(share.AccountID))
 		if err != nil {
@@ -222,11 +289,13 @@ func (s *shareService) RefreshShareToken(ctx context.Context, share *model.Share
 }
 
 func (s *shareService) Update(ctx context.Context, share *model.Share) error {
-	_, err := s.RefreshShareToken(ctx, share, "", false)
-	if err != nil {
-		return err
+	if share.ShareType == "" || share.ShareType == "chatgpt" {
+		_, err := s.RefreshShareToken(ctx, share, "", false)
+		if err != nil {
+			return err
+		}
 	}
-	err = s.shareRepository.Update(ctx, share)
+	err := s.shareRepository.Update(ctx, share)
 	if err != nil {
 		return err
 	}
@@ -234,17 +303,22 @@ func (s *shareService) Update(ctx context.Context, share *model.Share) error {
 }
 
 func (s *shareService) Create(ctx context.Context, share *model.Share) error {
-	token, err := s.RefreshShareToken(ctx, share, "", false)
+	if share.ShareType == "" || share.ShareType == "chatgpt" {
+		token, err := s.RefreshShareToken(ctx, share, "", false)
+		if err != nil {
+			return err
+		}
+		share.ShareToken = token
+	}
+	err := s.shareRepository.Create(ctx, share)
 	if err != nil {
 		return err
 	}
-	share.ShareToken = token
-	err = s.shareRepository.Create(ctx, share)
 	return nil
 }
 
-func (s *shareService) SearchShare(ctx context.Context, email string, uniqueName string) ([]*model.Share, error) {
-	return s.shareRepository.SearchShare(ctx, email, uniqueName)
+func (s *shareService) SearchShare(ctx context.Context, accountType string, email string, uniqueName string) ([]*model.Share, error) {
+	return s.shareRepository.SearchShare(ctx, accountType, email, uniqueName)
 }
 
 func (s *shareService) DeleteShare(ctx context.Context, id int64) error {
@@ -253,9 +327,12 @@ func (s *shareService) DeleteShare(ctx context.Context, id int64) error {
 		return err
 	}
 	share.ExpiresIn = -1
-	_, err = s.RefreshShareToken(ctx, share, "", false)
-	if err != nil {
-		return err
+	if share.ShareType == "" || share.ShareType == "chatgpt" {
+		_, err = s.RefreshShareToken(ctx, share, "", false)
+		if err != nil {
+			return err
+		}
+
 	}
 	return s.shareRepository.DeleteShare(ctx, id)
 }

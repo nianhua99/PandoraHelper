@@ -25,7 +25,7 @@ func NewTask(log *log.Logger, accountService service.AccountService, shareServic
 }
 
 func (t *Task) RefreshAllAccountEveryday(ctx context.Context) error {
-	accounts, err := t.accountService.SearchAccount(context.Background(), "")
+	accounts, err := t.accountService.SearchAccount(context.Background(), "chatgpt", "")
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (t *Task) RefreshAllAccountEveryday(ctx context.Context) error {
 }
 
 func (t *Task) RefreshShareLimitEveryday(ctx context.Context) error {
-	shares, err := t.shareService.SearchShare(ctx, "", "")
+	shares, err := t.shareService.SearchShare(ctx, "chatgpt", "", "")
 	if err != nil {
 		return err
 	}

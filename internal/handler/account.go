@@ -47,7 +47,7 @@ func (h *AccountHandler) SearchAccount(ctx *gin.Context) {
 		return
 	}
 
-	accounts, err := h.accountService.SearchAccount(ctx, req.Email)
+	accounts, err := h.accountService.SearchAccount(ctx, req.AccountType, req.Email)
 	if err != nil {
 		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
 		return
