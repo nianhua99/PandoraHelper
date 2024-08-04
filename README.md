@@ -83,7 +83,8 @@ kubectl apply -f deploy/k8s/deploy.yaml
     "domain": {
       "chat": "https://chat.oaifree.com",
       "token": "https://token.oaifree.com",
-      "index": "https://new.oaifree.com"
+      "index": "https://new.oaifree.com",
+      "claude": "https://demo.fuclaude.com"
     }
   },
   "log": {
