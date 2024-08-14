@@ -17,6 +17,15 @@ jobs:
         goos: [linux, windows, darwin]
         goarch: [amd64, arm64, arm]
         goarm: [7]  # 只在 arm 平台使用
+        exclude:
+          - goos: darwin
+            goarch: arm
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: arm
+          - goos: windows
+            goarch: arm64
 
     steps:
     - name: Checkout code
