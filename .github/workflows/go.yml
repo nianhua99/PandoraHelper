@@ -2,6 +2,8 @@ name: Build and Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - '*'  # 当推送 Tag 时触发
   workflow_dispatch:
