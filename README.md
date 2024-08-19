@@ -62,9 +62,9 @@ kubectl apply -f deploy/k8s/deploy.yaml
 ```
 
 ## 配置文件
-* **admin_password**：后台管理登录密码，**必须设置**。
+* **admin_password**：后台管理登录密码，**没有默认值，必须设置**。环境变量为：`ADMIN_PASSWORD`
 * 有关Pandora.domain下的设置, 如果你反代了`new.oaifree.com`则需要修改为你反代后的域名。
-* **title**：前台登录页的标题。
+* 所有配置项均可通过环境变量来设置，比如`http.host`可以写作`HTTP_HOST`
 ```json
 {
   "security": {
@@ -80,6 +80,10 @@ kubectl apply -f deploy/k8s/deploy.yaml
     "driver": "sqlite",
     "dsn": "./data/data.db"
   },
+  "share": {
+    "random": true,
+    "custom": true
+  },
   "pandora": {
     "domain": {
       "chat": "https://chat.oaifree.com",
@@ -90,6 +94,7 @@ kubectl apply -f deploy/k8s/deploy.yaml
   },
   "log": {
     "level": "info",
+    "encoding": "console",
     "output": "console",
     "log_file_name": "./logs/server.log",
     "max_backups": 30,
