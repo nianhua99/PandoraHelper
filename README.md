@@ -2,9 +2,7 @@
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-next-helper?color=gold)
 ![Static Badge](https://img.shields.io/badge/%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9-green?label=doc)  
-预览地址（前台）：https://www.ggpt.fun  
-后台管理：https://www.ggpt.fun/admin 管理密码：linux.do   
-**仅预览使用，不要输入敏感信息**
+本项目是基于oaifree项目和fuclaude项目实现的，感谢LinuxDo，可以在LinuxDo中联系我：[linux](https://linux.do/u/linux/summary)
 ## Pandora Car
 我在本项目的基础上，开发了Pandora Car项目，这是一个公益项目，你可以理解为托管式的PandoraHelper  
 目的是让不会部署或者没有VPS的小伙伴，也可以0门槛开GPT Plus车！  
@@ -86,7 +84,8 @@ kubectl apply -f deploy/k8s/deploy.yaml
     "domain": {
       "chat": "https://chat.oaifree.com",
       "token": "https://token.oaifree.com",
-      "index": "https://new.oaifree.com"
+      "index": "https://new.oaifree.com",
+      "claude": "https://demo.fuclaude.com"
     }
   },
   "log": {

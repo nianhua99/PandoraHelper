@@ -1,0 +1,82 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'  # 当推送 Tag 时触发
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64, arm]
+        goarm: [7]
+        exclude:
+          - goos: darwin
+            goarch: arm
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: arm
+          - goos: windows
+            goarch: arm64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'  # 请根据你的需求选择 Go 版本
+
+    - name: Install Go dependencies
+      run: |
+        go env -w GO111MODULE=on
+        go mod tidy
+        go mod download
+
+    - name: Install UPX and zip
+      run: sudo apt-get install -y upx-ucl zip
+
+    - name: Build binary
+      run: |
+        mkdir -p builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}
+        mkdir -p builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}/data
+        if [ "${{ matrix.goarch }}" = "arm" ]; then
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} GOARM=${{ matrix.goarm }} go build -ldflags="-s -w" -o builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}/PandoraHelper ./cmd/server/main.go
+        else
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}/PandoraHelper ./cmd/server/main.go
+        fi
+        upx builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}/PandoraHelper*
+        cp -r data/config.json builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}/data/
+
+    - name: Compress binaries
+      run: |
+        zip -r builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip builds/PandoraHelper-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: builds
+
+    - name: List files for debugging
+      run: ls -R builds
+
+    - name: Create GitHub Release and Upload Assets
+      uses: ncipollo/release-action@v1.14.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        artifacts: builds/*.zip
