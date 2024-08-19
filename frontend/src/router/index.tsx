@@ -1,27 +1,27 @@
 import { lazy } from 'react';
 import {
-  Navigate,
   RouteObject,
   RouterProvider,
-  createBrowserRouter
+  createBrowserRouter, Navigate
 } from 'react-router-dom';
 
 import DashboardLayout from '@/layouts/dashboard';
-import AuthGuard from '@/router/components/auth-guard';
 import { usePermissionRoutes } from '@/router/hooks';
 import { ErrorRoutes } from '@/router/routes/error-routes';
 
 import { AppRouteObject } from '#/router';
+import AuthGuard from "@/router/components/auth-guard.tsx";
 
 const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
 const LoginRoute: AppRouteObject = {
-  path: '/login',
+  path: '/admin/login',
   Component: lazy(() => import('@/pages/sys/login/Login')),
 };
-// const PAGE_NOT_FOUND_ROUTE: AppRouteObject = {
-//   path: '*',
-//   element: <Navigate to="/404" replace />,
-// };
+
+const ExternalShareRoute: AppRouteObject = {
+  path: '/share',
+  Component: lazy(() => import('@/pages/share')),
+}
 
 export default function Router() {
   const permissionRoutes = usePermissionRoutes();
@@ -35,11 +35,14 @@ export default function Router() {
     children: [{ index: true, element: <Navigate to={HOMEPAGE} replace /> }, ...permissionRoutes],
   };
 
-  const routes = [LoginRoute, asyncRoutes, ErrorRoutes, ];
+  const routes = [LoginRoute, asyncRoutes,ExternalShareRoute, ErrorRoutes];
 
-  const router = createBrowserRouter(routes as unknown as RouteObject[], {
-    basename: '/admin',
-  });
+  const router = createBrowserRouter(
+    routes as unknown as RouteObject[],
+    {
+      basename: '/',
+    }
+  );
 
   return <RouterProvider router={router} />;
 }

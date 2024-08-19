@@ -12,6 +12,7 @@ import Scrollbar from '@/components/scrollbar';
 import { useFlattenedRoutes, useRouter } from '@/router/hooks';
 import ProTag from '@/theme/antd/components/tag';
 import { useThemeToken } from '@/theme/hooks';
+import {useWhyDidYouUpdate} from "ahooks";
 
 export default function SearchBar() {
   const { t } = useTranslation();
@@ -122,6 +123,12 @@ export default function SearchBar() {
     handleCancel();
   };
 
+  useWhyDidYouUpdate('SearchBar', {
+    flattenedRoutes,
+    t,
+    searchQuery, searchResult, selectedItemIndex, themeToken, search
+  });
+
   return (
     <>
       <div className="flex items-center justify-center">
@@ -183,7 +190,7 @@ export default function SearchBar() {
           <Scrollbar>
             <div ref={listRef} className="py-2">
               {searchResult.map(({ key, label }, index) => {
-                const partsTitle = parse(t(label), match(t(label), searchQuery));
+                const partsTitle = parse(label, match(label, searchQuery));
                 const partsKey = parse(key, match(key, searchQuery));
                 return (
                   <StyledListItemButton

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
 func doesPathExist(path string) bool {
@@ -34,6 +35,40 @@ func NewConfig(p string) *viper.Viper {
 	return getConfig(envConf, ".")
 }
 
+// setDefaults 设置默认值
+func setDefaults(conf *viper.Viper) {
+
+	// HTTP settings
+	conf.SetDefault("http.host", "0.0.0.0")
+	conf.SetDefault("http.port", 9000)
+	conf.SetDefault("http.title", "Pandora")
+	conf.SetDefault("http.rate", 100)
+
+	// Database settings
+	conf.SetDefault("database.driver", "sqlite")
+	conf.SetDefault("database.dsn", "./data/data.db")
+
+	// Pandora domain settings
+	conf.SetDefault("pandora.domain.chat", "https://chat.oaifree.com")
+	conf.SetDefault("pandora.domain.token", "https://token.oaifree.com")
+	conf.SetDefault("pandora.domain.index", "https://new.oaifree.com")
+	conf.SetDefault("pandora.domain.claude", "https://demo.fuclaude.com")
+
+	// Share settings
+	conf.SetDefault("share.random", true)
+	conf.SetDefault("share.custom", true)
+
+	// Log settings
+	conf.SetDefault("log.level", "info")
+	conf.SetDefault("log.encoding", "console")
+	conf.SetDefault("log.output", "console")
+	conf.SetDefault("log.log_file_name", "./logs/server.log")
+	conf.SetDefault("log.max_backups", 30)
+	conf.SetDefault("log.max_age", 7)
+	conf.SetDefault("log.max_size", 1024)
+	conf.SetDefault("log.compress", true)
+}
+
 func getConfig(path ...string) *viper.Viper {
 	conf := viper.New()
 	conf.SetConfigName("config")
@@ -48,5 +83,13 @@ func getConfig(path ...string) *viper.Viper {
 	if err != nil {
 		panic(err)
 	}
+	setDefaults(conf)
+	err = conf.BindEnv("security.admin_password", "ADMIN_PASSWORD")
+	if err != nil {
+		return nil
+	}
+	conf.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	// 绑定环境变量
+	conf.AutomaticEnv()
 	return conf
 }

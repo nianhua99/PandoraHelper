@@ -31,7 +31,7 @@ export default function AccountDropdown() {
     } catch (error) {
       console.log(error);
     } finally {
-      replace('/login');
+      replace('/admin/login');
     }
   };
   const { colorBgElevated, borderRadiusLG, boxShadowSecondary } = useThemeToken();

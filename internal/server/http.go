@@ -90,6 +90,7 @@ func NewHTTPServer(
 
 	//s.Use(static.Serve("/admin", static.EmbedFolder(PandoraHelper.EmbedFrontendFS, "frontend/dist")))
 	subFS1, err := fs.Sub(PandoraHelper.EmbedFrontendFS, "frontend/dist")
+
 	s.StaticFS("/admin", nethttp.FS(subFS1))
 	s.NoRoute(func(c *gin.Context) {
 		file, err := PandoraHelper.EmbedFrontendFS.ReadFile("frontend/dist/index.html")
@@ -107,6 +108,8 @@ func NewHTTPServer(
 	{
 		// No route group has permission
 		v1.POST("/login", userHandler.Login)
+		v1.POST("/share_accounts", accountHandler.GetShareAccountList)
+		v1.POST("/login_free_account", accountHandler.LoginShareAccount)
 
 		shareAuthRouter := v1.Group("/share").Use(middleware.StrictAuth(jwt, logger))
 		{

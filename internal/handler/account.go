@@ -4,6 +4,7 @@ import (
 	v1 "PandoraHelper/api/v1"
 	"PandoraHelper/internal/model"
 	"PandoraHelper/internal/service"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -98,4 +99,39 @@ func (h *AccountHandler) DeleteAccount(ctx *gin.Context) {
 		return
 	}
 	v1.HandleSuccess(ctx, nil)
+}
+
+// 获取分享用户
+func (h *AccountHandler) GetShareAccountList(ctx *gin.Context) {
+	accounts, custom, random, err := h.accountService.GetShareAccountList(ctx)
+	if err != nil {
+		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
+		return
+	}
+
+	v1.HandleSuccess(ctx, &v1.ShareAccountResponseData{
+		Accounts: accounts,
+		Custom:   custom,
+		Random:   random,
+	})
+}
+
+func (h *AccountHandler) LoginShareAccount(ctx *gin.Context) {
+	req := new(v1.LoginShareAccountRequest)
+
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+		return
+	}
+
+	url, err := h.accountService.LoginShareAccount(ctx, req)
+	if err != nil {
+		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
+		return
+	}
+	if url == "" {
+		v1.HandleError(ctx, http.StatusBadRequest, errors.New("账号无效，请联系管理员"), nil)
+		return
+	}
+	v1.HandleSuccess(ctx, url)
 }

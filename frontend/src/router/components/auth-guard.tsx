@@ -13,14 +13,14 @@ export default function AuthGuard({ children }: Props) {
   const { accessToken } = useUserToken();
 
   const check = useCallback(() => {
-    if (!accessToken && location.pathname !== '/login') {
-      router.push('/login');
+    if (!accessToken && location.pathname !== '/admin/login') {
+      router.replace('/admin/login');
     }
   }, [router, accessToken]);
 
   useEffect(() => {
     check();
-  }, [check]);
+  }, [check,router,accessToken,location.pathname]);
 
   return children;
 }

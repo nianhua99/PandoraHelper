@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import { useThemeToken } from '@/theme/hooks';
 
@@ -8,6 +8,11 @@ type Props = {
   children: React.ReactNode;
 };
 export default function SimpleLayout({ children }: Props) {
+
+  useEffect(() => {
+    document.title = "Pandora Helper"
+  }, [])
+
   const { colorBgElevated, colorTextBase } = useThemeToken();
   return (
     <div

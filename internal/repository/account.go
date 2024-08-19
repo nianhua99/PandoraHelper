@@ -3,6 +3,7 @@ package repository
 import (
 	"PandoraHelper/internal/model"
 	"context"
+	"github.com/gin-gonic/gin"
 )
 
 type AccountRepository interface {
@@ -11,6 +12,7 @@ type AccountRepository interface {
 	Create(ctx context.Context, account *model.Account) error
 	SearchAccount(ctx context.Context, accountType string, keyword string) ([]*model.Account, error)
 	DeleteAccount(ctx context.Context, id int64) error
+	GetShareAccountList(ctx *gin.Context) ([]*model.Account, error)
 }
 
 func NewAccountRepository(
@@ -24,6 +26,19 @@ func NewAccountRepository(
 
 type accountRepository struct {
 	*Repository
+}
+
+func (r *accountRepository) GetShareAccountList(ctx *gin.Context) ([]*model.Account, error) {
+	var accounts []*model.Account
+	if err := r.DB(ctx).
+		Select("id,account_type, shared").
+		Where("shared = ?", 1).
+		Find(&accounts).
+		Error; err != nil {
+		return nil, err
+	}
+	r.logger.Info("accounts")
+	return accounts, nil
 }
 
 func (r *accountRepository) SearchAccount(ctx context.Context, accountType string, keyword string) ([]*model.Account, error) {

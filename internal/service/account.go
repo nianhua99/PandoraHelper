@@ -5,7 +5,9 @@ import (
 	"PandoraHelper/internal/model"
 	"PandoraHelper/internal/repository"
 	"context"
+	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -18,6 +20,8 @@ type AccountService interface {
 	Create(ctx context.Context, account *model.Account) error
 	SearchAccount(ctx context.Context, accountType string, keyword string) ([]*model.Account, error)
 	DeleteAccount(ctx context.Context, id int64) error
+	GetShareAccountList(ctx *gin.Context) ([]*model.Account, bool, bool, error)
+	LoginShareAccount(ctx *gin.Context, req *v1.LoginShareAccountRequest) (string, error)
 }
 
 func NewAccountService(service *Service, accountRepository repository.AccountRepository, viper *viper.Viper, coordinator *Coordinator) AccountService {
@@ -25,7 +29,7 @@ func NewAccountService(service *Service, accountRepository repository.AccountRep
 		Service:           service,
 		accountRepository: accountRepository,
 		viper:             viper,
-		shareService:      coordinator.ShareSvc,
+		coordinator:       coordinator,
 	}
 }
 
@@ -33,7 +37,62 @@ type accountService struct {
 	*Service
 	accountRepository repository.AccountRepository
 	viper             *viper.Viper
-	shareService      ShareService
+	coordinator       *Coordinator
+}
+
+func (s *accountService) LoginShareAccount(ctx *gin.Context, req *v1.LoginShareAccountRequest) (string, error) {
+	account, err := s.accountRepository.GetAccount(ctx, req.Id)
+	if err != nil {
+		return "", err
+	}
+	if account.Shared == 0 {
+		return "", errors.New("账户未开启共享")
+	}
+	if account.AccountType == "chatgpt" || account.AccountType == "" {
+		share := &model.Share{
+			AccountID:     account.ID,
+			UniqueName:    req.UniqueName,
+			TemporaryChat: req.SelectType == "random",
+			ShareType:     account.AccountType,
+		}
+		token, err := s.coordinator.ShareSvc.GetShareTokenByAccessToken(ctx, account.AccessToken, share, true)
+		if err != nil {
+			return "", err
+		}
+		share.ShareToken = token
+		url, err := s.coordinator.ShareSvc.GetOauthLoginUrl(ctx, share)
+		return url, err
+	} else if account.AccountType == "claude" {
+		url, err := s.coordinator.ShareSvc.GetOauthLoginUrl(ctx, &model.Share{
+			AccountID:  account.ID,
+			UniqueName: req.UniqueName,
+			ExpiresIn:  1000 * 60 * 60 * 24,
+			ShareType:  account.AccountType,
+		})
+		if err != nil {
+			return "", err
+		}
+		return url, nil
+	} else {
+		return "", errors.New("不支持的账户类型")
+	}
+}
+
+func (s *accountService) GetShareAccountList(ctx *gin.Context) ([]*model.Account, bool, bool, error) {
+	accounts, err := s.accountRepository.GetShareAccountList(ctx)
+	if err != nil {
+		return nil, false, false, err
+	}
+	custom := s.viper.GetBool("share.custom")
+	random := s.viper.GetBool("share.random")
+	if len(accounts) == 0 {
+		return accounts, false, false, nil
+	}
+	if !custom && !random {
+		// 如果都为false，则返回空数组
+		return []*model.Account{}, false, false, nil
+	}
+	return accounts, custom, random, nil
 }
 
 func (s *accountService) GetAccessTokenByRefreshToken(refreshToken string) (string, error) {
@@ -76,12 +135,12 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 		return err
 	}
 	// 刷新此Account的所有ShareToken
-	shares, err := s.shareService.GetSharesByAccountId(ctx, int(account.ID))
+	shares, err := s.coordinator.ShareSvc.GetSharesByAccountId(ctx, int(account.ID))
 	if err != nil {
 		return err
 	}
 	for _, share := range shares {
-		_, err = s.shareService.RefreshShareToken(ctx, share, accessToken, false)
+		_, err = s.coordinator.ShareSvc.RefreshShareToken(ctx, share, accessToken, false)
 		if err != nil {
 			return err
 		}
@@ -91,15 +150,15 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 
 func (s *accountService) Update(ctx context.Context, account *model.Account) error {
 	// 刷新所有share
-	if account.AccountType == "chatgpt" || account.AccountType == "" {
-		err := s.RefreshAccount(ctx, int64(account.ID))
-		if err != nil {
-			return err
-		}
-	}
 	err := s.accountRepository.Update(ctx, account)
 	if err != nil {
 		return err
+	}
+	if account.AccountType == "chatgpt" || account.AccountType == "" {
+		err = s.RefreshAccount(ctx, int64(account.ID))
+		if err != nil {
+			return errors.New("更新成功，但存在问题：" + err.Error())
+		}
 	}
 	return nil
 }

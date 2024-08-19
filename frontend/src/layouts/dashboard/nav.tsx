@@ -15,11 +15,13 @@ import { useThemeToken } from '@/theme/hooks';
 import { NAV_COLLAPSED_WIDTH, NAV_WIDTH } from './config';
 
 import { ThemeLayout } from '#/enum';
+import {useWhyDidYouUpdate} from "ahooks";
 
 type Props = {
   closeSideBarDrawer?: () => void;
 };
 export default function Nav(props: Props) {
+
   const navigate = useNavigate();
   const matches = useMatches();
   const { pathname } = useLocation();
@@ -35,6 +37,7 @@ export default function Nav(props: Props) {
   };
 
   const routeToMenuFn = useRouteToMenuFn();
+  useWhyDidYouUpdate('Nav', {routeToMenuFn})
   const permissionRoutes = usePermissionRoutes();
 
   /**
@@ -59,6 +62,7 @@ export default function Nav(props: Props) {
   useEffect(() => {
     const menuRoutes = menuFilter(permissionRoutes);
     const menus = routeToMenuFn(menuRoutes);
+    console.log('menus', menus)
     setMenuList(menus);
   }, [permissionRoutes, routeToMenuFn]);
 

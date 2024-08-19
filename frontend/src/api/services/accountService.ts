@@ -9,6 +9,8 @@ export enum AccountApi {
   delete = '/account/delete',
   refresh = '/account/refresh',
   search = '/account/search',
+  shareAccounts = '/share_accounts',
+  loginFree = '/login_free_account',
 }
 
 const getAccountList = () =>
@@ -42,10 +44,25 @@ export interface AccountAddReq {
   refreshToken?: string;
   accessToken?: string;
 }
+
+interface ShareAccountListResp {
+  accounts: Account[];
+  random: boolean;
+  custom: boolean;
+}
+
+interface LoginFreeAccountResp {
+  id: number,
+  UniqueName?: string,
+  SelectType?: string,
+}
+
 const addAccount = (data: AccountAddReq) => apiClient.post({ url: AccountApi.add, data });
 const updateAccount = (data: AccountAddReq) => apiClient.post({ url: AccountApi.update, data });
 const deleteAccount = (id: number) => apiClient.post({ url: AccountApi.delete, data: { id } });
 const refreshAccount = (id: number) => apiClient.post({ url: AccountApi.refresh, data: { id } });
+const getShareAccountList = () => apiClient.post<ShareAccountListResp>({ url: AccountApi.shareAccounts });
+const loginFreeAccount = (data: LoginFreeAccountResp) => apiClient.post({ url: AccountApi.loginFree, data });
 
 export default {
   getAccountList,
@@ -54,4 +71,6 @@ export default {
   updateAccount,
   deleteAccount,
   refreshAccount,
+  getShareAccountList,
+  loginFreeAccount
 };

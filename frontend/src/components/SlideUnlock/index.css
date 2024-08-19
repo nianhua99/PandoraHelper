@@ -1,0 +1,13 @@
+.wave-text {
+  display: inline-block;
+  animation: wave-animation 1.5s ease-in-out infinite;
+}
+
+@keyframes wave-animation {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}

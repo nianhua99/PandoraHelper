@@ -13,10 +13,15 @@ import LoginForm from './LoginForm';
 import {LoginStateProvider} from './providers/LoginStateProvider';
 import {getItem} from "@/utils/storage.ts";
 import {StorageEnum} from "#/enum.ts";
+import {useEffect} from "react";
 
 const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
 
 function Login() {
+
+  useEffect(() => {
+    document.title = "Login"
+  }, [])
   const { t } = useTranslation();
   const token = useUserToken();
   const { colorBgElevated } = useThemeToken();

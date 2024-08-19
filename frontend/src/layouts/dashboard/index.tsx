@@ -15,6 +15,10 @@ import NavHorizontal from './nav-horizontal';
 import { ThemeLayout, ThemeMode } from '#/enum';
 
 function DashboardLayout() {
+
+  useEffect(() => {
+    document.title = "Pandora Helper"
+  }, [])
   const { colorBgElevated, colorTextBase } = useThemeToken();
   const { themeLayout, themeMode } = useSettings();
 

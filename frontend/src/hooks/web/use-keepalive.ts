@@ -1,8 +1,10 @@
+import { isEmpty } from 'ramda';
 import { useCallback, useEffect, useState } from 'react';
 
 import { useMatchRouteMeta, useRouter } from '@/router/hooks';
+import { replaceDynamicParams } from '@/router/hooks/use-match-route-meta';
 
-import { RouteMeta } from '#/router';
+import type { RouteMeta } from '#/router';
 
 export type KeepAliveTab = RouteMeta & {
   children: any;
@@ -10,11 +12,12 @@ export type KeepAliveTab = RouteMeta & {
 export default function useKeepAlive() {
   const { VITE_APP_HOMEPAGE: HOMEPAGE } = import.meta.env;
   const { push } = useRouter();
+
   // tabs
   const [tabs, setTabs] = useState<KeepAliveTab[]>([]);
 
   // active tab
-  const [activeTabRoutePath, setActiveTabRoutePath] = useState<string>();
+  const [activeTabRoutePath, setActiveTabRoutePath] = useState<string>('');
 
   // current route meta
   const currentRouteMeta = useMatchRouteMeta();
@@ -24,16 +27,17 @@ export default function useKeepAlive() {
    */
   const closeTab = useCallback(
     (path = activeTabRoutePath) => {
-      if (tabs.length === 1) return;
-      const deleteTabIndex = tabs.findIndex((item) => item.key === path);
+      const tempTabs = [...tabs];
+      if (tempTabs.length === 1) return;
+      const deleteTabIndex = tempTabs.findIndex((item) => item.key === path);
       if (deleteTabIndex > 0) {
-        push(tabs[deleteTabIndex - 1].key);
+        push(tempTabs[deleteTabIndex - 1].key);
       } else {
-        push(tabs[deleteTabIndex + 1].key);
+        push(tempTabs[deleteTabIndex + 1].key);
       }
 
-      tabs.splice(deleteTabIndex, 1);
-      setTabs([...tabs]);
+      tempTabs.splice(deleteTabIndex, 1);
+      setTabs(tempTabs);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeTabRoutePath],
@@ -45,15 +49,17 @@ export default function useKeepAlive() {
   const closeOthersTab = useCallback(
     (path = activeTabRoutePath) => {
       setTabs((prev) => prev.filter((item) => item.key === path));
+      if (path !== activeTabRoutePath) {
+        push(path);
+      }
     },
-    [activeTabRoutePath],
+    [activeTabRoutePath, push],
   );
 
   /**
    * Close all tabs then navigate to the home page
    */
   const closeAll = useCallback(() => {
-    // setTabs([tabHomePage]);
     setTabs([]);
     push(HOMEPAGE);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +100,7 @@ export default function useKeepAlive() {
         const index = prev.findIndex((item) => item.key === path);
 
         if (index >= 0) {
-          prev[index].timeStamp = getKey();
+          prev[index].timeStamp = getTimeStamp();
         }
 
         return [...prev];
@@ -104,16 +110,24 @@ export default function useKeepAlive() {
   );
 
   useEffect(() => {
+    setTabs((prev) => prev.filter((item) => !item.hideTab));
     if (!currentRouteMeta) return;
-    const existed = tabs.find((item) => item.key === currentRouteMeta.key);
+    let { key } = currentRouteMeta;
+    const { outlet: children, params = {} } = currentRouteMeta;
+
+    if (!isEmpty(params)) {
+      key = replaceDynamicParams(key, params);
+    }
+    const existed = tabs.find((item) => item.key === key);
+
     if (!existed) {
       setTabs((prev) => [
         ...prev,
-        { ...currentRouteMeta, children: currentRouteMeta.outlet, timeStamp: getKey() },
+        { ...currentRouteMeta, key, children, timeStamp: getTimeStamp() },
       ]);
     }
 
-    setActiveTabRoutePath(currentRouteMeta.key);
+    setActiveTabRoutePath(key);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentRouteMeta]);
 
@@ -130,6 +144,6 @@ export default function useKeepAlive() {
   };
 }
 
-function getKey() {
+function getTimeStamp() {
   return new Date().getTime().toString();
 }

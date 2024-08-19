@@ -1,8 +1,9 @@
 import {AccountAddReq} from "@/api/services/accountService.ts";
-import {Button, Form, Input, Modal, Space, Switch} from "antd";
+import {Button, Form, Input, Modal, Space, Switch, Tooltip} from "antd";
 import {useState} from "react";
 import {useTranslation} from "react-i18next";
 import Password from "antd/es/input/Password";
+import {InfoCircleOutlined} from "@ant-design/icons";
 
 export type AccountModalProps = {
   formValue: AccountAddReq;
@@ -65,13 +66,20 @@ export function AccountModal({ title, show, formValue, onOk, onCancel }: Account
           <Input />
         </Form.Item>
         <Form.Item<AccountAddReq> label="Email" name="email" required>
-          <Input />
+          <Input placeholder={"仅作标记用, 没有实际用处"} />
         </Form.Item>
         <Form.Item<AccountAddReq> label={t('token.password')} name="password">
-          <Password />
+          <Password placeholder={"仅作标记用, 没有实际用处"} />
         </Form.Item>
         <Form.Item<AccountAddReq>
-          label={t('token.share')}
+          label={
+            <Space>
+              共享
+              <Tooltip title={"开启后，将分享在 /share 页面，任何人都可以使用它"} >
+                <InfoCircleOutlined/>
+              </Tooltip>
+            </Space>
+          }
           name="shared"
           labelAlign="left"
           valuePropName="checked"
@@ -79,6 +87,7 @@ export function AccountModal({ title, show, formValue, onOk, onCancel }: Account
             return v ? 1 : 0;
           }}
           required
+
         >
           <Switch />
         </Form.Item>

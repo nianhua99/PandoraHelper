@@ -24,6 +24,12 @@ type RefreshAccountRequest struct {
 	Id int64 `json:"id" binding:"required"`
 }
 
+type LoginShareAccountRequest struct {
+	Id         int64  `json:"id"`
+	UniqueName string `json:"uniqueName"`
+	SelectType string `json:"selectType"`
+}
+
 type SearchAccountResponseData struct {
 	Response
 	Data []*model.Account `json:"data"`
@@ -31,4 +37,11 @@ type SearchAccountResponseData struct {
 
 type AccountResponseData struct {
 	Response
+}
+
+type ShareAccountResponseData struct {
+	Response
+	Accounts []*model.Account `json:"accounts"`
+	Custom   bool             `json:"custom"`
+	Random   bool             `json:"random"`
 }
