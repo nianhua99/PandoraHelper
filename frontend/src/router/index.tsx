@@ -25,8 +25,9 @@ const ExternalShareRoute: AppRouteObject = {
 
 export default function Router() {
   const permissionRoutes = usePermissionRoutes();
+
   const asyncRoutes: AppRouteObject = {
-    path: '/',
+    path: '/admin',
     element: (
       <AuthGuard>
         <DashboardLayout />

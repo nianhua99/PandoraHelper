@@ -50,10 +50,14 @@ func (s *accountService) LoginShareAccount(ctx *gin.Context, req *v1.LoginShareA
 	}
 	if account.AccountType == "chatgpt" || account.AccountType == "" {
 		share := &model.Share{
-			AccountID:     account.ID,
-			UniqueName:    req.UniqueName,
-			TemporaryChat: req.SelectType == "random",
-			ShareType:     account.AccountType,
+			AccountID:         account.ID,
+			UniqueName:        req.UniqueName,
+			TemporaryChat:     req.SelectType == "random",
+			ExpiresIn:         60 * 60 * 24,
+			Gpt35Limit:        -1,
+			Gpt4Limit:         -1,
+			ShareType:         account.AccountType,
+			ShowConversations: true,
 		}
 		token, err := s.coordinator.ShareSvc.GetShareTokenByAccessToken(ctx, account.AccessToken, share, true)
 		if err != nil {
@@ -66,7 +70,7 @@ func (s *accountService) LoginShareAccount(ctx *gin.Context, req *v1.LoginShareA
 		url, err := s.coordinator.ShareSvc.GetOauthLoginUrl(ctx, &model.Share{
 			AccountID:  account.ID,
 			UniqueName: req.UniqueName,
-			ExpiresIn:  1000 * 60 * 60 * 24,
+			ExpiresIn:  60 * 60 * 24,
 			ShareType:  account.AccountType,
 		})
 		if err != nil {

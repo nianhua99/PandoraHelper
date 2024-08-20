@@ -181,7 +181,7 @@ export default function AccountPage() {
               icon={<ShareAltOutlined />}
               onClick={() =>
                 navigate({
-                  pathname: '/token/share/claude',
+                  pathname: '/admin/share/claude',
                   search: `?email=${record.email}`,
                 })
               }

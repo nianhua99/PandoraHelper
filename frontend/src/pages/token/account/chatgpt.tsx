@@ -214,7 +214,7 @@ export default function AccountPage() {
               icon={<ShareAltOutlined />}
               onClick={() =>
                 navigate({
-                  pathname: '/token/share/chatgpt',
+                  pathname: '/admin/share/chatgpt',
                   search: `?email=${record.email}`,
                 })
               }

@@ -52,7 +52,7 @@ axiosInstance.interceptors.response.use(
       // Token失效，移除Token并跳转到登录页
       Message.error("登录失效", 5);
       removeItem(StorageEnum.Token);
-      window.location.href = '#/login'
+      window.location.href = '/admin/login';
     }
     let errMsg = '';
     try {
