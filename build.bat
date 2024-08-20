@@ -58,6 +58,7 @@ set OUTPUT_DIR=.\builds\PandoraHelper-%1-%GOOS%-%GOARCH%
 mkdir %OUTPUT_DIR%
 mkdir %OUTPUT_DIR%\data
 go build -trimpath -ldflags="-s -w" -o %OUTPUT_DIR%\PandoraHelper .\cmd\server\main.go
+upx %OUTPUT_DIR%\PandoraHelper
 copy .\data\config.json "%OUTPUT_DIR%"\data\
 
 echo Compilation and compression complete.
