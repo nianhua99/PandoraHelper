@@ -246,7 +246,6 @@ func (s *shareService) GetShareTokenByAccessToken(ctx context.Context, accessTok
 		s.logger.Error("RefreshShareToken error", zap.Any("err", oresp))
 		return "", fmt.Errorf(oresp.String())
 	}
-	s.logger.Info("RefreshShareToken error", zap.Any("err", oresp))
 	if err != nil {
 		s.logger.Error("RefreshShareToken error", zap.Any("err", err))
 		return "", err
@@ -305,10 +304,11 @@ func (s *shareService) RefreshShareToken(ctx context.Context, share *model.Share
 
 func (s *shareService) Update(ctx context.Context, share *model.Share) error {
 	if share.ShareType == "" || share.ShareType == "chatgpt" {
-		_, err := s.RefreshShareToken(ctx, share, "", false)
+		shareToken, err := s.RefreshShareToken(ctx, share, "", false)
 		if err != nil {
 			return err
 		}
+		share.ShareToken = shareToken
 	}
 	err := s.shareRepository.Update(ctx, share)
 	if err != nil {

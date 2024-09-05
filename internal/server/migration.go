@@ -23,6 +23,7 @@ func (m *Migrate) Start(ctx context.Context) error {
 	if err := m.db.AutoMigrate(
 		model.Share{},
 		model.Account{},
+		model.Conversation{},
 	); err != nil {
 		m.log.Error("user migrate error", zap.Error(err))
 		return err

@@ -14,6 +14,8 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	limiter "github.com/ulule/limiter/v3"
+	"go.uber.org/zap"
+	"time"
 
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	smem "github.com/ulule/limiter/v3/drivers/store/memory"
@@ -100,6 +102,8 @@ func NewHTTPServer(
 		c.Data(nethttp.StatusOK, "text/html; charset=utf-8", file)
 	})
 
+	checkURLs(conf, logger)
+
 	s.POST("/login_share", shareHandler.LoginShare)
 	s.POST("/reset_password", shareHandler.ShareResetPassword)
 	s.POST("/api/login_share", shareHandler.LoginShare)
@@ -131,4 +135,32 @@ func NewHTTPServer(
 	}
 
 	return s
+}
+
+func checkURLs(conf *viper.Viper, logger *log.Logger) {
+	urls := []string{
+		conf.GetString("pandora.domain.index"),
+		conf.GetString("pandora.domain.claude"),
+	}
+
+	client := nethttp.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	for _, url := range urls {
+		resp, err := client.Get(url)
+		if err != nil {
+			logger.Error("无法访问URL", zap.String("url", url), zap.Error(err))
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == nethttp.StatusOK {
+			logger.Info("URL可以正常访问", zap.String("url", url))
+		} else if resp.StatusCode == nethttp.StatusForbidden {
+			logger.Error("403 访问URL被拦截", zap.String("url", url), zap.Int("status", resp.StatusCode))
+		} else {
+			logger.Error("URL返回非200状态码", zap.String("url", url), zap.Int("status", resp.StatusCode))
+		}
+	}
 }

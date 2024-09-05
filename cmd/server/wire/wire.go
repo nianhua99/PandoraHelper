@@ -5,13 +5,17 @@ package wire
 
 import (
 	"PandoraHelper/internal/handler"
+	"PandoraHelper/internal/middleware"
 	"PandoraHelper/internal/repository"
 	"PandoraHelper/internal/server"
 	"PandoraHelper/internal/service"
 	"PandoraHelper/pkg/app"
 	"PandoraHelper/pkg/jwt"
 	"PandoraHelper/pkg/log"
+	serverType "PandoraHelper/pkg/server"
 	"PandoraHelper/pkg/server/http"
+	"PandoraHelper/pkg/server/reverse/chatgpt"
+	"PandoraHelper/pkg/server/reverse/claude"
 	"PandoraHelper/pkg/sid"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
@@ -24,6 +28,7 @@ var repositorySet = wire.NewSet(
 	repository.NewTransaction,
 	repository.NewAccountRepository,
 	repository.NewShareRepository,
+	repository.NewConversationRepository,
 )
 
 var serviceCoordinatorSet = wire.NewSet(
@@ -53,13 +58,27 @@ var handlerSet = wire.NewSet(
 
 var serverSet = wire.NewSet(
 	server.NewHTTPServer,
+	server.NewChatGPTReverseProxyServer,
+	server.NewClaudeReverseProxyServer,
 	server.NewJob,
 )
 
 // build App
-func newApp(httpServer *http.Server, job *server.Job, task *server.Task, migrate *server.Migrate) *app.App {
+func newApp(conf *viper.Viper, httpServer *http.Server, job *server.Job, task *server.Task, migrate *server.Migrate, gptServer *chatgpt.Server, claudeServer *claude.Server) *app.App {
+	servers := []serverType.Server{
+		httpServer,
+		job,
+		task,
+		migrate,
+	}
+	if conf.GetBool("http.proxy-pass.oaifree.enable") {
+		servers = append(servers, gptServer)
+	}
+	if conf.GetBool("http.proxy-pass.fuclaude.enable") {
+		servers = append(servers, claudeServer)
+	}
 	return app.NewApp(
-		app.WithServer(httpServer, job, task, migrate),
+		app.WithServer(servers...),
 		app.WithName("demo-server"),
 	)
 }
@@ -73,6 +92,7 @@ func NewWire(*viper.Viper, *log.Logger) (*app.App, func(), error) {
 		migrateSet,
 		sid.NewSid,
 		jwt.NewJwt,
+		middleware.NewConversationLoggerMiddleware,
 		newApp,
 	))
 

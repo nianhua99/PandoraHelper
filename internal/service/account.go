@@ -144,7 +144,7 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 		return err
 	}
 	for _, share := range shares {
-		_, err = s.coordinator.ShareSvc.RefreshShareToken(ctx, share, accessToken, false)
+		err := s.coordinator.ShareSvc.Update(ctx, share)
 		if err != nil {
 			return err
 		}

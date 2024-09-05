@@ -5,6 +5,18 @@
   "http": {
     "host": "0.0.0.0",
     "port": 9000,
+    "proxy-pass": {
+      "oaifree": {
+        "enable": true,
+        "host": "https://new.oaifree.com",
+        "port": 9001
+      },
+      "fuclaude": {
+        "enable": true,
+        "host": "https://demo.fuclaude.com",
+        "port": 9002
+      }
+    },
     "title": "Pandora",
     "rate": 1000
   },
@@ -23,6 +35,11 @@
       "index": "https://new.oaifree.com",
       "claude": "https://demo.fuclaude.com"
     }
+  },
+  "moderation": {
+    "apiKey": "",
+    "apiUrl": "https://api-proxy.oaipro.com/v1/moderations",
+    "message": "您的消息包含不当内容，请修改后重试!"
   },
   "log": {
     "level": "info",
