@@ -66,10 +66,13 @@ export default function AccountPage() {
   const searchEmail = Form.useWatch('email', searchForm);
 
   const defaultAccountFormProps = {
+    id: undefined,
     email: '',
     accountType: 'chatgpt' as ProductType,
     password: '',
     refreshToken: '',
+    accessToken: '',
+    shared: 0,
   }
 
   const [accountModalProps, setAccountModalProps] = useState<AccountModalProps>({
@@ -294,14 +297,7 @@ export default function AccountPage() {
       show: true,
       title: t('token.createNew'),
       formValue: {
-        id: undefined,
-        email: '',
-        password: '',
-        sessionKey: '',
-        accountType: 'chatgpt',
-        shared: 0,
-        custom_type: 'refresh_token',
-        custom_token: '',
+        ...defaultAccountFormProps,
       },
     }));
   };

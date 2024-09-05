@@ -37,7 +37,7 @@ import { onCopy } from '@/utils/copy.ts';
 
 import { useAddShareMutation } from '@/store/shareStore.ts';
 
-import { ClaudeAccount, defaultShare, Share } from '#/entity';
+import {ClaudeAccount, defaultShare, ProductType, Share} from '#/entity';
 import {ShareModal, ShareModalProps} from "@/pages/token/account/components/ShareModal.tsx";
 import {AccountModal, AccountModalProps} from "@/pages/token/account/components/AccountModal.tsx";
 
@@ -60,8 +60,21 @@ export default function AccountPage() {
 
   const searchEmail = Form.useWatch('email', searchForm);
 
+  const defaultAccountFormProps = {
+    id: undefined,
+    email: '',
+    accountType: 'claude' as ProductType,
+    password: '',
+    refreshToken: '',
+    accessToken: '',
+    sessionKey: '',
+    shared: 0,
+  }
+
   const [AccountModalPros, setAccountModalProps] = useState<AccountModalProps>({
     formValue: {
+      id: undefined,
+      sessionKey: '',
       email: '',
       accountType: 'claude',
       password: '',
@@ -73,21 +86,21 @@ export default function AccountPage() {
       if (values.id) {
         updateAccountMutation.mutate(values, {
           onSuccess: () => {
-            setAccountModalProps((prev) => ({ ...prev, show: false }));
+            setAccountModalProps((prev) => ({ ...prev, show: false, formValue: {...defaultAccountFormProps} }));
           },
           onSettled: () => callback(false),
         });
       } else {
         addAccountMutation.mutate(values, {
           onSuccess: () => {
-            setAccountModalProps((prev) => ({ ...prev, show: false }));
+            setAccountModalProps((prev) => ({ ...prev, show: false, formValue: {...defaultAccountFormProps} }));
           },
           onSettled: () => callback(false),
         });
       }
     },
     onCancel: () => {
-      setAccountModalProps((prev) => ({ ...prev, show: false }));
+      setAccountModalProps((prev) => ({ ...prev, show: false, formValue: {...defaultAccountFormProps} }));
     },
   });
 

@@ -116,6 +116,7 @@
     "terser": "^5.26.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
+    "vite-plugin-chunk-split": "^0.5.0",
     "vite-plugin-svg-icons": "^2.0.1",
     "vite-tsconfig-paths": "^4.2.1"
   }

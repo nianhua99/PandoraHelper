@@ -1,6 +1,6 @@
 import {AccountAddReq} from "@/api/services/accountService.ts";
 import {Button, Form, Input, Modal, Space, Switch, Tooltip} from "antd";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
 import Password from "antd/es/input/Password";
 import {InfoCircleOutlined} from "@ant-design/icons";
@@ -18,10 +18,15 @@ export function AccountModal({ title, show, formValue, onOk, onCancel }: Account
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
 
+  useEffect(() => {
+    if (show) {
+      form1.setFieldsValue(formValue)
+    }
+  }, [show, formValue, form1]);
+
   const onModalOk = () => {
     form1.validateFields().then((values) => {
       setLoading(true);
-      console.log(values)
       onOk(values, setLoading);
     });
   };
