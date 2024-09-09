@@ -1,19 +1,20 @@
 # Pandora Helper
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-helper?color=gold)
-本项目是基于oaifree项目和fuclaude项目实现的，感谢LinuxDo，可以在LinuxDo中联系我：[linux](https://linux.do/u/linux/summary)
+本项目是基于oaifree和fuclaude实现的，感谢LinuxDo，可以在LinuxDo中联系我：[linux](https://linux.do/u/linux/summary)
 ## Pandora Car
 我在本项目的基础上，开发了Pandora Car项目，这是一个公益项目，你可以理解为托管式的PandoraHelper
 目的是让不会部署或者没有VPS的小伙伴，也可以0门槛开GPT Plus车！  
 地址：https://www.oai2b.com  
 详细介绍：https://linux.do/t/topic/118652  
 ## 简单介绍
-* **使用Web页面管理你Pandora的所有Token！**
-* **你无需了解各种Token如何获取，Helper帮你处理了这一切！**
-* 自动使用`Refresh Token`刷新`Access Token`，无需手动操作！
-* 自动使用`Access Token`获取`Share Token`，无需手动操作！
-* 管理账号下的所有`Share Token`。定时刷新、定时重置限额、吊销指定`Share Token`。
-
+- **账号管理**: 集中管理ChatGPT和Claude账号。
+- **分享账号**: 轻松创建和管理共享账号, 与其他小伙伴共享ChatGPT Plus/Claude Pro服务。
+- **分享功能**：支持各分享账号的会话记录隔离、模型次数限制、有限期限制、道德审查限制等
+- **用户界面**: 同步的ChatGPT/Claude官方Web UI页面，1:1还原。
+- **使用统计**: 追踪共享账号的使用情况,包括各模型的使用量、对话记录等。
+- **自动刷新**: 支持自动刷新账号令牌,确保长期可用性。
+  
 ## 手动部署
 
 * 在[Releases](https://github.com/nianhua99/PandoraHelper/releases)中下载对应操作系统和架构的包。
