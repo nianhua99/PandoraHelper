@@ -15,6 +15,7 @@ import SettingButton from '../_common/setting-button';
 
 import { NAV_COLLAPSED_WIDTH, NAV_WIDTH, HEADER_HEIGHT, OFFSET_HEADER_HEIGHT } from './config';
 import Nav from './nav';
+import LinuxDoLogo from '@/assets/icons/logo-new-5.png';
 
 import { ThemeLayout } from '#/enum';
 // import PandoraUsage from "@/layouts/_common/pandora-usage.tsx";
@@ -76,10 +77,13 @@ export default function Header({ className = '', offsetTop = false }: Props) {
             <SearchBar />
             <LocalePicker />
             <IconButton onClick={() => window.open('https://linux.do')}>
-              <Iconify icon="ant-design:linux-outlined" size={24} style={{color: "#006eff"}} />
+              <img src={LinuxDoLogo} alt={"linuxdo"} style={{width: 24, height: 24}}/>
             </IconButton>
             <IconButton onClick={() => window.open('https://github.com/nianhua99/PandoraHelper')}>
               <Iconify icon="mdi:github" size={24} />
+            </IconButton>
+            <IconButton onClick={() => window.open('https://wiki.oai2b.com')}>
+              <Iconify icon="mage:book" size={24} />
             </IconButton>
             <SettingButton />
             <AccountDropdown />

@@ -1,4 +1,15 @@
-import {Checkbox, Col, DatePicker, Form, Input, InputNumber, Modal, Row} from "antd";
+import {
+  Checkbox,
+  Col,
+  DatePicker,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Row,
+  Space,
+  Typography
+} from "antd";
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
 import LabelWithInfo from "@/pages/components/form/label";
@@ -31,6 +42,30 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
       onOk(values, setLoading);
     });
   };
+
+  const limitFormatter = (value: number | undefined) => {
+    console.log(value);
+    switch (value) {
+      case -1:
+        return '无限制';
+      case 0:
+        return '禁用';
+      default:
+        return `${value}`;
+    }
+  }
+
+  const limitParser = (value: string | undefined) => {
+    switch (value) {
+      case '无限制':
+        return -1;
+      case '禁用':
+        return 0;
+      default:
+        return parseInt(value!);
+    }
+  }
+
 
   return (
     <Modal
@@ -80,92 +115,71 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
             </Form.Item>
           </Col>}
         </Row>
-        {formValue.shareType === 'chatgpt' && <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item<AddShareReq> label={t('token.gpt35Limit')} name="gpt35Limit">
-              <InputNumber<number>
-                style={{ width: '100%' }}
-                formatter={(value) => {
-                  switch (value?.toString()) {
-                    case '-1':
-                      return '无限制';
-                    case '0':
-                      return '禁用';
-                    default:
-                      return `${value}`;
-                  }
-                }}
-                parser={(value) => {
-                  switch (value) {
-                    case '无限制':
-                      return -1;
-                    case '禁用':
-                      return 0;
-                    default:
-                      return parseInt(value!);
-                  }
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item<AddShareReq>
-              label={
-                <LabelWithInfo
-                  label={t('token.gpt4Limit')}
-                  info="这里的限制只是在FK限制，而不是OpenAi的限额"
-                />
-              }
-              name="gpt4Limit"
-            >
-              <InputNumber<number>
-                style={{ width: '100%' }}
-                formatter={(value) => {
-                  switch (value?.toString()) {
-                    case '-1':
-                      return '无限制';
-                    case '0':
-                      return '禁用';
-                    default:
-                      return `${value}`;
-                  }
-                }}
-                parser={(value) => {
-                  switch (value) {
-                    case '无限制':
-                      return -1;
-                    case '禁用':
-                      return 0;
-                    default:
-                      return parseInt(value!);
-                  }
-                }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>}
+        {formValue.shareType === 'chatgpt' &&
+          <Space direction={"vertical"} className={'w-full'}>
+            {/*<Alert message="限制模型的使用次数" type="info"/>*/}
+            <Typography.Text>模型使用次数限制：</Typography.Text>
+            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item<AddShareReq> label={'4o-mimi'} name="gpt4oMiniLimit">
+                  <InputNumber<number>
+                    style={{ width: '100%' }}
+                    formatter={limitFormatter}
+                    parser={limitParser}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item<AddShareReq> label={'4o'} name="gpt4oLimit">
+                  <InputNumber<number>
+                    style={{ width: '100%' }}
+                    formatter={limitFormatter}
+                    parser={limitParser}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item<AddShareReq> label={'gpt4'} name="gpt4Limit">
+                  <InputNumber<number>
+                    style={{ width: '100%' }}
+                    formatter={limitFormatter}
+                    parser={limitParser}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item<AddShareReq> label={'o1'} name="o1Limit">
+                  <InputNumber<number>
+                    style={{ width: '100%' }}
+                    formatter={limitFormatter}
+                    parser={limitParser}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item<AddShareReq> label={'o1-mini'} name="o1MiniLimit">
+                  <InputNumber<number>
+                    style={{ width: '100%' }}
+                    formatter={limitFormatter}
+                    parser={limitParser}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Space>
+
+        }
 
         {formValue.shareType === 'chatgpt' && <Row>
           <Col span={8}>
             <Form.Item<AddShareReq>
               label={
-                <LabelWithInfo label={t('token.refreshEveryday')} info="刷新次数限制的频率，" />
+                <LabelWithInfo label={t('token.refreshEveryday')} info="刷新次数限制的频率, 勾选后将每天刷新上面设置的限额次数" />
               }
               name="refreshEveryday"
               valuePropName="checked"
             >
               <Checkbox />
-            </Form.Item>
-          </Col>
-          <Col span={7}>
-            <Form.Item<AddShareReq>
-              label={t('token.showUserinfo')}
-              name="showUserinfo"
-              labelCol={{ span: 18 }}
-              wrapperCol={{ span: 6 }}
-              valuePropName="checked"
-            >
-              <Checkbox defaultChecked={false} />
             </Form.Item>
           </Col>
           <Col span={5}>

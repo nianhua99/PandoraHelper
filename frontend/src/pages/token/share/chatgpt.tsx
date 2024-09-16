@@ -40,11 +40,26 @@ export default function SharePage() {
     },
     { key: 'uniqueName', title: 'Unique Name', dataIndex: 'uniqueName', align: 'center', width: 120 },
     { key: 'password', title: t('token.password'), dataIndex: 'password', align: 'center', width: 120 },
-    { key: 'gpt35Limit', title: t('token.gpt35Limit'), dataIndex: 'gpt35Limit', align: 'center', width: 120,
-      render: text => text == -1 ? '无限制' : text
-    },
-    { key: 'gpt4Limit', title: t('token.gpt4Limit'), dataIndex: 'gpt4Limit', align: 'center', width: 120,
-      render: text => text == -1 ? '无限制' : text
+    {
+      title: "次数限制",
+      key: "usageLimit",
+      children: [
+        { key: '4o-mini', title: '4o-mini', dataIndex: 'gpt4oMiniLimit', align: 'center', width: 100,
+          render: text => text == -1 ? '无限制' : text
+        },
+        { key: 'gpt4o', title: '4o', dataIndex: 'gpt4oLimit', align: 'center', width: 100,
+          render: text => text == -1 ? '无限制' : text
+        },
+        { key: 'gpt4', title: 'gpt4', dataIndex: 'gpt4Limit', align: 'center', width: 100,
+          render: text => text == -1 ? '无限制' : text
+        },
+        { key: 'o1', title: 'o1', dataIndex: 'o1Limit', align: 'center', width: 100,
+          render: text => text == -1 ? '无限制' : text
+        },
+        { key: 'o1-mini', title: 'o1-mini', dataIndex: 'o1MiniLimit', align: 'center', width: 100,
+          render: text => text == -1 ? '无限制' : text
+        },
+      ]
     },
     { key: 'refreshEveryday', title: t('token.refreshEveryday'), dataIndex: 'refreshEveryday', align: 'center', width: 120,
       render: text => text ? <CheckOutlined /> : <CloseOutlined />
@@ -85,7 +100,7 @@ export default function SharePage() {
     },
   ];
 
-  const simpleColumns = ['uniqueName','gpt4Limit','expiresAt','comment','operation']
+  const simpleColumns = ['uniqueName','usageLimit','expiresAt','comment','operation']
 
   const detailColumns = columns.map(column => column.key)
 
@@ -225,6 +240,7 @@ export default function SharePage() {
       >
         <Table
           rowKey={record => record.accountId + record.uniqueName}
+          bordered
           size="small"
           scroll={{ x: 'max-content' }}
           pagination={{ pageSize: 10 }}

@@ -51,7 +51,7 @@ export function ShareInfoModal({ accountId, onOk, show }: ShareInfoModalProps) {
   });
 
   return (
-    <Modal title={t('token.statistic')} open={show} onOk={onOk} closable={false} onCancel={onOk}>
+    <Modal title={t('token.statistic') + "(00:00 ~ 23:59)"} open={show} onOk={onOk} closable={false} onCancel={onOk}>
       <Spin spinning={isLoading} tip={t('token.queryingInfo')}>
         <Chart type="bar" series={statistic?.series || []} options={chartOptions} height={320} />
       </Spin>

@@ -54,8 +54,11 @@ func (s *accountService) LoginShareAccount(ctx *gin.Context, req *v1.LoginShareA
 			UniqueName:        req.UniqueName,
 			TemporaryChat:     req.SelectType == "random",
 			ExpiresIn:         60 * 60 * 24,
-			Gpt35Limit:        -1,
 			Gpt4Limit:         -1,
+			Gpt4oLimit:        -1,
+			Gpt4oMiniLimit:    -1,
+			O1Limit:           -1,
+			O1MiniLimit:       -1,
 			ShareType:         account.AccountType,
 			ShowConversations: true,
 		}

@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	limiter "github.com/ulule/limiter/v3"
+	"github.com/ulule/limiter/v3"
 	"go.uber.org/zap"
 	"time"
 

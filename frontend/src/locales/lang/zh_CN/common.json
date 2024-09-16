@@ -18,6 +18,12 @@
 
     "light": "亮色主题",
     "dark": "黑暗主题",
+    "refresh": "刷新",
+    "refreshConfirm": "刷新账户",
+    "deleteConfirm": "删除账户",
+    "welcomeBack": "欢迎回来 \uD83D\uDC4B",
+    "desc": "轻松与他人共享ChatGPT / Claude 账号",
+    "goNow": "Go",
 
     "optional": "可选"
   }

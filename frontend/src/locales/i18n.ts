@@ -9,7 +9,7 @@ import zh_CN from './lang/zh_CN';
 
 import { LocalEnum, StorageEnum } from '#/enum';
 
-const defaultLng = getStringItem(StorageEnum.I18N) || (LocalEnum.en_US as string);
+const defaultLng = getStringItem(StorageEnum.I18N) || (LocalEnum.zh_CN as string);
 i18n
   // detect user language
   // learn more: https://github.com/i18next/i18next-browser-languageDetector
@@ -21,7 +21,7 @@ i18n
   .init({
     debug: true,
     lng: defaultLng, // localstorage -> i18nextLng: en_US
-    fallbackLng: LocalEnum.en_US,
+    fallbackLng: LocalEnum.zh_CN,
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },

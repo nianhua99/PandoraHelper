@@ -40,3 +40,9 @@ type SearchShareResponse struct {
 type ShareResponse struct {
 	Response
 }
+
+type Usage map[string]string
+
+type StatisticResult struct {
+	Usage Usage `json:"usage"`
+}

@@ -29,7 +29,7 @@ export default function BannerCard() {
           style={{ color: themeToken.colorPrimaryActive }}
         >
           <h4>{t('common.welcomeBack')} </h4>
-          <h4>PandoraNext Helper</h4>
+          <h4>Pandora Helper</h4>
         </div>
         <p
           style={{ color: themeToken.colorPrimaryTextActive }}
@@ -40,7 +40,7 @@ export default function BannerCard() {
         <button
           className="font-mediumtext-black m-auto flex items-center justify-center rounded-md px-2 py-1 shadow-none md:m-0"
           style={{ backgroundColor: themeToken.colorPrimary }}
-          onClick={() => navigate('/token/account')}
+          onClick={() => navigate('/admin/account/chatgpt')}
         >
           {t('common.goNow')}
         </button>

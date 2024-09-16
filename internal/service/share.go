@@ -104,7 +104,6 @@ func (s *shareService) ShareResetPassword(ctx context.Context, uniqueName string
 	return nil
 }
 
-// ShareStatistic 转换为Go语言
 func (s *shareService) ShareStatistic(ctx context.Context, accountId int) (interface{}, interface{}) {
 	account, err := s.coordinator.AccountSvc.GetAccount(ctx, int64(accountId))
 	if err != nil {
@@ -113,28 +112,39 @@ func (s *shareService) ShareStatistic(ctx context.Context, accountId int) (inter
 	shares := account.Shares
 
 	uniqueNames := make([]string, 0)
-	gpt35Counts := make([]int, 0)
-	gpt4Counts := make([]int, 0)
+	modelTypes := make(map[string]bool)
+	shareData := make(map[string]v1.Usage)
 
 	for _, share := range shares {
 		uniqueNames = append(uniqueNames, share.UniqueName)
-		gpt35count, gpt4Count, err := s.GetShareTokenInfo(share.ShareToken, account.AccessToken)
+		result, err := s.GetShareTokenInfo(share.ShareToken, account.AccessToken)
 		if err != nil {
 			return nil, nil
 		}
-		gpt35Counts = append(gpt35Counts, gpt35count)
-		gpt4Counts = append(gpt4Counts, gpt4Count)
+		shareData[share.UniqueName] = result.Usage
+
+		for modelName := range result.Usage {
+			if modelName != "range" {
+				modelTypes[modelName] = true
+			}
+		}
 	}
 
-	series := []map[string]interface{}{
-		{
-			"name": "GPT-3.5",
-			"data": gpt35Counts,
-		},
-		{
-			"name": "GPT-4",
-			"data": gpt4Counts,
-		},
+	series := make([]map[string]interface{}, 0)
+	for modelName := range modelTypes {
+		seriesItem := map[string]interface{}{
+			"name": modelName,
+			"data": make([]int, len(uniqueNames)),
+		}
+		for i, uniqueName := range uniqueNames {
+			usage := shareData[uniqueName]
+			if value, exists := usage[modelName]; exists {
+				if intValue, err := strconv.Atoi(value); err == nil {
+					seriesItem["data"].([]int)[i] = intValue
+				}
+			}
+		}
+		series = append(series, seriesItem)
 	}
 
 	return map[string]interface{}{
@@ -236,8 +246,11 @@ func (s *shareService) GetShareTokenByAccessToken(ctx context.Context, accessTok
 			"show_conversations": fmt.Sprintf("%t", !share.ShowConversations),
 			"show_userinfo":      fmt.Sprintf("%t", share.ShowUserinfo),
 			"temporary_chat":     fmt.Sprintf("%t", share.TemporaryChat),
-			"gpt35_limit":        fmt.Sprintf("%d", share.Gpt35Limit),
+			"gpt4o_limit":        fmt.Sprintf("%d", share.Gpt4oLimit),
 			"gpt4_limit":         fmt.Sprintf("%d", share.Gpt4Limit),
+			"gpt4o_mini_limit":   fmt.Sprintf("%d", share.Gpt4oMiniLimit),
+			"o1_limit":           fmt.Sprintf("%d", share.O1Limit),
+			"o1_mini_limit":      fmt.Sprintf("%d", share.O1MiniLimit),
 		}).
 		SetResult(&resp).
 		Post(chatDomain)
@@ -368,17 +381,14 @@ func (s *shareService) ResetShareLimit(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *shareService) GetShareTokenInfo(shareToken string, accessToken string) (int, int, error) {
+func (s *shareService) GetShareTokenInfo(shareToken string, accessToken string) (v1.StatisticResult, error) {
 	host := fmt.Sprintf("%s/token/info/%s", s.viper.GetString("pandora.domain.chat"), shareToken)
 	headers := map[string]string{}
 	if accessToken != "" {
 		headers["Authorization"] = fmt.Sprintf("Bearer %s", accessToken)
 	}
-	var result struct {
-		Gpt35Limit string `json:"gpt35_limit"`
-		Gpt4Limit  string `json:"gpt4_limit"`
-	}
 	client := resty.New()
+	var result v1.StatisticResult
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeaders(headers).
@@ -386,19 +396,10 @@ func (s *shareService) GetShareTokenInfo(shareToken string, accessToken string) 
 		Get(host)
 
 	if err != nil {
-		return 0, 0, err
+		s.logger.Error("GetShareTokenInfo error", zap.Any("err", err))
+		return result, err
 	}
 
-	// 将字符串转换为整数
-	gpt35Limit, err := strconv.Atoi(result.Gpt35Limit)
-	if err != nil {
-		gpt35Limit = 0
-	}
-
-	gpt4Limit, err := strconv.Atoi(result.Gpt4Limit)
-	if err != nil {
-		gpt4Limit = 0
-	}
 	s.logger.Info("GetShareTokenInfo resp", zap.Any("resp", resp))
-	return gpt35Limit, gpt4Limit, nil
+	return result, nil
 }

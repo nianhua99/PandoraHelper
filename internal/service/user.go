@@ -38,7 +38,7 @@ func (s *userService) Login(ctx context.Context, req *v1.LoginRequest) (string, 
 		user := map[string]interface{}{
 			"id":          1,
 			"username":    "admin",
-			"email":       "admin@uasm.com",
+			"email":       "admin@linux.do",
 			"role":        model.ADMIN_ROLE,
 			"status":      1,
 			"permissions": model.PERMISSION_LIST,

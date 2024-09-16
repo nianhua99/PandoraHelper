@@ -96,6 +96,10 @@ export interface ChatGPTShare extends Share {
   refreshEveryday?: boolean;
   gpt35Limit?: number;
   gpt4Limit?: number;
+  gpt4oLimit?: number;
+  gpt4oMiniLimit?: number;
+  o1Limit?: number;
+  o1MiniLimit?: number;
   showUserinfo?: boolean;
   temporaryChat?: boolean;
 }
@@ -115,6 +119,10 @@ export const defaultShare: ChatGPTShare & ClaudeShare = {
   siteLimit: '',
   gpt35Limit: -1,
   gpt4Limit: -1,
+  gpt4oLimit: -1,
+  gpt4oMiniLimit: -1,
+  o1Limit: -1,
+  o1MiniLimit: -1,
   showUserinfo: false,
   temporaryChat: false,
   showConversations: false,
