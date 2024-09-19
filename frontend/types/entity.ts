@@ -67,6 +67,7 @@ export interface Account {
 export interface ChatGPTAccount extends Account {
   refreshToken?: string;
   accessToken?: string;
+  oneApiChannelId?: number;
 }
 
 export interface ClaudeAccount extends Account {

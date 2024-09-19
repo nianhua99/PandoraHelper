@@ -44,16 +44,17 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
   };
 
   const limitFormatter = (value: number | undefined) => {
-    console.log(value);
-    switch (value) {
-      case -1:
+    console.log(value, typeof value);
+    switch (`${value}`) {
+      case '-1':
         return '无限制';
-      case 0:
+      case '0':
         return '禁用';
       default:
-        return `${value}`;
+        return value !== undefined ? String(value) : '';
     }
-  }
+  };
+
 
   const limitParser = (value: string | undefined) => {
     switch (value) {
@@ -126,6 +127,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
                     style={{ width: '100%' }}
                     formatter={limitFormatter}
                     parser={limitParser}
+                    min={-1}
                   />
                 </Form.Item>
               </Col>
@@ -135,6 +137,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
                     style={{ width: '100%' }}
                     formatter={limitFormatter}
                     parser={limitParser}
+                    min={-1}
                   />
                 </Form.Item>
               </Col>
@@ -144,6 +147,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
                     style={{ width: '100%' }}
                     formatter={limitFormatter}
                     parser={limitParser}
+                    min={-1}
                   />
                 </Form.Item>
               </Col>
@@ -153,6 +157,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
                     style={{ width: '100%' }}
                     formatter={limitFormatter}
                     parser={limitParser}
+                    min={-1}
                   />
                 </Form.Item>
               </Col>
@@ -162,6 +167,7 @@ export function ShareModal({ title, show, formValue, onOk, onCancel }: ShareModa
                     style={{ width: '100%' }}
                     formatter={limitFormatter}
                     parser={limitParser}
+                    min={-1}
                   />
                 </Form.Item>
               </Col>

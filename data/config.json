@@ -41,6 +41,10 @@
     "apiUrl": "https://api-proxy.oaipro.com/v1/moderations",
     "message": "您的消息包含不当内容，请修改后重试!"
   },
+  "oneapi": {
+    "token": "",
+    "domain": ""
+  },
   "log": {
     "level": "info",
     "encoding": "console",

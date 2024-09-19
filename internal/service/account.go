@@ -11,6 +11,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"strconv"
 )
 
 type AccountService interface {
@@ -22,6 +23,8 @@ type AccountService interface {
 	DeleteAccount(ctx context.Context, id int64) error
 	GetShareAccountList(ctx *gin.Context) ([]*model.Account, bool, bool, error)
 	LoginShareAccount(ctx *gin.Context, req *v1.LoginShareAccountRequest) (string, error)
+	GetOneApiChannelList(ctx context.Context) ([]*model.OneApiChannel, error)
+	UpdateOneApiChannelToken(ctx context.Context, id int64, token string) error
 }
 
 func NewAccountService(service *Service, accountRepository repository.AccountRepository, viper *viper.Viper, coordinator *Coordinator) AccountService {
@@ -38,6 +41,66 @@ type accountService struct {
 	accountRepository repository.AccountRepository
 	viper             *viper.Viper
 	coordinator       *Coordinator
+}
+
+func (s *accountService) UpdateOneApiChannelToken(ctx context.Context, id int64, token string) error {
+	if s.viper.GetString("oneapi.token") == "" || s.viper.GetString("oneapi.domain") == "" {
+		s.logger.Warn("oneapi token is empty, disable oneapi channel")
+		return nil
+	}
+	oneToken := s.viper.GetString("oneapi.token")
+	oneUrl := fmt.Sprintf("%s/api/channel", s.viper.GetString("oneapi.domain"))
+
+	client := resty.New()
+
+	getUrl := fmt.Sprintf("%s/%d", oneUrl, id)
+	resp := struct {
+		Data model.OneApiChannel `json:"data"`
+	}{
+		Data: model.OneApiChannel{},
+	}
+
+	res, err := client.R().SetHeader("Authorization", "Bearer "+oneToken).SetResult(&resp).Get(getUrl)
+	if err != nil {
+		return err
+	}
+	s.logger.Info("GetOneApiChannel", zap.Any("result", res))
+
+	param := resp.Data
+	param.Key = token
+
+	res, err = client.R().SetHeader("Authorization", "Bearer "+oneToken).SetBody(param).Put(oneUrl)
+
+	s.logger.Info("UpdateOneApiChannelToken", zap.Any("result", resp))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *accountService) GetOneApiChannelList(ctx context.Context) ([]*model.OneApiChannel, error) {
+	// 检测是否有oneapi的token不为空
+	if s.viper.GetString("oneapi.token") == "" || s.viper.GetString("oneapi.domain") == "" {
+		s.logger.Warn("oneapi token is empty, disable oneapi channel")
+		return []*model.OneApiChannel{}, nil
+	}
+	oneToken := s.viper.GetString("oneapi.token")
+	oneUrl := fmt.Sprintf("%s/api/channel/?p=0&page_size=1000&id_sort=true", s.viper.GetString("oneapi.domain"))
+
+	res := struct {
+		Data []*model.OneApiChannel `json:"data"`
+	}{
+		Data: make([]*model.OneApiChannel, 0),
+	}
+	client := resty.New()
+	resp, err := client.R().SetHeader("Authorization", oneToken).SetResult(&res).Get(oneUrl)
+	if err != nil {
+		return nil, err
+	}
+	// 取data字段
+	result := res.Data
+	s.logger.Info("GetOneApiChannelList", zap.Any("result", resp))
+	return result, nil
 }
 
 func (s *accountService) LoginShareAccount(ctx *gin.Context, req *v1.LoginShareAccountRequest) (string, error) {
@@ -148,6 +211,14 @@ func (s *accountService) RefreshAccount(ctx context.Context, id int64) error {
 	}
 	for _, share := range shares {
 		err := s.coordinator.ShareSvc.Update(ctx, share)
+		if err != nil {
+			return err
+		}
+	}
+	// 使用新的accessToken 刷新对接OneApi的渠道Token
+	if account.AccountType == "chatgpt" && account.OneApiChannelId != "" {
+		channelId, err := strconv.Atoi(account.OneApiChannelId)
+		err = s.UpdateOneApiChannelToken(ctx, int64(channelId), accessToken)
 		if err != nil {
 			return err
 		}

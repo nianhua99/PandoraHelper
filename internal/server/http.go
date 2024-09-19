@@ -131,6 +131,7 @@ func NewHTTPServer(
 			accountAuthRouter.POST("/search", accountHandler.SearchAccount)
 			accountAuthRouter.POST("/delete", accountHandler.DeleteAccount)
 			accountAuthRouter.POST("/update", accountHandler.UpdateAccount)
+			accountAuthRouter.POST("/oneapi/channels", accountHandler.GetOneApiChannelList)
 		}
 	}
 

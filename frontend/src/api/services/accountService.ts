@@ -11,6 +11,7 @@ export enum AccountApi {
   search = '/account/search',
   shareAccounts = '/share_accounts',
   loginFree = '/login_free_account',
+  getOneApiChannel = '/account/oneapi/channels',
 }
 
 const getAccountList = () =>
@@ -43,6 +44,7 @@ export interface AccountAddReq {
   sessionKey?: string;
   refreshToken?: string;
   accessToken?: string;
+  oneApiChannelId?: number;
 }
 
 interface ShareAccountListResp {
@@ -57,14 +59,23 @@ interface LoginFreeAccountResp {
   SelectType?: string,
 }
 
+interface OneApiChannel {
+  id: number;
+  name: string;
+  group: string;
+  status: number;
+}
+
 const addAccount = (data: AccountAddReq) => apiClient.post({ url: AccountApi.add, data });
 const updateAccount = (data: AccountAddReq) => apiClient.post({ url: AccountApi.update, data });
 const deleteAccount = (id: number) => apiClient.post({ url: AccountApi.delete, data: { id } });
 const refreshAccount = (id: number) => apiClient.post({ url: AccountApi.refresh, data: { id } });
 const getShareAccountList = () => apiClient.post<ShareAccountListResp>({ url: AccountApi.shareAccounts });
+const getOneApiChannelList = () => apiClient.post<OneApiChannel[]>({ url: AccountApi.getOneApiChannel });
 const loginFreeAccount = (data: LoginFreeAccountResp) => apiClient.post({ url: AccountApi.loginFree, data });
 
 export default {
+  getOneApiChannelList,
   getAccountList,
   searchAccountList,
   addAccount,

@@ -135,3 +135,12 @@ func (h *AccountHandler) LoginShareAccount(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, url)
 }
+
+func (h *AccountHandler) GetOneApiChannelList(ctx *gin.Context) {
+	channels, err := h.accountService.GetOneApiChannelList(ctx)
+	if err != nil {
+		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
+		return
+	}
+	v1.HandleSuccess(ctx, channels)
+}

@@ -73,6 +73,7 @@ export default function AccountPage() {
     refreshToken: '',
     accessToken: '',
     shared: 0,
+    oneApiChannelId: undefined,
   }
 
   const [accountModalProps, setAccountModalProps] = useState<AccountModalProps>({
@@ -81,7 +82,6 @@ export default function AccountPage() {
     show: false,
     onOk: (values: AccountAddReq, callback) => {
       if (values.id) {
-        console.log(values)
         updateAccountMutation.mutate(values, {
           onSuccess: () => {
             setAccountModalProps((prev) => ({ ...prev, show: false }));
@@ -338,6 +338,7 @@ export default function AccountPage() {
         shared: record.shared,
         refreshToken: record.refreshToken,
         accessToken: record.accessToken,
+        oneApiChannelId: record.oneApiChannelId,
       },
     }));
   };

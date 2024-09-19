@@ -1,9 +1,22 @@
-import {AccountAddReq} from "@/api/services/accountService.ts";
-import {Button, Form, Input, Modal, Space, Switch, Tooltip} from "antd";
+import accountService, {AccountAddReq} from "@/api/services/accountService.ts";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Spin,
+  Switch,
+  Tag,
+  Tooltip,
+  Typography
+} from "antd";
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
 import Password from "antd/es/input/Password";
 import {InfoCircleOutlined} from "@ant-design/icons";
+import {useQuery} from "@tanstack/react-query";
 
 export type AccountModalProps = {
   formValue: AccountAddReq;
@@ -17,6 +30,13 @@ export function AccountModal({ title, show, formValue, onOk, onCancel }: Account
   const [form1] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['accounts', 'one-api-channel', formValue],
+    queryFn: () => accountService.getOneApiChannelList(),
+    enabled: show,
+  });
+
 
   useEffect(() => {
     if (show) {
@@ -96,6 +116,38 @@ export function AccountModal({ title, show, formValue, onOk, onCancel }: Account
         >
           <Switch />
         </Form.Item>
+        {formValue.accountType === 'chatgpt' ? (
+          <Form.Item<AccountAddReq>
+            label={"OneAPI 渠道"}
+            name={"oneApiChannelId"}
+          >
+            <Select
+              placeholder={"对接OneApi/NewApi的渠道, 非必填"}
+              allowClear={true}
+              loading={isLoading}
+              notFoundContent={isLoading ? <Spin size={"small"} /> : null}
+            >
+              {data?.map((item) => (
+                <Select.Option key={item.id}>
+                  <Space>
+                    <Typography.Text>{item.name}</Typography.Text>
+                    <div>
+                      {
+                        item.group.split(',').map((group) => {
+                            const colors = ["volcano", "orange", "gold", "lime", "green", "cyan", "blue", "geekblue", "purple", "magenta", "red"];
+                            // 根据group随机hash出不同颜色
+                            return <Tag color={colors[group.charCodeAt(0) % colors.length]}
+                            key={group}
+                            >{group}</Tag>
+                        })
+                      }
+                    </div>
+                  </Space>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        ): null}
         {formValue.accountType === 'chatgpt' ? (
           <>
             <Form.Item
