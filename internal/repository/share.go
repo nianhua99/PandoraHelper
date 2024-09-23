@@ -68,7 +68,7 @@ func (r *shareRepository) SearchShare(ctx context.Context, accountType string, e
 	// 关联Account like 模糊查询
 	var shares []*model.Share
 	if err := r.DB(ctx).Joins(
-		"Account",
+		"join account on share.account_id = account.id",
 	).Select(
 		"share.*, account.email",
 	).Where("account.email like ?", "%"+email+"%").

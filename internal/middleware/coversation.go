@@ -187,34 +187,64 @@ type sseClaudeResponseWriter struct {
 }
 
 func (w *sseResponseWriter) Write(data []byte) (int, error) {
+	// 如果是 SSE 的请求
 	if strings.Contains(w.Header().Get("Content-Type"), "text/event-stream") {
 		reader := bufio.NewReader(bytes.NewReader(data))
+
+		var totalBytesWritten int
 		for {
+			// 逐行读取数据
 			line, err := reader.ReadString('\n')
 			if err != nil {
 				if err == io.EOF {
 					break
 				}
-				return 0, err
+				return totalBytesWritten, err
 			}
+
+			// 如果是 SSE 格式的 "data: " 行，进行处理
 			if strings.HasPrefix(line, "data: ") {
 				jsonData := strings.TrimPrefix(line, "data: ")
 				var event map[string]interface{}
 				if err := json.Unmarshal([]byte(jsonData), &event); err == nil {
+					// 提取并处理消息内容
 					if message, ok := event["message"].(map[string]interface{}); ok {
 						if content, ok := message["content"].(map[string]interface{}); ok {
 							if parts, ok := content["parts"].([]interface{}); ok && len(parts) > 0 {
 								if text, ok := parts[0].(string); ok {
+									// 更新 messages 字段
 									w.messages = text
-									w.model = message["metadata"].(map[string]interface{})["model_slug"].(string)
+
+									// 检查 model_slug 并更新 model 字段
+									if metadata, ok := message["metadata"].(map[string]interface{}); ok {
+										if model, ok := metadata["model_slug"].(string); ok {
+											w.model = model
+										}
+									}
+									if w.model == "" {
+										w.model = "UNKNOWN"
+									}
 								}
 							}
 						}
 					}
 				}
 			}
+
+			// 将当前行写入到原始的 ResponseWriter 中，保持流式输出
+			bytesWritten, err := w.ResponseWriter.Write([]byte(line))
+			if err != nil {
+				return totalBytesWritten, err
+			}
+			totalBytesWritten += bytesWritten
+
+			// 刷新输出，确保数据立即发送到客户端
+			w.ResponseWriter.Flush()
 		}
+		return totalBytesWritten, nil
 	}
+
+	// 对于非 SSE 请求，直接写入数据
 	return w.ResponseWriter.Write(data)
 }
 

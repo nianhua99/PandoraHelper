@@ -58,6 +58,10 @@ func setDefaults(conf *viper.Viper) {
 	conf.SetDefault("share.random", true)
 	conf.SetDefault("share.custom", true)
 
+	// api settings
+	conf.SetDefault("oneapi.token", "")
+	conf.SetDefault("oneapi.domain", "")
+
 	// Log settings
 	conf.SetDefault("log.level", "info")
 	conf.SetDefault("log.encoding", "console")
