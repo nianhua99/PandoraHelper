@@ -6,7 +6,8 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
-	Password string `json:"password" binding:"required" example:"123456"`
+	Password     string `json:"password" binding:"required" example:"123456"`
+	ValidateCode string `json:"validateCode" example:"123456"`
 }
 type LoginResponseData struct {
 	AccessToken string                 `json:"accessToken"`

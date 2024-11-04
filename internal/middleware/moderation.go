@@ -22,8 +22,8 @@ type Message struct {
 		Role string `json:"role"`
 	} `json:"author"`
 	Content struct {
-		ContentType string   `json:"content_type"`
-		Parts       []string `json:"parts"`
+		ContentType string        `json:"content_type"`
+		Parts       []interface{} `json:"parts"`
 	} `json:"content"`
 }
 
@@ -47,14 +47,21 @@ func ContentModerationMiddleware(conf *viper.Viper, logger *log.Logger) gin.Hand
 
 			var requestBody ChatGPTConversationRequest
 			if err := json.Unmarshal(body, &requestBody); err != nil {
-				c.AbortWithStatus(http.StatusBadRequest)
-				return
+				logger.Error("Failed to moderation, at unmarshal request body", zap.Error(err))
+				c.Next()
 			}
 
 			userMessages := []string{}
 			for _, msg := range requestBody.Messages {
 				if msg.Author.Role == "user" && msg.Content.ContentType == "text" {
-					userMessages = append(userMessages, msg.Content.Parts...)
+					for _, part := range msg.Content.Parts {
+						if textPart, ok := part.(string); ok {
+							userMessages = append(userMessages, textPart)
+						} else {
+							// 如果遇到非字符串的情况，可以选择记录日志或其他处理
+							fmt.Println("Unexpected non-string part in text message:", part)
+						}
+					}
 				}
 			}
 

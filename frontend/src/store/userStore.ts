@@ -51,35 +51,30 @@ export const useUserActions = () => useUserStore((state) => state.actions);
 
 export const useSignIn = () => {
   const { t } = useTranslation();
-  const navigatge = useNavigate();
+  const navigate = useNavigate();
   const { notification, message } = App.useApp();
   const { setUserToken, setUserInfo } = useUserActions();
 
   const signInMutation = useMutation(userService.signin);
 
-  const signIn = async (data: SignInReq) => {
+  const signIn = useCallback(async (data: SignInReq) => {
     try {
-      const res = await signInMutation.mutateAsync(data);
-      console.log(res);
-      const { user, accessToken } = res;
+      const response = await signInMutation.mutateAsync(data);
+      const { user, accessToken } = response;
       setUserToken({ accessToken });
-      // 固定一个用户信息 Admin
       setUserInfo(user);
-      navigatge(HOMEPAGE, { replace: true });
+      navigate(HOMEPAGE, { replace: true });
 
       notification.success({
         message: t('sys.login.loginSuccessTitle'),
         description: `${t('sys.login.loginSuccessDesc')}`,
         duration: 3,
       });
+      return response; // 返回 res 值
     } catch (err) {
-      message.warning({
-        content: err.message,
-        duration: 3,
-      });
+      throw err; // 重新抛出错误，以便调用者可以捕获它
     }
-  };
+  }, [t, navigate, notification, message, setUserToken, setUserInfo, signInMutation]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useCallback(signIn, []);
+  return signIn;
 };

@@ -54,6 +54,7 @@
     "react-icons": "^4.11.0",
     "react-markdown": "^8.0.7",
     "react-organizational-chart": "^2.2.1",
+    "react-qrcode-logo": "^3.0.0",
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.16.0",
     "react-use": "^17.4.0",

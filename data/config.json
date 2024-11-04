@@ -1,58 +1,59 @@
 {
-  "security": {
-    "admin_password": ""
+  "database": {
+    "driver": "sqlite",
+    "dsn": "./data/data.db"
   },
   "http": {
     "host": "0.0.0.0",
     "port": 9000,
     "proxy-pass": {
-      "oaifree": {
-        "enable": true,
-        "host": "https://new.oaifree.com",
-        "port": 9001
-      },
       "fuclaude": {
         "enable": true,
         "host": "https://demo.fuclaude.com",
         "port": 9002
+      },
+      "oaifree": {
+        "enable": true,
+        "host": "https://new.oaifree.com",
+        "port": 9001
       }
     },
-    "title": "Pandora",
-    "rate": 1000
+    "rate": 1000,
+    "title": "Pandora"
   },
-  "database": {
-    "driver": "sqlite",
-    "dsn": "./data/data.db"
+  "log": {
+    "compress": true,
+    "encoding": "console",
+    "level": "info",
+    "log_file_name": "./logs/server.log",
+    "max_age": 7,
+    "max_backups": 30,
+    "max_size": 1024,
+    "output": "console"
   },
-  "share": {
-    "random": true,
-    "custom": true
+  "moderation": {
+    "apikey": "",
+    "apiurl": "https://api-proxy.oaipro.com/v1/moderations",
+    "message": "您的消息包含不当内容，请修改后重试!"
+  },
+  "oneapi": {
+    "domain": "",
+    "token": ""
   },
   "pandora": {
     "domain": {
       "chat": "https://chat.oaifree.com",
-      "token": "https://token.oaifree.com",
-      "index": "https://new.oaifree.com",
-      "claude": "https://demo.fuclaude.com"
+      "claude": "http://localhost:9002",
+      "index": "http://localhost:9001",
+      "token": "https://token.oaifree.com"
     }
   },
-  "moderation": {
-    "apiKey": "",
-    "apiUrl": "https://api-proxy.oaipro.com/v1/moderations",
-    "message": "您的消息包含不当内容，请修改后重试!"
+  "security": {
+    "2fa_secret": "",
+    "admin_password": ""
   },
-  "oneapi": {
-    "token": "",
-    "domain": ""
-  },
-  "log": {
-    "level": "info",
-    "encoding": "console",
-    "output": "console",
-    "log_file_name": "./logs/server.log",
-    "max_backups": 30,
-    "max_age": 7,
-    "max_size": 1024,
-    "compress": true
+  "share": {
+    "custom": true,
+    "random": true
   }
 }

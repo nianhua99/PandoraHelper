@@ -7,7 +7,9 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -129,7 +131,7 @@ func (m *ConversationLoggerMiddleware) ChatGptLogConversation() gin.HandlerFunc 
 			}
 
 			if err := m.repository.SaveConversation(c.Request.Context(), conversationLog); err != nil {
-				m.logger.Error("Failed to save conversation log")
+				m.logger.Error("Failed to save conversation log", zap.Error(err))
 			}
 		} else {
 			c.Next()
@@ -141,37 +143,28 @@ func extractChatGPTUserMessages(request ChatGPTConversationRequest) string {
 	var userMessages []string
 	for _, msg := range request.Messages {
 		if msg.Author.Role == "user" && msg.Content.ContentType == "text" {
-			userMessages = append(userMessages, msg.Content.Parts...)
-		}
-	}
-	return strings.Join(userMessages, " ")
-}
-
-func extractClaudeUserMessages(request ChatGPTConversationRequest) string {
-	var userMessages []string
-	for _, msg := range request.Messages {
-		if msg.Author.Role == "user" && msg.Content.ContentType == "text" {
-			userMessages = append(userMessages, msg.Content.Parts...)
-		}
-	}
-	return strings.Join(userMessages, " ")
-}
-
-func extractAssistantMessage(responseBody []byte) string {
-	var response map[string]interface{}
-	if err := json.Unmarshal(responseBody, &response); err != nil {
-		return ""
-	}
-	if message, ok := response["message"].(map[string]interface{}); ok {
-		if content, ok := message["content"].(map[string]interface{}); ok {
-			if parts, ok := content["parts"].([]interface{}); ok && len(parts) > 0 {
-				if text, ok := parts[0].(string); ok {
-					return text
+			for _, part := range msg.Content.Parts {
+				if textPart, ok := part.(string); ok {
+					userMessages = append(userMessages, textPart)
+				} else {
+					// 如果遇到非字符串的情况，可以选择记录日志或其他处理
+					fmt.Println("Unexpected non-string part in text message:", part)
+				}
+			}
+		} else if msg.Author.Role == "user" && msg.Content.ContentType != "text" {
+			// 遇到非文本信息
+			for _, part := range msg.Content.Parts {
+				if textPart, ok := part.(string); ok {
+					userMessages = append(userMessages, textPart)
+				} else {
+					userMessages = append(userMessages, "[非文本信息]")
+					// 如果遇到非字符串的情况，可以选择记录日志或其他处理
+					fmt.Println("Unexpected non-string part in text message:", part)
 				}
 			}
 		}
 	}
-	return ""
+	return strings.Join(userMessages, " ")
 }
 
 type sseResponseWriter struct {
@@ -197,6 +190,15 @@ func (w *sseResponseWriter) Write(data []byte) (int, error) {
 			line, err := reader.ReadString('\n')
 			if err != nil {
 				if err == io.EOF {
+					// 处理最后一次读取到的部分数据
+					if len(line) > 0 {
+						// 处理剩余的数据行
+						bytesWritten, err := w.ResponseWriter.Write([]byte(line))
+						if err != nil {
+							return totalBytesWritten, err
+						}
+						totalBytesWritten += bytesWritten
+					}
 					break
 				}
 				return totalBytesWritten, err

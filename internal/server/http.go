@@ -133,6 +133,12 @@ func NewHTTPServer(
 			accountAuthRouter.POST("/update", accountHandler.UpdateAccount)
 			accountAuthRouter.POST("/oneapi/channels", accountHandler.GetOneApiChannelList)
 		}
+
+		userAuthRouter := v1.Group("/user").Use(middleware.StrictAuth(jwt, logger))
+		{
+			userAuthRouter.GET("/2fa_secret", userHandler.Get2FASecret)
+			userAuthRouter.POST("/2fa_verify", userHandler.Verify2FA)
+		}
 	}
 
 	return s

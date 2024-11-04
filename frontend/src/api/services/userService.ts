@@ -5,6 +5,7 @@ import {UserInfo} from "#/entity.ts";
 
 export interface SignInReq {
   password: string;
+  validateCode?: string;
   token?: string;
 }
 
@@ -16,11 +17,10 @@ export type SignInRes = {
 
 export enum UserApi {
   SignIn = 'login',
-  // SignIn = '/auth/signin',
   Logout = '/auth/logout',
 }
 
-const signin = (data: SignInReq) => apiClient.post<SignInRes>({ url: UserApi.SignIn, data });
+const signin = (data: SignInReq) => apiClient.post({ url: UserApi.SignIn, data });
 const logout = () => apiClient.get({ url: UserApi.Logout });
 
 export default {
