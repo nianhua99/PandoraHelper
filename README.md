@@ -8,7 +8,11 @@
 地址：https://www.oai2b.com  
 详细介绍：https://linux.do/t/topic/118652  
 ## 文档
-你可以访问 [文档](https://wiki.oai2b.com) 来查看如何部署、使用。
+你可以访问 文档站点： [https://wiki.oai2b.com](https://wiki.oai2b.com) 来查看如何部署、使用。
+
+<details>
+  <summary>旧版文档</summary>
+
 ## 简单介绍
 - **账号管理**: 集中管理ChatGPT和Claude账号。
 - **分享账号**: 轻松创建和管理共享账号, 与其他小伙伴共享ChatGPT Plus/Claude Pro服务。
@@ -133,6 +137,9 @@ kubectl apply -f deploy/k8s/deploy.yaml
 ### 分享登录
 本系统使用原生的Pandora登录页面，你可以在`/login`页面使用`Unique Name`和`密码`登录。
 ![img_2.png](imgs/img_2.png)
+
+</details>
+
 ## 写在最后
 - 特别鸣谢: [LinuxDo](https://linux.do/)
 - 本项目前端基于 [Slash-Admin](https://github.com/d3george/slash-admin)
