@@ -5,19 +5,22 @@ import (
 	"PandoraHelper/pkg/log"
 	"context"
 	"github.com/go-co-op/gocron"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"time"
 )
 
 type Task struct {
+	conf           *viper.Viper
 	log            *log.Logger
 	scheduler      *gocron.Scheduler
 	accountService service.AccountService
 	shareService   service.ShareService
 }
 
-func NewTask(log *log.Logger, accountService service.AccountService, shareService service.ShareService) *Task {
+func NewTask(conf *viper.Viper, log *log.Logger, accountService service.AccountService, shareService service.ShareService) *Task {
 	return &Task{
+		conf:           conf,
 		log:            log,
 		accountService: accountService,
 		shareService:   shareService,
@@ -68,11 +71,17 @@ func (t *Task) Start(ctx context.Context) error {
 
 	t.scheduler = gocron.NewScheduler(time.UTC)
 
-	_, err := t.scheduler.Every(1).Day().At("00:00").Do(t.RefreshAllAccountEveryday, ctx)
+	var refreshCron = t.conf.GetString("pandora.account_refresh_cron")
+	t.log.Info("refresh cron with second is:" + refreshCron)
+	var err error
+	if refreshCron != "" {
+		_, err = t.scheduler.CronWithSeconds(refreshCron).Do(t.RefreshAllAccountEveryday, ctx)
+	} else {
+		_, err = t.scheduler.Every(1).Day().At("00:00").Do(t.RefreshAllAccountEveryday, ctx)
+	}
 	if err != nil {
 		return err
 	}
-
 	_, err = t.scheduler.Every(1).Day().At("00:05").Do(t.RefreshShareLimitEveryday, ctx)
 	if err != nil {
 		return err
