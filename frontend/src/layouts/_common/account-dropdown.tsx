@@ -1,4 +1,4 @@
-import { Divider, MenuProps } from 'antd';
+import {Divider, MenuProps, notification} from 'antd';
 import Dropdown, { DropdownProps } from 'antd/es/dropdown/dropdown';
 import React, {useState} from 'react';
 import { useTranslation } from 'react-i18next';
@@ -74,7 +74,10 @@ export default function AccountDropdown() {
     sysService.verifyMfa(mfaCode, secret).then(res => {
       console.log(res);
       setMfaModalVisible(false);
-    });
+    }).catch(err => {
+      console.log(err);
+      notification.error({ message: 'MFA验证失败' });
+    })
   }
 
   return (

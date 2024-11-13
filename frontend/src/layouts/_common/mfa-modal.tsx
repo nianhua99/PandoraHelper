@@ -1,4 +1,4 @@
-import { Modal, Input, message, Spin } from "antd";
+import {Modal, Input, message, Spin, Flex, Typography, Alert} from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { QRCode } from "react-qrcode-logo"; // 导入二维码库
@@ -18,8 +18,8 @@ const MfaBindingModal = (
   });
 
   // 处理用户输入变化
-  const handleCodeChange = (e: any) => {
-    setMfaCode(e.target.value);
+  const handleCodeChange = (value: string) => {
+    setMfaCode(value);
   };
 
   // 点击“验证”按钮时触发
@@ -41,27 +41,29 @@ const MfaBindingModal = (
       okText="验证"
       cancelText="取消"
     >
-      <p>请使用您的MFA设备扫描二维码</p>
-      <p>{data?.url}</p>
-      {/* 加载状态或错误信息显示 */}
-      {isLoading ? (
-        <Spin />
-      ) : isError ? (
-        <p>获取二维码失败，请稍后重试。</p>
-      ) : (
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
-          {/* 渲染二维码 */}
-          <QRCode value={data?.url} size={200} />
-        </div>
-      )}
-
-      {/* 用户输入的MFA代码 */}
-      <Input
-        placeholder="请输入MFA代码"
-        value={mfaCode}
-        onChange={handleCodeChange}
-        style={{ marginTop: 16 }}
-      />
+      <Flex justify={"center"} wrap={'wrap'} gap={"middle"}>
+        <Typography.Title level={4} style={{textAlign: "center"}}>请使用Google Authenticator等APP扫描二维码</Typography.Title>
+        {/* 加载状态或错误信息显示 */}
+        {isLoading ? (
+          <Spin/>
+        ) : isError ? (
+          <p>获取二维码失败，请稍后重试。</p>
+        ) : (
+          <Flex justify={'center'} wrap={'wrap'} style={{textAlign: "center"}}>
+            {/* 渲染二维码 */}
+            <QRCode value={data?.url} size={200}/>
+            <Typography.Text style={{width: '100%'}} code copyable>{data?.secret}</Typography.Text>
+          </Flex>
+        )}
+        {/* 用户输入的MFA代码 */}
+        <Input.OTP
+          autoFocus={isOpen}
+          length={6}
+          value={mfaCode}
+          onChange={handleCodeChange}
+        />
+        <Alert type={"warning"} message={"绑定成功后, 你可以在配置文件中清空2fa_secret来强制解绑"} closable />
+      </Flex>
     </Modal>
   );
 };
