@@ -72,7 +72,13 @@ func ContentModerationMiddleware(conf *viper.Viper, logger *log.Logger) gin.Hand
 					return
 				}
 				if shouldBlock {
-					c.JSON(http.StatusTooEarly, gin.H{"detail": conf.GetString("moderation.message")})
+					result := map[string]interface{}{
+						"detail": map[string]interface{}{
+							"message": conf.GetString("moderation.message"),
+							"flagged": true,
+						},
+					}
+					c.JSON(http.StatusTooEarly, result)
 					c.Abort()
 					return
 				}
@@ -130,6 +136,7 @@ func checkContentForModeration(messages []string, apiKey string, apiHost string,
 		Post(apiHost)
 
 	if err != nil {
+		logger.Error("Moderation API returned an error: {}", zap.Error(err))
 		return false, err
 	}
 
