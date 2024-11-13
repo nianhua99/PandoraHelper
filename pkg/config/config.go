@@ -53,6 +53,7 @@ func setDefaults(conf *viper.Viper) {
 	conf.SetDefault("pandora.domain.token", "https://token.oaifree.com")
 	conf.SetDefault("pandora.domain.index", "https://new.oaifree.com")
 	conf.SetDefault("pandora.domain.claude", "https://demo.fuclaude.com")
+	conf.SetDefault("pandora.account_refresh_cron", "")
 
 	// Share settings
 	conf.SetDefault("share.random", true)

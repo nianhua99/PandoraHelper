@@ -46,7 +46,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	healthCheckHandler := handler.NewHealthCheckHandler()
 	httpServer := server.NewHTTPServer(logger, viperViper, jwtJWT, userHandler, shareHandler, accountHandler, healthCheckHandler)
 	job := server.NewJob(logger)
-	task := server.NewTask(logger, accountService, shareService)
+	task := server.NewTask(viperViper, logger, accountService, shareService)
 	migrate := server.NewMigrate(db, logger)
 	conversationRepository := repository.NewConversationRepository(repositoryRepository)
 	conversationLoggerMiddleware := middleware.NewConversationLoggerMiddleware(logger, conversationRepository)

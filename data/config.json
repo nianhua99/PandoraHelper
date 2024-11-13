@@ -46,11 +46,12 @@
       "claude": "http://localhost:9002",
       "index": "http://localhost:9001",
       "token": "https://token.oaifree.com"
-    }
+    },
+    "account_refresh_cron": ""
   },
   "security": {
     "2fa_secret": "",
-    "admin_password": ""
+    "admin_password": "12345678"
   },
   "share": {
     "custom": true,
