@@ -2,11 +2,7 @@
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-helper?color=gold)  
 本项目是基于oaifree和fuclaude实现的，感谢LinuxDo，可以在LinuxDo中联系我：[linux](https://linux.do/u/linux/summary)
-## Pandora Car
-我在本项目的基础上，开发了Pandora Car项目，这是一个公益项目，你可以理解为托管式的PandoraHelper
-目的是让不会部署或者没有VPS的小伙伴，也可以0门槛开GPT Plus车！  
-地址：https://www.oai2b.com  
-详细介绍：https://linux.do/t/topic/118652  
+
 ## 文档
 你可以访问 文档站点： [https://wiki.oai2b.com](https://wiki.oai2b.com) 来查看如何部署、使用。
 
