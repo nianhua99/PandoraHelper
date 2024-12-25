@@ -25,7 +25,7 @@ type ShareService interface {
 	DeleteShare(ctx context.Context, id int64) error
 	LoginShareByPassword(ctx context.Context, username string, password string) (string, error)
 	ShareStatistic(ctx context.Context, accountId int) (interface{}, interface{})
-	ShareResetPassword(ctx context.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error
+	ShareResetPassword(ctx context.Context, uniqueName string, password string, newPassword string) error
 	GetSharesByAccountId(ctx context.Context, accountId int) ([]*model.Share, error)
 	GetOauthLoginUrl(ctx context.Context, share *model.Share) (string, error)
 }
@@ -85,16 +85,13 @@ func (s *shareService) GetSharesByAccountId(ctx context.Context, accountId int) 
 	return s.shareRepository.GetSharesByAccountId(ctx, accountId)
 }
 
-func (s *shareService) ShareResetPassword(ctx context.Context, uniqueName string, password string, newPassword string, confirmNewPassword string) error {
+func (s *shareService) ShareResetPassword(ctx context.Context, uniqueName string, password string, newPassword string) error {
 	share, err := s.shareRepository.GetShareByUniqueName(ctx, uniqueName)
 	if err != nil {
 		return err
 	}
 	if share.Password != password {
 		return v1.ErrUsernameOrPassword
-	}
-	if newPassword != confirmNewPassword {
-		return v1.ErrPasswordNotMatch
 	}
 	share.Password = newPassword
 	err = s.shareRepository.Update(ctx, share)

@@ -2,7 +2,6 @@ package server
 
 import (
 	"PandoraHelper"
-	"PandoraHelper/docs"
 	"PandoraHelper/internal/handler"
 	"PandoraHelper/internal/middleware"
 	"PandoraHelper/pkg/jwt"
@@ -11,15 +10,13 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	swaggerfiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/ulule/limiter/v3"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	smem "github.com/ulule/limiter/v3/drivers/store/memory"
-	"html/template"
 	"io/fs"
 	nethttp "net/http"
 )
@@ -41,10 +38,6 @@ func NewHTTPServer(
 		http.WithServerPort(conf.GetInt("http.port")),
 	)
 
-	// health check
-	s.GET("/health", hearthCheckHandler.GetHealthCheck)
-	s.GET("/readiness", hearthCheckHandler.ReadinessHandler)
-
 	// rate limiter
 	var rateStr string
 	if conf.InConfig("http.rate") {
@@ -62,41 +55,41 @@ func NewHTTPServer(
 	s.ForwardedByClientIP = true
 	s.Use(limitMiddleware)
 
-	// swagger doc
-	docs.SwaggerInfo.BasePath = "/v1"
-	s.GET("/swagger/*any", ginSwagger.WrapHandler(
-		swaggerfiles.Handler,
-		//ginSwagger.URL(fmt.Sprintf("http://localhost:%d/swagger/doc.json", conf.GetInt("app.http.port"))),
-		ginSwagger.DefaultModelsExpandDepth(-1),
-	))
-
 	s.Use(
 		middleware.CORSMiddleware(),
 		middleware.ResponseLogMiddleware(logger),
 		middleware.RequestLogMiddleware(logger),
 		//middleware.SignMiddleware(log),
 	)
-	subFS, err := fs.Sub(PandoraHelper.EmbedWebFS, "web")
+
+	// 获取前端文件系统
+	frontendFS, err := fs.Sub(PandoraHelper.EmbedFrontendFS, "frontend/dist")
 	if err != nil {
 		panic(err)
 	}
-	s.StaticFS("/static", nethttp.FS(subFS))
-	tmpl := template.Must(template.New("").ParseFS(subFS, "auth/*.html"))
-	s.SetHTMLTemplate(tmpl)
 
-	// 首页重定向到登录页
-	s.GET("/", func(c *gin.Context) {
-		c.Redirect(nethttp.StatusMovedPermanently, "/login")
-	})
-	s.GET("/login", userHandler.ChatLoginIndex)
+	// 静态文件处理器
+	fileServer := nethttp.FileServer(nethttp.FS(frontendFS))
 
-	//s.Use(static.Serve("/admin", static.EmbedFolder(PandoraHelper.EmbedFrontendFS, "frontend/dist")))
-	subFS1, err := fs.Sub(PandoraHelper.EmbedFrontendFS, "frontend/dist")
-
-	s.StaticFS("/admin", nethttp.FS(subFS1))
+	// 处理所有非 API 路由
 	s.NoRoute(func(c *gin.Context) {
+		// 跳过 API 请求
+		if strings.HasPrefix(c.Request.URL.Path, "/api") {
+			c.String(nethttp.StatusNotFound, "404 not found")
+			return
+		}
+
+		// 尝试提供静态文件
+		path := c.Request.URL.Path
+		if _, err := frontendFS.Open(strings.TrimPrefix(path, "/")); err == nil {
+			fileServer.ServeHTTP(c.Writer, c.Request)
+			return
+		}
+
+		// 返回 index.html 用于客户端路由
 		file, err := PandoraHelper.EmbedFrontendFS.ReadFile("frontend/dist/index.html")
 		if err != nil {
+			c.String(nethttp.StatusInternalServerError, err.Error())
 			return
 		}
 		c.Data(nethttp.StatusOK, "text/html; charset=utf-8", file)
@@ -104,12 +97,14 @@ func NewHTTPServer(
 
 	checkURLs(conf, logger)
 
-	s.POST("/login_share", shareHandler.LoginShare)
-	s.POST("/reset_password", shareHandler.ShareResetPassword)
-	s.POST("/api/login_share", shareHandler.LoginShare)
+	// health check
+	s.GET("/health", hearthCheckHandler.GetHealthCheck)
+	s.GET("/readiness", hearthCheckHandler.ReadinessHandler)
 
 	v1 := s.Group("/api")
 	{
+		v1.POST("/login_share", shareHandler.LoginShare)
+		v1.POST("/reset_password", shareHandler.ShareResetPassword)
 		// No route group has permission
 		v1.POST("/login", userHandler.Login)
 		v1.POST("/share_accounts", accountHandler.GetShareAccountList)
@@ -138,6 +133,11 @@ func NewHTTPServer(
 		{
 			userAuthRouter.GET("/2fa_secret", userHandler.Get2FASecret)
 			userAuthRouter.POST("/2fa_verify", userHandler.Verify2FA)
+		}
+
+		settingRouter := v1.Group("/setting")
+		{
+			settingRouter.GET("/login", userHandler.GetLoginSettings)
 		}
 	}
 

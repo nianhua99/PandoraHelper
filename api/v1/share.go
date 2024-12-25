@@ -14,10 +14,9 @@ type LoginShareRequest struct {
 }
 
 type ShareResetPasswordRequest struct {
-	UniqueName         string `json:"uniqueName" binding:"required"`
-	Password           string `json:"password" binding:"required"`
-	NewPassword        string `json:"newPassword" binding:"required"`
-	ConfirmNewPassword string `json:"confirmNewPassword" binding:"required"`
+	UniqueName  string `json:"uniqueName" binding:"required"`
+	Password    string `json:"password" binding:"required"`
+	NewPassword string `json:"newPassword" binding:"required"`
 }
 
 type AddShareRequest struct {

@@ -18,6 +18,7 @@ export type SignInRes = {
 export enum UserApi {
   SignIn = 'login',
   Logout = '/auth/logout',
+  LoginShare = '/login_share',
 }
 
 const signin = (data: SignInReq) => apiClient.post({ url: UserApi.SignIn, data });

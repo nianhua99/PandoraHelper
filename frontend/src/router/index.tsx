@@ -23,6 +23,16 @@ const ExternalShareRoute: AppRouteObject = {
   Component: lazy(() => import('@/pages/share')),
 }
 
+const userLoginRoute: AppRouteObject = {
+  path: '/login',
+  Component: lazy(() => import('@/pages/user/login/login')),
+}
+
+const RootRoute: AppRouteObject = {
+  path: '/',
+  element: <Navigate to="/login" replace />, // 或 HOMEPAGE，取决于你的需求
+};
+
 export default function Router() {
   const permissionRoutes = usePermissionRoutes();
 
@@ -36,7 +46,7 @@ export default function Router() {
     children: [{ index: true, element: <Navigate to={HOMEPAGE} replace /> }, ...permissionRoutes],
   };
 
-  const routes = [LoginRoute, asyncRoutes,ExternalShareRoute, ErrorRoutes];
+  const routes = [RootRoute, LoginRoute, asyncRoutes,ExternalShareRoute,userLoginRoute, ErrorRoutes];
 
   const router = createBrowserRouter(
     routes as unknown as RouteObject[],

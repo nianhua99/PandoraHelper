@@ -5,6 +5,7 @@ export enum SysApi {
   setting = '/sys_info/info',
   getMfaSecret = '/user/2fa_secret',
   verifyMfa = '/user/2fa_verify',
+  loginSetting = '/setting/login'
 }
 
 export type PandoraUsage = {
@@ -16,11 +17,11 @@ export type PandoraUsage = {
 const getMfaSecretUrl = () => apiClient.get({ url: SysApi.getMfaSecret });
 const verifyMfa = (code: string,secret: string) => apiClient.post({ url: SysApi.verifyMfa, params: { code, secret } });
 const getPandoraUsage = () => apiClient.get<PandoraUsage>({ url: SysApi.pandoraUsage });
-const getSetting = () => apiClient.get({ url: SysApi.setting });
+const getLoginSetting = () => apiClient.get({ url: SysApi.loginSetting });
 
 export default {
   getPandoraUsage,
-  getSetting,
+  getLoginSetting,
   getMfaSecretUrl,
   verifyMfa
 };

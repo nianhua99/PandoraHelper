@@ -40,6 +40,9 @@ export default {
       'gray-700': '#454F5B',
       'gray-800': '#212B36',
       'gray-900': '#161C24',
+      'page-bg': '#F5F4EF',
+      'input-bg': '#F8F8F7',
+      'button-primary': '#C05F3C',
     },
     extend: {
       transitionProperty: {

@@ -33,12 +33,12 @@ func (h *ShareHandler) LoginShare(ctx *gin.Context) {
 		return
 	}
 
-	share, err := h.shareService.LoginShareByPassword(ctx, req.Username, req.Password)
+	url, err := h.shareService.LoginShareByPassword(ctx, req.Username, req.Password)
 	if err != nil {
 		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
 		return
 	}
-	v1.HandleSuccess(ctx, share)
+	v1.HandleSuccess(ctx, url)
 }
 
 func (h *ShareHandler) ShareResetPassword(ctx *gin.Context) {
@@ -49,7 +49,7 @@ func (h *ShareHandler) ShareResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.shareService.ShareResetPassword(ctx, req.UniqueName, req.Password, req.NewPassword, req.ConfirmNewPassword); err != nil {
+	if err := h.shareService.ShareResetPassword(ctx, req.UniqueName, req.Password, req.NewPassword); err != nil {
 		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
 		return
 	}

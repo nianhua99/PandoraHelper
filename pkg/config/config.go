@@ -96,5 +96,6 @@ func getConfig(path ...string) *viper.Viper {
 	conf.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	// 绑定环境变量
 	conf.AutomaticEnv()
+	conf.WatchConfig()
 	return conf
 }

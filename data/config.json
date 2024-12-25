@@ -21,16 +21,6 @@
     "rate": 1000,
     "title": "Pandora"
   },
-  "log": {
-    "compress": true,
-    "encoding": "console",
-    "level": "info",
-    "log_file_name": "./logs/server.log",
-    "max_age": 7,
-    "max_backups": 30,
-    "max_size": 1024,
-    "output": "console"
-  },
   "moderation": {
     "apikey": "",
     "apiurl": "https://api-proxy.oaipro.com/v1/moderations",
@@ -43,9 +33,9 @@
   "pandora": {
     "domain": {
       "chat": "https://chat.oaifree.com",
-      "claude": "http://localhost:9002",
-      "index": "http://localhost:9001",
-      "token": "https://token.oaifree.com"
+      "token": "https://token.oaifree.com",
+      "index": "https://new.oaifree.com",
+      "claude": "https://demo.fuclaude.com"
     },
     "account_refresh_cron": ""
   },

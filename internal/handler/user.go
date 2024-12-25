@@ -80,3 +80,11 @@ func (h *UserHandler) Verify2FA(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, valid)
 }
+
+func (h *UserHandler) GetLoginSettings(ctx *gin.Context) {
+	httpTitle := h.viper.GetString("http.title")
+	v1.HandleSuccess(ctx, map[string]string{
+		"pageTitle":      httpTitle,
+		"fuclaudeDomain": h.viper.GetString("pandora.domain.claude"),
+	})
+}
