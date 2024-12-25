@@ -44,7 +44,9 @@ const LoginPage = () => {
   const handleInputSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     if (isSessionKey) {
+      setLoading(true)
       window.location.href = `${fuclaudeDomain}/login_token?session_key=${input}`;
+      return
     }
     if (input) {
       setIsInputSubmitted(true);
