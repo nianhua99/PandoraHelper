@@ -1,7 +1,7 @@
 # Pandora Helper
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-helper?color=gold)  
-本项目是基于oaifree和fuclaude实现的，感谢LinuxDo，可以在LinuxDo中联系我：[linux](https://linux.do/u/linux/summary)
+本项目是基于oaifree和fuclaude实现的，感谢LinuxDo，
 
 ## 文档
 你可以访问 文档站点： [https://wiki.oai2b.com](https://wiki.oai2b.com) 来查看如何部署、使用。
