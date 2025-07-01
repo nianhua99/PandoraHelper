@@ -141,6 +141,8 @@ kubectl apply -f deploy/k8s/deploy.yaml
 - 本项目前端基于 [Slash-Admin](https://github.com/d3george/slash-admin)
 - 本项目后端基于 [go-nunu](https://github.com/go-nunu/nunu)
 - 本项目的 CDN 加速和安全保护由腾讯 EdgeOne 赞助
+- CDN acceleration and security protection for this project are sponsored by Tencent EdgeOne.
+- [Best Asian CDN, Edge, and Secure Solutions - Tencent EdgeOne](https://edgeone.ai/?from=github)
 [![Best Asian CDN, Edge, and Secure Solutions - Tencent EdgeOne](https://github.com/user-attachments/assets/f31302e8-4702-4d6b-aae9-68770164d281)](https://edgeone.ai/?from=github)
 
 ## Star History
