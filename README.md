@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/ae72fd7e-0cb0-41c5-998b-c92a36a8e3a3)# Pandora Helper
+
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-helper?color=gold)  
 本项目是基于oaifree和fuclaude实现的，感谢LinuxDo，
