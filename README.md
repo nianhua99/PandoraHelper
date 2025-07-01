@@ -1,4 +1,4 @@
-# Pandora Helper
+![image](https://github.com/user-attachments/assets/ae72fd7e-0cb0-41c5-998b-c92a36a8e3a3)# Pandora Helper
 ![Static Badge](https://img.shields.io/badge/Next-8A2BE2?label=Pandora)
 ![Docker Pulls](https://img.shields.io/docker/pulls/q11391/pandora-helper?color=gold)  
 本项目是基于oaifree和fuclaude实现的，感谢LinuxDo，
@@ -140,6 +140,9 @@ kubectl apply -f deploy/k8s/deploy.yaml
 - 特别鸣谢: [LinuxDo](https://linux.do/)
 - 本项目前端基于 [Slash-Admin](https://github.com/d3george/slash-admin)
 - 本项目后端基于 [go-nunu](https://github.com/go-nunu/nunu)
+- 本项目的 CDN 加速和安全保护由腾讯 EdgeOne 赞助
+[![Best Asian CDN, Edge, and Secure Solutions - Tencent EdgeOne](https://github.com/user-attachments/assets/f31302e8-4702-4d6b-aae9-68770164d281)](https://edgeone.ai/?from=github)
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nianhua99/PandoraNext-Helper&type=Date)](https://star-history.com/#nianhua99/PandoraNext-Helper&Date)
